@@ -30,7 +30,7 @@ class Readfile(object):
             if line.startswith('#'):
                 line = line.replace("#", "")
                 line = line.lower()
-                head = line.strip('\n').split('\t')
+                head = line.strip('\n').split()
                 for count, h in enumerate(head):
                     header[count] = h.lower()
             else:
@@ -38,7 +38,7 @@ class Readfile(object):
 
             for line_count, line in enumerate(f):
                 self.input[line_count] = {}
-                larray = line.strip('\n').split('\t')
+                larray = line.strip('\n').split()
                 for count, item in enumerate(larray):
                     self.input[line_count][header[count]] = item
 
