@@ -11,7 +11,7 @@ from GeneCompatibility.retrievegeneseqs import geneSeqs_KEGG as gse
 from GeneCompatibility.BLAST import run_blast as rb
 from GeneCompatibility.NCBI_SSU import pull_16S_seq_NCBI as psN
 from GeneCompatibility.KEGG import kegg_functions as kf
-from Bio.Data import IUPACData 
+from bio.Data import IUPACData 
 from GeneCompatibility.D_Tailor import SequenceAnalyzer as sa
 from GeneCompatibility.D_Tailor import Solution as so 
 from GeneCompatibility.D_Tailor.Features import CAI 
