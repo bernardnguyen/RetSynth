@@ -2,8 +2,13 @@ import os
 import shutil
 import re
 import sqlite3
-import urllib.request, urllib.error, urllib.parse
-import http.client
+try:
+    import urllib.request as urllib2
+    import http.client as httplib
+except:
+    import urllib2
+    import httplib
+# from tqdm import tqdm
 from multiprocessing import Process, Queue
 from requests.exceptions import ConnectionError
 from cobra import io
@@ -32,12 +37,13 @@ def verbose_print(verbose, line):
 
 def extract_KEGG_data(url, verbose):
     '''Extract Kegg db info'''
+    print("STATUS: Getting data for url "+url)
     try:
         verbose_print(verbose, url)
-        data = urllib.request.urlopen(url).read().decode('utf-8')
-        darray = data.split('\n')
+        data = urllib2.urlopen(url).read()
+        darray = str(data).split('\\n')
         return(darray)
-    except urllib.error.HTTPError:
+    except urllib2.HTTPError:
         return(None)
 
 def retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd_name, compart_info,
@@ -52,9 +58,9 @@ def retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd_name, compar
                     count = 4
                 else:
                     count+=1
-                    verbose_print(verbose, 'WARNING:\tNo INCHI was found from {} will try again for {} time'.format(raw_cpd_keggid, count))
+                    verbose_print(verbose, 'WARNING: No INCHI was found from {} will try again for {} time'.format(raw_cpd_keggid, count))
             if not inchi:
-                verbose_print(verbose, 'STATUS:\ttrying to inchi for compound {} through pubchem'.format(raw_cpd_keggid))
+                verbose_print(verbose, 'STATUS: trying to inchi for compound {} through pubchem'.format(raw_cpd_keggid))
                 inchi, iupac_name, cas = CT.translate(cpd_name)
         else:
             inchi, iupac_name, cas = CT.translate(cpd_name)
@@ -80,6 +86,7 @@ def retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd_name, compar
 def kegg2pubcheminchi(cpd, verbose):
     '''Convvert kegg ID to InChI value'''
     darray = extract_KEGG_data(KEGG+'get/'+cpd, verbose)
+
     inchicpd = None
     cas = None
     if darray:
@@ -96,10 +103,10 @@ def kegg2pubcheminchi(cpd, verbose):
                             compounds = pubchempy.get_compounds(substance_cids[0])
                             if compounds:
                                 inchicpd = compounds[0].inchi
-                        except (pubchempy.PubChemHTTPError, http.client.BadStatusLine, urllib.error.URLError):
+                        except (pubchempy.PubChemHTTPError, httplib.BadStatusLine, urllib2.URLError):
                             pass
-                except (pubchempy.PubChemHTTPError, http.client.BadStatusLine, urllib.error.URLError):
-                    verbose_print(verbose, 'WARNING:\tCould not get substance for {} {}'.format(sid, cpd))
+                except (pubchempy.PubChemHTTPError, httplib.BadStatusLine, urllib2.URLError):
+                    verbose_print(verbose, 'WARNING: Could not get substance for {} {}'.format(sid, cpd))
                     pass
             if 'CAS:' in array:
                 index = array.index('CAS:')
@@ -139,21 +146,29 @@ def get_KEGG_IDs(ID, compartment, KEGGdict):
 
 def build_patric_models(genome_id, genome_name, media, username):
     '''Builds patric models on the patric server'''
+
     try:
         patric_model=mackinac.create_patric_model(str(genome_id), genome_name,
                                                   media_reference='/chenry/public/modelsupport/media/{}'.format(media)) #Carbon-D-Glucose'
+
     except ConnectionError:
         pass
+
     except ValueError:
-        print(('STATUS:\tNo model identified for genome {} {}'.format(genome_id, genome_name)))
+        print ('STATUS: No model identified for genome {} {}'.format(genome_id, genome_name))
+
     except Exception as e:
-        print(('STATUS:\tUnexpected error generating patric model for genome {} {}'.format(genome_id, genome_name)))
+        print ('STATUS: Unexpected error generating patric model for genome {} {}'.format(genome_id, genome_name))
         print (e)
+
 def generate_sbml_output_folder(output_folder):
     '''Generate output folder for sbml fba models if user has specified this option'''
+
     try:
         os.mkdir(output_folder)
+
     except OSError:
+
         shutil.rmtree(output_folder)
         os.mkdir(output_folder)   
 
@@ -203,17 +218,20 @@ class BuildModelSeed(object):
 
     def process_cobra_model(self, model, genome_id):
         '''Adds information from cobra model into appropriate arrays'''
-        print(('STATUS:\tProcessing cobra model {}'.format(genome_id)))
+        print ('STATUS: Processing cobra model {}'.format(genome_id))
+        print ('STATUS: Getting metabolites for cobra model {}'.format(genome_id))
+
         model_compounds = []
         model_reactions = []
         reaction_gene = []
         reaction_protein = []
         reactions_compounds = []
         cpd_IDs = {}
-        print(('STATUS:\tGetting metabolites for cobra model {}'.format(genome_id)))
+
         for cpd in model.metabolites:
             new_cpd_keggid, raw_cpd_keggid=get_KEGG_IDs(cpd.id, cpd.compartment, self.CPD2KEGG)
             cpd_IDs[cpd.id] = new_cpd_keggid
+
             if self.inchidb:
                 self.inchi_dict, self.inchi_cf_dict,self.inchi_cas_dict = retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd.name,
                                                                                                       cpd.compartment, self.inchi_dict,
@@ -230,12 +248,12 @@ class BuildModelSeed(object):
                 model_compounds.append((new_cpd_keggid, genome_id))
                 self.allcompounds.add((new_cpd_keggid, cpd.name, cpd.compartment+'0', raw_cpd_keggid, 'None', 'None'))
 
-        print(('STATUS:\tGetting reactions for cobra model {}'.format(genome_id)))
+        print ('STATUS: Getting reactions for cobra model {}'.format(genome_id))
         for reaction in model.reactions:
             try:
                 new_rxn_keggid, raw_rxn_keggid=get_KEGG_IDs(reaction.id, list(reaction.compartments)[0], self.RXN2KEGG)
             except (KeyError, IndexError):
-                print(('STATUS:\t{} has no compartments {} make compartment c0'.format(reaction.id, reaction.compartments)))
+                print ('STATUS: {} has no compartments {} make compartment c0'.format(reaction.id, reaction.compartments))
                 new_rxn_keggid, raw_rxn_keggid=get_KEGG_IDs(reaction.id, 'c', self.RXN2KEGG)
             if new_rxn_keggid.startswith('bio'):
                 new_rxn_keggid  = new_rxn_keggid+'_'+str(genome_id)
@@ -277,7 +295,7 @@ class BuildModelSeed(object):
     def load_complete_genomes(self):
         '''Loads a list of patric genome IDs that are complete genomes'''
         self.complete_genomes = []
-        print ('STATUS:\tLoading complete patric genome IDs')
+        print ('STATUS: Loading complete patric genome IDs')
         with open(self.patricfile) as fin:
             header = fin.readline()
             for line in fin:
@@ -289,7 +307,7 @@ class BuildModelSeed(object):
         model_compartments = set()
         model_ids = []
         
-        print ('STATUS:\tgetting patric modeling information from genomes')
+        print ('STATUS: getting patric modeling information from genomes')
         models_in_ws = mackinac.list_patric_models()
         if models_in_ws is not None:
             models_in_ws_id = [m['id'] for m in models_in_ws]
@@ -302,15 +320,15 @@ class BuildModelSeed(object):
             genome_name = re.sub("""\'|\"""", '', genome_name)
             genome_name = re.sub(' ', '_', genome_name)
             self.complete_genomes_new_name.append((genome_id, genome_name+'_'+self.media))
-            print(("STATUS:\tgetting patric model for genome {} {}".format(genome_name+'_'+self.media, genome_id)))
+            print ("STATUS: getting patric model for genome {} {}".format(genome_name+'_'+self.media, genome_id))
             if genome_name+'_'+self.media not in models_in_ws_id:
                 new_patric_models.append((genome_id, genome_name+'_'+self.media, self.media, self.username))
             else:
                 count_models+=1
-        print(('STATUS:\t{} models already generated'.format(count_models)))
+        print ('STATUS: {} models already generated'.format(count_models))
         ###Multiple processors used to get patric models 
         if not self.previously_built_patric_models:
-            print ("STATUS:\tGenerating new patric models")
+            print ("STATUS: Generating new patric models")
             model_chunks = [new_patric_models[i:i+self.processors] for i in range(0, len(new_patric_models), self.processors)]
             for models in model_chunks:
                 processes = []
@@ -321,16 +339,15 @@ class BuildModelSeed(object):
                 for p in processes:
                     p.join()
         else:
-            print ('STATUS:\tUsing models already in patric')    
-        print ('STATUS:\tConverting patric models into cobra models and loading into database ... ')
-        count = 0
+            print ('STATUS: Using models already in patric')    
+        print ('STATUS: Converting patric models into cobra models and loading into database ... ')
         models = set()
         for (genome_id, genome_name) in self.complete_genomes_new_name:
             if genome_id not in models:
                 count_attemps = 0
                 while count_attemps < 3:
                     try:
-                        print(('STATUS:\tretrieving cobra model for {}'.format(genome_name)))
+                        print ('STATUS: retrieving cobra model for {}'.format(genome_name))
                         cobra_model = mackinac.create_cobra_model_from_patric_model(genome_name)
                         count_attemps = 4
                         models.add(genome_id)
@@ -343,21 +360,21 @@ class BuildModelSeed(object):
                             io.write_sbml_model(cobra_model, self.output_folder+'sbml_models/'+genome_name+'_'+self.media)
                     except ConnectionError:
                         count_attemps+=1
-                        print(('STATUS:\tUnable to get cobra model for genome {} {}, error 1, attempt {}'.format(genome_id, genome_name, count_attemps)))
+                        print ('STATUS: Unable to get cobra model for genome {} {}, error 1, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
                     except mackinac.SeedClient.ObjectNotFoundError:
                         count_attemps+=1
-                        print(('STATUS:\tUnable to get cobra model for genome {} {}, error 2, attempt {}'.format(genome_id, genome_name, count_attemps)))
+                        print ('STATUS: Unable to get cobra model for genome {} {}, error 2, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
                     except Database.mackinac.SeedClient.ObjectNotFoundError:
                         count_attemps+=1
-                        print(('STATUS:\tUnable to get cobra model for genome {} {},  error 3, attempt {}'.format(genome_id, genome_name, count_attemps)))
+                        print ('STATUS: Unable to get cobra model for genome {} {},  error 3, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
                     except:
                         count_attemps+=1
-                        print(('STATUS:\tUnexpected error for cobra model for genome {} {},  error 4, attempt {}'. format(genome_id, genome_name, count_attemps)))
+                        print ('STATUS: Unexpected error for cobra model for genome {} {},  error 4, attempt {}'. format(genome_id, genome_name, count_attemps))
             else:
-                print(('STATUS:\t{} genome already in database'.format(genome_id)))
+                print ('STATUS: {} genome already in database'.format(genome_id))
             reaction_revers_total = []
         for rxnid, revers in self.reaction_reversibility.items():
             reaction_revers_total.append((rxnid, revers))
@@ -480,22 +497,22 @@ class LoadIntoDB(object):
         
     def add_cluster_info(self):
         '''Loads cluster information into database'''
-        print ('STATUS:\tAdding patric cluster info')
+        print ('STATUS: Adding patric cluster info')
         q=self.cnx.execute("SELECT * FROM cluster")
         db_clusters = q.fetchall()
         metabolic_clusters = {}
         cluster_org = {}
         
         if len(db_clusters) > 0:
-            verbose_print(self.verbose, 'STATUS:\tgetting cluster information which is already in the database...')
+            verbose_print(self.verbose, 'STATUS: getting cluster information which is already in the database...')
             for cluster in db_clusters:
                 cluster_org.setdefault(cluster[0], []).append(cluster[1])
                 if cluster[0] not in metabolic_clusters:
                     metabolic_clusters[cluster[0]]={}
                     sorted_cpds = self.get_model_sorted_cpds(cluster[1])
                     sorted_rxns = self.get_model_sorted_rxns(cluster[1])
-                    metabolic_clusters[cluster[0]]['comps'] = sorted_cpds
-                    metabolic_clusters[cluster[0]]['rxns'] = sorted_rxns                    
+                    metabolic_clusters[1]['comps'] = sorted_cpds
+                    metabolic_clusters[1]['rxns'] = sorted_rxns                    
 
         q=self.cnx.execute("SELECT ID FROM model")
         hits = q.fetchall()
