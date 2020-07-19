@@ -5,7 +5,7 @@ biopython==1.74
 bs4==0.0.1
 certifi==2019.9.11
 chardet==3.0.4
-cobra==0.16.0
+cobra==0.14.1
 depinfo==1.5.1
 et-xmlfile==1.0.1
 future==0.18.0
