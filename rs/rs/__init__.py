@@ -1,5 +1,5 @@
-__author__ = 'Leanne Whitmore and Corey Hudson'
-__email__ = 'lwhitmo@sandia.gov and cmhudso@sandia.gov'
+__author__ = 'Leanne Whitmore, Bernard Nguyen and Corey Hudson'
+__email__ = 'leanne382@gmail.com, bernguy@sandia.gov and cmhudso@sandia.gov'
 __description__ = 'Main code to RetSynth (RS)'
 
 from multiprocessing import Process, Queue
