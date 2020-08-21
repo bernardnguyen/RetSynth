@@ -139,20 +139,6 @@ def parse_arguments():
                                                                stored in the patric users /home/models/ folder \
                                                                then this option should be specified',
                         required=False, action="store_true")
-
-    ###INTEGRATING KBASE FBA MODELS INTO RETSYNTH DB
-    parser.add_argument('--kbase', help='Set whether to build database with Kbase data, \
-                                         requires folder of fba models (SBML format) previously \
-                                         downloaded from kbase website https://kbase.us/',  required=False,
-                        action="store_true")
-                    
-    parser.add_argument('-k_dir', '--kbase_dump_directory', help='Path to folder \
-                                                                  of SBML network files from kbase',
-                        required=False, type=str)
-    parser.add_argument('-kbaserxntype', '--kbase_reaction_type', help='Define type of reactions \
-                                                             that are being added to database \
-                                                            (options are bio (default) and chem)',
-                        required=False, type=str, default='bio')
     ###INTEGRATING METACYC REACTIONS INTO RETSYNTH DB
     parser.add_argument('--metacyc', help='Set whether to build database with metacyc',  required=False,
                         action="store_true")    
