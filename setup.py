@@ -52,6 +52,6 @@ setup(name="RetSynth_gc",
       include_package_data=True,
       zip_safe=False,
       scripts=[
-          'rs/rs.py',
+          'rs/rs',
       ]
 )
