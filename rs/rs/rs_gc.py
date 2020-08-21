@@ -2,7 +2,7 @@ __author__ = 'Leanne Whitmore, Bernard Nguyen and Corey Hudson'
 __email__ = 'leanne382@gmail.com, bernguy@sandia.gov and cmhudso@sandia.gov'
 __description__ = 'Main code to RetSynth (RS)'
 
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 import argparse
 from copy import deepcopy
 
@@ -663,7 +663,7 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                         for enzyme in enzymes:
                             verbose_print(args.verbose,'\nSTATUS:\tOptimizing gene compatibility for EC: %s' % enzyme)
                             gc(database,enzyme,target_org=target_info[2],output_directory=output.GC_output_path,
-                                cai_optimal_threshold=args.cai_optimal_threshold,default_db='%s.db' % DEFAULT_DB_NAME)
+                                cai_optimal_threshold=args.cai_optimal_threshold, default_db='%s.db' % DEFAULT_DB_NAME)
                     else:
                         verbose_print(args.verbose, 'STATUS:')
 
@@ -709,27 +709,40 @@ def main():
     verbose_print(args.verbose,'\nSTATUS:\tRetrieving database information...')
     all_db_compounds, all_db_reactions, database = retrieve_database_info(args)
     targets, ignore_reactions, output, temp_imgs_PATH = read_in_and_generate_output_files(args, database)
-    
+
+    args_targets = [targets[i:i+args.processors]
+            for i in range(0, len(targets), args.processors)]
+
     if targets:
-      verbose_print(args.verbose,'\nSTATUS:\tRetrieving reaction constraints...')
-      LP = retrieve_constraints(args, all_db_reactions, all_db_compounds, ignore_reactions, database)
-      
-      verbose_print(args.verbose,'\nSTATUS:\tConstructing and running linear integer program...')
-      IP = construct_and_run_integerprogram(args, targets, output, database)        
+        verbose_print(args.verbose,'\nSTATUS:\tRetrieving reaction constraints...')
+        LP = retrieve_constraints(args, all_db_reactions, all_db_compounds, ignore_reactions, database)
 
-      for target in targets:
-          LPc=deepcopy(LP)
-          retrieve_shortestpath(target, IP, LPc, database, args, output, temp_imgs_PATH)
+        verbose_print(args.verbose,'\nSTATUS:\tConstructing and running linear integer program...')
+        IP = construct_and_run_integerprogram(args, targets, output, database)        
 
-      if args.output_xlsx_format:
-          output.convert_output_2_xlsx()
+        args_targets = [targets[i:i+args.processors]
+                for i in range(0, len(targets), args.processors)]
 
-    '''Remove all temporary images'''
-    shutil.rmtree(temp_imgs_PATH)
+        for targets in args_targets:
+            processes = []
+            for target in targets:
+                LPc=deepcopy(LP)
+                processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LPc, database, args, output, temp_imgs_PATH)))
+                # retrieve_shortestpath(target, IP, LPc, database, args, output, temp_imgs_PATH)
+            for p in processes:
+                p.start()
+            for p in processes:
+                p.join()
 
-    '''Removes all dot files if they exist'''
-    for filename in glob.glob(args.output_path+"/solution_figures/*.dot"):
-        os.remove(filename)
+            if args.output_xlsx_format:
+                output.convert_output_2_xlsx()
+
+        '''Remove all temporary images'''
+        shutil.rmtree(temp_imgs_PATH)
+
+        '''Removes all dot files if they exist'''
+        for filename in glob.glob(args.output_path+"/solution_figures/*.dot"):
+            os.remove(filename)
 
 if __name__ == '__main__':
     main()
