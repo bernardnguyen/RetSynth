@@ -425,7 +425,7 @@ class MetaCyc(object):
         if self.inchidb is True:
             self.CT = pit.CompoundTranslator()
 
-        filename = open(file_name)
+        filename = open(file_name, encoding = "ISO-8859-1")
         strainer = SoupStrainer('model')
         soup = BeautifulSoup(filename, "lxml", parse_only=strainer)
         model = soup.find('model')
