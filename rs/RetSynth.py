@@ -46,6 +46,7 @@ from Parser import read_startcompounds as rtsc
 from Parser import read_targets as rt
 from Parser import generate_output as go
 from Parser import structure_similarity as ss
+from Parser import generate_html as gh
 from Visualization_chemdraw import reaction_files as rf
 from ShortestPath import extractinfo as ei
 from ShortestPath import constraints as co
@@ -334,7 +335,7 @@ def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_im
     verbose_print(verbose, "Time to find all paths for "+str(target_info[0])+' '+str(end - start))
 
 
-class RetSynth(object):
+class RetSynthGC(object):
     """
     Attributes:
         targets = file to list of target compounds
@@ -365,7 +366,7 @@ class RetSynth(object):
         SPRESI = build database with SPRESI repository information
         spresi_dump_directory = directory wiht raw data from spresi (this has to be purchased not provided with RetSynth)
         user_rxns_2_database = database in a text file that user wants to add to the database
-        gene_compatability = run gene compatabiity module
+        gene_compatability = run gene compatabiity module (defualt is set to True)
         flux_balance_analysis = specifies RetSynth to run flux balance analysis 
         media_for_FBA = specifies media to use for FBA, should be the same as patric_media for best results 
         knockouts = specifies RetSynth to perform knockout analysis (takes time, knockouts out each reaction in an organism to and examines if we get more target compound production)
@@ -380,14 +381,14 @@ class RetSynth(object):
         rankpathways_boilingpoint = rank pathways based on compounds boiling point 
         rankpathways_logP = rank pathways based on logp value
     """
-    def __init__(self, targets=None, output_path=".", output_xlsx_format=False, processors=4, start_compounds=None, verbose=False,
+    def __init__(self, targets=None, output_path=".", output_html=True, output_xlsx_format=False, processors=4, start_compounds=None, verbose=False,
      generate_database=False, generate_database_constraints=False, database=False, database_constraints=False, inchidb=True, patric_models=False,
      patric_username=None, patric_password=None, patric_reaction_type="bio", patric_media="Complete", patric_sbml_output=False,
      patricfile=PATH+'/Database/data/PATRIC_genome_complete_07152018.csv', patric_models_already_built=False,
      metacyc=False, metacyc_addition=None, metacyc_reaction_type="bio", kegg=False, kegg_reaction_type="bio", kegg_organism_type="bacteria",
      kegg_number_of_organisms="all", kegg_number_of_organism_pathway="all", atlas=False, atlas_dump_directory=None,
      atlas_reaction_type="bio", mine=False, mine_dump_directory=None, mine_reaction_type=True, SPRESI=False,
-     spresi_dump_directory=None, spresi_reaction_type="chem", user_rxns_2_database=False, gene_compatability=False,
+     spresi_dump_directory=None, spresi_reaction_type="chem", user_rxns_2_database=False, gene_compatability=True,
      user_rxns_2_database_type="bio", flux_balance_analysis=False, media_for_FBA="Complete", knockouts=False, limit_reactions=10, limit_cycles='None', solver_time_limit=30, evaluate_reactions="all", 
      k_number_of_paths=0, multiple_solutions=str(True), cycles=str(True), run_tanimoto_threshold=False, figures_chemdraw=False,
      show_rxn_info=False, figures_graphviz=False, images=True, timer_output=False, rankingpathways_seperation_file=None,
@@ -486,7 +487,11 @@ class RetSynth(object):
 
         if self.output_xlsx_format:
             output.convert_output_2_xlsx()
-
+        
+        if self.output_html:
+            print("STATUS: writing html file")
+            gh.HtmlOutput(len(targets), self.output_path, self.flux_balance_analysis, self.figures_graphviz, self.output_path+"/Results.html")
+        
         '''Remove all temporary images'''
         shutil.rmtree(temp_imgs_PATH)
 

@@ -17,6 +17,7 @@ from Parser import read_startcompounds as rtsc
 from Parser import read_targets as rt
 from Parser import generate_output as go
 from Parser import structure_similarity as ss
+from Parser import generate_html as gh
 from Visualization_chemdraw import reaction_files as rf
 from ShortestPath import extractinfo as ei
 from ShortestPath import constraints as co
@@ -66,6 +67,9 @@ def parse_arguments():
                                                               files (warning:\tdo not do this if \
                                                               getting pathways for 100s of compounds)',
                         required=False, action="store_true")
+    parser.add_argument('-oh', '--output_html', help='Convert output txt files to html \
+                                                            output',
+                    required=False, action="store_true")
     parser.add_argument('-stcpds', '--start_compounds', help='Insead of using an host organism FBA model \
                                                               as starting material \
                                                               the user can provide a \
@@ -736,6 +740,10 @@ def main():
 
             if args.output_xlsx_format:
                 output.convert_output_2_xlsx()
+
+            if args.output_html:
+                print("STATUS: writing html file")
+                gh.HtmlOutput(len(targets), args.output_path, args.flux_balance_analysis, args.figures_graphviz, args.output_path+"/Results.html")
 
         '''Remove all temporary images'''
         shutil.rmtree(temp_imgs_PATH)
