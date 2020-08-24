@@ -398,6 +398,12 @@ def read_in_and_generate_output_files(args, database):
     R = rt.Readfile(args.targets, DB, args.inchidb)
     if not R.targets:
         raise ValueError('ERROR:\tNo targets, try different compounds')
+    try:
+        verbose_print(args.verbose, "STATUS: generating output folder "+args.output_path)
+        os.mkdir(args.output_path)
+    except:
+        verbose_print(args.verbose, "STATUS: output folder already exists "+args.output_path)
+        pass
     DB_missing_targets = targets_missing(R.targets, database)
     if DB_missing_targets:
         args.run_tanimoto_threshold = True

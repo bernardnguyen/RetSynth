@@ -455,9 +455,12 @@ class RetSynthGC(object):
 
         #Generate new output path if need be 
         try:
+            verbose_print(args.verbose, "STATUS: generating output folder "+args.output_path)
             os.mkdir(self.output_path)
         except:
+            verbose_print(args.verbose, "STATUS: output folder already exists "+args.output_path)
             pass
+
         #Main program
         self.check_arguments()
         all_db_compounds, all_db_reactions, database = self.retrieve_database_info()
