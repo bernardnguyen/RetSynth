@@ -48,7 +48,7 @@ class Tree(object):
 
 class ReactionFiles(object):
     def __init__(self, output_path, DB, reactions, target,
-                 target_organism, incpds, figures, use_iupac_names, cdxmlfiles=True):
+                 target_organism, incpds, cdxmlfiles=True):
         self.output_path = output_path
         self.DB = DB
         self.incpds = incpds
@@ -56,8 +56,6 @@ class ReactionFiles(object):
         self.reactions = reactions
         self.target = target
         self.target_organism = target_organism
-        self.figures = figures
-        self.use_iupac_names = use_iupac_names
         self.target_organism_name = self.DB.get_organism_name(target_organism)
         self.cdxmlfiles = cdxmlfiles
         self.ordered_paths = self.order_of_paths()
@@ -76,12 +74,12 @@ class ReactionFiles(object):
                 if cpd_name == 'None':
                     cpd_name = '_'.join(cpd.split('/'))
 
-                mol = self.IN.loadMolecule(cpd)                              
+                mol = IN.loadMolecule(cpd)                              
                 if self.promiscuous.get(cpd_name) is None:
                     cdxml_cpds.append(cpd_name)
-                    self.IN.setOption("render-comment", cpd_name)
-                    self.IN.setOption("render-output-format", "cdxml")
-                    self.IR.renderToFile(mol, self.output_path+'/compounds/'+cpd_name+'.cdxml')
+                    IN.setOption("render-comment", cpd_name)
+                    IN.setOption("render-output-format", "cdxml")
+                    IR.renderToFile(mol, self.output_path+'/compounds/'+cpd_name+'.cdxml')
                 else:
                     promiscuous_cpds.append(cpd_name)
             else:
@@ -286,6 +284,7 @@ class ReactionFiles(object):
                         get_logP(os_dict[rxn]['products'])
 
                     org = self.reactions[count_pathway][rxn]['organisms'][0]
+                    print(rxn)
                     protein = self.DB.get_proteins(rxn, org)
                     if protein != "None":
                         try:
