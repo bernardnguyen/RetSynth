@@ -12,9 +12,14 @@ if platform == 'darwin' or platform == "linux" or platform == "linux2":
     _BLAST_PATH = PATH+'/ncbi-blast-2.9.0+_mac/bin/'
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
     _BLAST_PATH = PATH+'/ncbi-blast-2.9.0+_win/bin/'
-_BLAST_OUTPUT_PATH = PATH+'/blastoutput/'
-_BLAST_QUERY_PATH = PATH+'/query/'
-_BLAST_DATABASE_PATH = PATH+'/blastdbs/'
+if platform == "cygwin":
+    _BLAST_OUTPUT_PATH = "C:/cygwin64/"+PATH+'/blastoutput/'
+    _BLAST_QUERY_PATH = "C:/cygwin64/"+PATH+'/query/'
+    _BLAST_DATABASE_PATH = "C:/cygwin64/"+PATH+'/blastdbs/'
+else:
+    _BLAST_OUTPUT_PATH = PATH+'/blastoutput/'
+    _BLAST_QUERY_PATH = PATH+'/query/'
+    _BLAST_DATABASE_PATH = PATH+'/blastdbs/'
 
 class ImplementBLAST(object):
     def __init__(self, blastdb, chassis_org, Seq16S_filename, run=True):
@@ -24,6 +29,8 @@ class ImplementBLAST(object):
         self.blastdb = blastdb
         self.chassis_org = chassis_org
         self.Seq16S_filename = Seq16S_filename
+        if platform=="cygwin":
+            self.Seq16S_filename = "C:/cygwin64/"+self.Seq16S_filename
 
         if run:
             self.read_16S_fasta_file()
@@ -68,11 +75,13 @@ class ImplementBLAST(object):
         '''make blast database'''
 
         if os.path.isfile(_BLAST_DATABASE_PATH+self.blastdb+'.nin') is False:
+            print("STATUS: Making blastdbs")
+
             args_makedbs = [_BLAST_PATH+'makeblastdb', '-in', self.Seq16S_filename, '-dbtype',
                             'nucl', '-out', _BLAST_DATABASE_PATH+self.blastdb]
 
-            process = subprocess.Popen(args_makedbs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdoutdata, stderrdata = process.communicate()
+            process = subprocess.run(args_makedbs)#, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # stdoutdata, stderrdata = process.communicate()
         
         else:
             print ('INFO:\t{} blast databases already exist'.format(self.blastdb))
@@ -90,8 +99,8 @@ class ImplementBLAST(object):
                        "-query", _BLAST_QUERY_PATH+'temp_input_query.fa', 
                        "-out", _BLAST_OUTPUT_PATH+"blast_out_"+self.chassis_org+'.txt']
 
-        process = subprocess.Popen(args_blastn)
-        stdoutdata, stderrdata = process.communicate()
+        process = subprocess.run(args_blastn)
+        # stdoutdata, stderrdata = process.dd()
 
     def process_blast_output(self):
         '''read in blast output file'''
