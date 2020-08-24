@@ -21,8 +21,6 @@ elif platform == "win32" or platform == "win64" or platform == "cygwin":
     from indigopython130_win import indigo
     from indigopython130_win import indigo_inchi
 
-IN = indigo.Indigo()
-INCHI = indigo_inchi.IndigoInchi(IN)
 KEGG = 'http://rest.kegg.jp/'
 
 def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
@@ -305,6 +303,9 @@ def process_reaction(reactionID, inchidb, compoundinfo, cpd2inchi, inchi_cf, inc
 def process_compound(cpd, reactionID, reactioninfo, is_prod,
                      inchidb, compoundinfo, cpd2inchi, inchi_cf,
                      inchi_cas, currentcpds):
+    IN = indigo.Indigo()
+    INCHI = indigo_inchi.IndigoInchi(IN)
+
     """Extract compound info"""
     cpd = re.sub('\s*\(\S+\)$', '', cpd)
     cpd = re.sub('^\(\S+\)\s*', '', cpd)
