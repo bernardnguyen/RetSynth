@@ -5,11 +5,13 @@ __description__ = 'Code runs blast on gene sequences for specified enzyme agains
 import os
 import re
 import subprocess
-
+from sys import platform
 PATH = os.path.dirname(os.path.abspath(__file__))
 PPATH = re.sub('BLAST/', '', PATH)
-
-_BLAST_PATH = PATH+'/ncbi-blast-2.9.0+_mac/bin/'
+if platform == 'darwin' or platform == "linux" or platform == "linux2":
+    _BLAST_PATH = PATH+'/ncbi-blast-2.9.0+_mac/bin/'
+elif platform == "win32" or platform == "win64" or platform == "cygwin":
+    _BLAST_PATH = PATH+'/ncbi-blast-2.9.0+_win/bin/'
 _BLAST_OUTPUT_PATH = PATH+'/blastoutput/'
 _BLAST_QUERY_PATH = PATH+'/query/'
 _BLAST_DATABASE_PATH = PATH+'/blastdbs/'
