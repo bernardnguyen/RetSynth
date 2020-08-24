@@ -11,7 +11,7 @@ if platform == 'darwin':
 elif platform == "linux" or platform == "linux2":
     from indigopython130_linux import indigo
     from indigopython130_linux import indigo_renderer
-elif platform == "win32" or platform == 'win64':
+elif platform == "win32" or platform == 'win64' or platform=="cygwin":
     from indigopython130_win import indigo
     from indigopython130_win import indigo_renderer
 from Visualization_chemdraw.exclude_cpds import retrieve_promiscuous_mets
@@ -59,8 +59,6 @@ class ReactionFiles(object):
         self.figures = figures
         self.use_iupac_names = use_iupac_names
         self.target_organism_name = self.DB.get_organism_name(target_organism)
-        self.IN = indigo.Indigo()
-        self.IR = indigo_renderer.IndigoRenderer(self.IN)
         self.cdxmlfiles = cdxmlfiles
         self.ordered_paths = self.order_of_paths()
         self.promiscuous = retrieve_promiscuous_mets(DB)
@@ -68,6 +66,9 @@ class ReactionFiles(object):
 
     def get_cdxml(self, compounds, cdxml_cpds, promiscuous_cpds):
         '''Get cdxml files for relevant compounds'''
+        IN = indigo.Indigo()
+        IR = indigo_renderer.IndigoRenderer(IN)
+
         for cpd in compounds:
             cpd_name = compounds[cpd]           
             if cpd.startswith('InChI'):                
