@@ -310,8 +310,6 @@ def parse_arguments():
 
 
     ###FIGURE OPTIONS###
-    parser.add_argument('--figures_chemdraw', help='Generate pathway chemdraw figures', action='store_true')
-
     parser.add_argument('-iupac', '--use_iupac_names', help="Use IUPAC names for reaction solvents and catalysts", action="store_true")
 
     parser.add_argument('-rxn_info', '--show_rxn_info', help="Display chemical reaction info", action="store_true")
@@ -647,7 +645,7 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                 output.output_shortest_paths(target_info, ex_info.temp_rxns)
 
                 R = rf.ReactionFiles(args.output_path, DB, ex_info.temp_rxns,
-                                 target_info[0], target_info[2], incpds_active, args.figures_chemdraw, args.use_iupac_names)
+                                 target_info[0], target_info[2], incpds_active)
 
                 output.output_raw_solutions(target_info[0], target_info[2], R.ordered_paths,
                                             ex_info.temp_rxns, ex_info.temp_external, incpds_active)
@@ -658,8 +656,7 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                                                         args.media_for_FBA, args.knockouts,
                                                         output, DB, args.verbose)
 
-                    if args.figures_chemdraw:
-                        R.generate_cdxml_files(opt_fba.fbasol.fluxes)
+                    R.generate_cdxml_files(opt_fba.fbasol.fluxes)
                     
                     if args.figures_graphviz:
 
@@ -668,16 +665,15 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                                           temp_imgs_PATH, opt_fba.fbasol.fluxes)
                         G.sc_graph(target_info[0], target_info[2], ex_info.temp_rxns, _images)
 
-                elif args.figures_chemdraw and not args.flux_balance_analysis:
+                elif not args.flux_balance_analysis:
                     R.generate_cdxml_files()
 
                 elif args.figures_graphviz and not args.flux_balance_analysis:
                     from Visualization_graphviz import SP_Graph_dot as spgd
                     G = spgd.GraphDot(DB, args.output_path, incpds_active, inrxns_active, temp_imgs_PATH)
                     G.sc_graph(target_info[0], target_info[2], ex_info.temp_rxns, _images)
-                print ("ENTERING 1")
+
                 if args.gene_compatibility:
-                    print("ENTERING2")
                     verbose_print(args.verbose, 'STATUS:\tOptimizing gene sequences for optimal pathway reaction enzymes...')
                     enzymes = list(R.enzyme_set)
                     if len(enzymes) != 0:
