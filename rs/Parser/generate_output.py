@@ -406,26 +406,39 @@ class Output(object):
         except KeyError:
             glucoseimport = 'NA'
             glucose = False
-        ##########CHECK FOR BIOMASS REACTION (CURRENTLY KBASE RXN))###########
+        ##########CHECK FOR BIOMASS REACTION###########
         try:
             biomassrxn = fbasolution.fluxes['biomass0_'+target_organism_ID]
         except KeyError:
-            biomassrxn = 'NA'
+            try:
+                biomassrxn = fbasolution.fluxes['bio10']
+            except KeyError:
+                try:
+                    biomassrxn = fbasolution.fluxes['bio10_'+target_organism_ID]
+                except KeyError:   
+                    try:
+                        biomassrxn = fbasolution.fluxes['bio1']
+                    except KeyError:
+                        biomassrxn = 'NA'
         ##########CALCULATE WT THEORETICAL YIELD###########
         if glucose:
             try:
                 wt_ty = abs(round(round(objectivesol, 2)/round(glucoseimport,2), 2))
             except ZeroDivisionError:
                 wt_ty = 'NA'
+            try:
+                bio_ty = abs(round(round(biomassrxn, 2)/round(glucoseimport,2), 2))
+            except ZeroDivisionError:
+                bio_ty = 'NA'                
         else: 
             wt_ty = 'NA'
 
         with open(self.output_path+'/theoretical_yield.txt', 'a') as self.theoyield:
-            self.theoyield.write('{}-{}\t{}-{}\tGlucose Flux: {}\tTarget Production: {}\tTheoretical Yield: {} mol {} /mol glucose\tBiomass: {}\n'.format(target_compound_ID,
-                                                                                                                                                          self.DB.get_compound_name(target_compound_ID),                                                                                                                                                         target_organism_ID,
+            self.theoyield.write('{}---{}\t{}---{}\tGlucose Flux: {}\tTarget Production: {}\tTheoretical Yield: {} mol {} /mol glucose\tBiomass Flux: {}\t Biomass Theoretical Yield {}/mol glucose\n'.format(target_compound_ID,
+                                                                                                                                                          self.DB.get_compound_name(target_compound_ID), target_organism_ID,
                                                                                                                                                           self.DB.get_organism_name(target_organism_ID),
                                                                                                                                                           glucoseimport, round(objectivesol, 2),
-                                                                                                                                                          wt_ty, target_compound_ID, biomassrxn))
+                                                                                                                                                          wt_ty, target_compound_ID, biomassrxn, bio_ty))
     def convert_output_2_xlsx(self):
         '''converts txt files to output files'''
         verbose_print(self.verbose, 'STATUS: Converting output text files to xlsx format')
