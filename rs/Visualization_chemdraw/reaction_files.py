@@ -284,7 +284,6 @@ class ReactionFiles(object):
                         get_logP(os_dict[rxn]['products'])
 
                     org = self.reactions[count_pathway][rxn]['organisms'][0]
-                    print(rxn)
                     protein = self.DB.get_proteins(rxn, org)
                     if protein != "None":
                         try:
