@@ -1,6 +1,7 @@
 #General files to ignore#
 **/*.pyc
-
+**/blastdbs/*
+**/NCBI_SSU/ncbi_gn_data/* 
 #MAC Files#
 **/.DS_Store
 **/.DS_Store?
