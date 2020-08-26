@@ -340,8 +340,15 @@ def run_DTailor(seqs, max_cai_index, max_cai, cai_scores, design, org_cai_table,
 def get_cai_table(organism):
     try:
         with open(PATH+'/D_Tailor/CAI_Tables/%s_cai.txt' % organism.replace('.','_')) as fin:
-            lines = [line.split(' ') for line in fin.read().split('\n')]
-            cai_table = {codon: float(ai) for codon, ai in [line[0].split(',') for line in lines]}     
+            codon_table=dict()
+            lines = [line for line in fin.read().split('\n')]
+            lines = [re.sub("\(\s*\d+\)", "", line) for line in lines]
+            linesx = [line.split() for line in lines]
+            for line in linesx:
+                if len(line) > 0:
+                    it = iter(line)
+                    for x in it: 
+                        codon_table.setdefault(x.lower(), round(float(next(it))*0.01, 2))
     except:
         print('ERROR:\tNo CAI table found for organism %s.' % organism)
     return cai_table
