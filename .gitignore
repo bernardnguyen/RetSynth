@@ -2,6 +2,8 @@
 **/*.pyc
 **/blastdbs/*
 **/NCBI_SSU/ncbi_gn_data/* 
+**/GeneCompatibility/D_Tailor/tmp/transterm_files/*
+
 #MAC Files#
 **/.DS_Store
 **/.DS_Store?
