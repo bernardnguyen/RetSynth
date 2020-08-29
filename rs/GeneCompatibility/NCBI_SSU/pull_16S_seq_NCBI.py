@@ -98,7 +98,7 @@ class NCBI_SSU(object):
             if self.orgs_gb[org]:
                 
                 accessionid = self.orgs_gb[org][0]
-                
+
                 if accessionid in self.default_SSU:
                     if self.default_SSU[accessionid] and self.default_SSU[accessionid] != '':
                         self.outputfile.write('>'+accessionid+'\n')
