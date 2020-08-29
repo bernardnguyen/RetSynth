@@ -3,6 +3,7 @@ __email__ = 'lwhitmo@sandia.gov, bernguy@sandia.gov and cmhudso@sandia.gov'
 __description__ = 'main run genecompatability'
 
 import os
+import re
 import pickle
 import glob
 from copy import deepcopy
@@ -87,8 +88,9 @@ def reverse_org_gbs_dict(orgs_gbs):
     return gbs_orgs
 
 
-def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_directory='', default_db=''):
+def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_directory='', default_db='', user_cai_table=None):
     ###GETS GENEBANK IDS FOR ORGANISMS IN OUR DATABASE COLLECTED FROM REPOSITORIES PATRIC AND KEGG###
+
     db_org_gbs = g4o.get_database_organism_genbank_ids(database)
 
     DB_NAME = database.split('/')[-1]
@@ -119,11 +121,10 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
         with open(PATH+'/retrievegeneseqs/data/kegg_bac_plant_fungi_%s.list' % DB_NAME, 'rb') as fin:
              keggorganisms = pickle.load(fin)
 
-        ###ADDING KEGG ORGANISMS TO LIST OF ORGANISMS IN OUR DATABASE###
+    ###ADDING KEGG ORGANISMS TO LIST OF ORGANISMS IN OUR DATABASE###
     keggorganisms_ids = {}
 
     orgs_gbs_bac = deepcopy(orgs_gbs)
-
     for kegg, value_dict in keggorganisms.items():
 
         for key, value in value_dict.items():
@@ -137,8 +138,8 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
 
                 orgs_gbs[key] = value
 
-        ##GET REVERSE DICTIONARY OF orgs_gbs###
-        gbs_orgs = reverse_org_gbs_dict(orgs_gbs)
+    ##GET REVERSE DICTIONARY OF orgs_gbs###
+    gbs_orgs = reverse_org_gbs_dict(orgs_gbs)
 
     ###GET 16S SEQUENCE TO CALCULATE EVOLUTIONARY DISTANCES FROM CHASSIS ORGANISM###
     ###NOTE: GENOME RNA SEQUENCES ARE STORED IN THE FOLDER NCBI_SSU/ncbi_gn_data/ WHEN
@@ -150,7 +151,8 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
     ###IF THIS FILE IS NOT ALREADY GENERATED THIS WILL TAKE SOME TIME TO BUILD###
 
     R = rb.ImplementBLAST('kegg_bac_16S_%s' % DB_NAME, orgs_gbs[target_org][0],
-                          PATH + '/NCBI_SSU/data/kegg_bac_16S_%s.fa' % DB_NAME) 
+                          PATH + '/NCBI_SSU/data/kegg_bac_16S_%s.fa' % DB_NAME)
+    # print (R.blast_results)
     
     ###COLLECT TYPE OF ORGANISMS (BACTERIA, PLANT OR FUNGI) THAT HAVE THE GENE###
     GE = gse.GeneSeqKEGG(orgs2pullgene=False, get_orgs=True)
@@ -180,6 +182,7 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
         ###RANGE TO GET NUMBER OF TOP ORGANISMS###
         start = 1
         end = start + top_num
+        # print(gbs_orgs)
         all_blast_results = [gbs_orgs[R.blast_results[i]][0] for i in R.blast_results.keys()]
         intersect = set(all_blast_results).intersection(set(GE.orgs_with_enzyme))
 
@@ -191,7 +194,6 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
                 top_distances = [i for i in range(start, end)]
                 top_distance_orgs = [gbs_orgs[R.blast_results[i]][0] for i in top_distances]
 
-                print (top_distance_orgs)
                 GE = gse.GeneSeqKEGG(orgs2pullgene=top_distance_orgs, get_orgs=False)
                 GE.get_geneseq_for(enzyme)
 
@@ -258,7 +260,7 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
 
         design = Optimization(["cdsCAI"],design_param, '5')  
 
-        org_cai_table = get_cai_table(target_org)
+        org_cai_table = get_cai_table(target_org, user_cai_table)
         max_cai_index, max_cai, cai_scores = get_max_cai(seqs, value, cai_scores, design, org_cai_table, initial=True)
 
         if output_directory:
@@ -337,30 +339,45 @@ def run_DTailor(seqs, max_cai_index, max_cai, cai_scores, design, org_cai_table,
             print ('WARNING:\tNone of the sequences initially pulled are valid therefore no better sequence found')
             return None
 
-def get_cai_table(organism):
+def read_cai_table(cai_table_path):
+    codon_table=dict()
+    with open(cai_table_path) as fin:
+        
+        lines = [line for line in fin.read().split('\n')]
+        lines = [re.sub("\(\s*\d+\)", "", line) for line in lines]
+        linesx = [line.split() for line in lines]
+        for line in linesx:
+            if len(line) > 0:
+                it = iter(line)
+                for x in it: 
+                    codon_table.setdefault(x.lower(), round(float(next(it))*0.01, 2))
+    print(codon_table)
+    return codon_table
+
+
+def get_cai_table(organism, user_cai_table):
+
     try:
-        with open(PATH+'/D_Tailor/CAI_Tables/%s_cai.txt' % organism.replace('.','_')) as fin:
-            codon_table=dict()
-            lines = [line for line in fin.read().split('\n')]
-            lines = [re.sub("\(\s*\d+\)", "", line) for line in lines]
-            linesx = [line.split() for line in lines]
-            for line in linesx:
-                if len(line) > 0:
-                    it = iter(line)
-                    for x in it: 
-                        codon_table.setdefault(x.lower(), round(float(next(it))*0.01, 2))
+        print("try")
+        print(PATH+'/D_Tailor/CAI_Tables/%s_cai.txt' % organism)
+        cai_table = read_cai_table(PATH+'/D_Tailor/CAI_Tables/%s_cai.txt' % organism)
     except:
-        print('ERROR:\tNo CAI table found for organism %s.' % organism)
+        print("except")
+        try:
+            cai_table = read_cai_table(user_cai_table)
+        except:
+            print('ERROR:\tNo CAI table found for organism %s.' % organism)
     return cai_table
 
 if __name__ == '__main__':
 
     enzyme = '1.1.1.80'
     # enzyme = '4.2.3.110'
-    # database = '/Users/bernguy/Desktop/RetSynth/bernard_test.db'
-    database = '/Users/bernguy/Documents/RetSynth_lt/rs/ConstructedDatabases/DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x.db'
-    default_db = 'DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x.db'
-    target_org = '536056.3'
+    database = '/home/leann/sandia_work/DevelopedDatabases/PATRICrhodoONLY_mc_inchi.db'
+    # database = '/Users/bernguy/Documents/RetSynth_lt/rs/ConstructedDatabases/DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x.db'
+    # default_db = 'DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x.db'
+    # target_org = '269796.9'
     # target_org = '953739.5'
+    target_org = '536056.3'
     # target_org = '1348662.3'
-    gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, default_db=default_db)
+    gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50)
