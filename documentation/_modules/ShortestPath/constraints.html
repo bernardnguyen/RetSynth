@@ -1,0 +1,280 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortestPath.constraints &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ShortestPath.constraints</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ShortestPath.constraints</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;retrieves necessary matricies for interger program&#39;</span>
+
+
+<span class="kn">import</span> <span class="nn">pulp</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+
+
+<div class="viewcode-block" id="load_stoichometry_for_met"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.load_stoichometry_for_met">[docs]</a><span class="k">def</span> <span class="nf">load_stoichometry_for_met</span><span class="p">(</span><span class="n">reactantrxns</span><span class="p">,</span> <span class="n">productsrxns</span><span class="p">,</span> <span class="n">allrxnsrev</span><span class="p">,</span>
+                              <span class="n">allrxnsrev_index</span><span class="p">,</span> <span class="n">allrxnsrevset</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets stoichometry for all compounds to be in the A matrix&#39;&#39;&#39;</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">react_not_in_all</span> <span class="o">=</span> <span class="n">reactantrxns</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">allrxnsrevset</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">react_not_in_all</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;_R&#39;</span> <span class="ow">in</span> <span class="n">allrxnsrev_index</span><span class="p">:</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">allrxnsrev_index</span><span class="p">[</span><span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;_R&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;_F&#39;</span> <span class="ow">in</span> <span class="n">allrxnsrev_index</span><span class="p">:</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">allrxnsrev_index</span><span class="p">[</span><span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;_F&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">react_in_all</span> <span class="o">=</span> <span class="n">reactantrxns</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">allrxnsrevset</span><span class="p">)</span>
+    <span class="n">product_not_in_all</span> <span class="o">=</span> <span class="n">productsrxns</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">allrxnsrevset</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">product_not_in_all</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;_R&#39;</span> <span class="ow">in</span> <span class="n">allrxnsrev_index</span><span class="p">:</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">allrxnsrev_index</span><span class="p">[</span><span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;_R&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;_F&#39;</span> <span class="ow">in</span> <span class="n">allrxnsrev_index</span><span class="p">:</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">allrxnsrev_index</span><span class="p">[</span><span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;_F&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">product_in_all</span> <span class="o">=</span> <span class="n">productsrxns</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">allrxnsrevset</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">react_in_all</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">allrxnsrev_index</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+        <span class="n">temp</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">product_in_all</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">allrxnsrev_index</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+        <span class="n">temp</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">temp</span></div>
+
+<div class="viewcode-block" id="ConstructInitialLP"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.ConstructInitialLP">[docs]</a><span class="k">class</span> <span class="nc">ConstructInitialLP</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Constructs A matrix and indidvidual reaction constraints&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allrxns</span><span class="p">,</span> <span class="n">allcpds</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">ignorerxns</span><span class="p">,</span> <span class="n">lp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allrxnsrev_dict_rev</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">allrxnsrev_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allrxnsrev</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initalize class&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allrxns</span> <span class="o">=</span> <span class="n">allrxns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allcpds</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">allcpds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">db</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignorerxns</span> <span class="o">=</span> <span class="n">ignorerxns</span>
+        <span class="c1"># self.lp = pulp.LpProblem(&#39;ShortestPath&#39;, pulp.LpMinimize)</span>
+
+        <span class="k">if</span> <span class="n">lp</span> <span class="ow">is</span>  <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allcpds_new</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict_rev</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_index</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables_load</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lp</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpProblem</span><span class="p">(</span><span class="s1">&#39;ShortestPath&#39;</span><span class="p">,</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpMinimize</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allcpds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allcpds</span><span class="p">))</span> <span class="c1">#ensures no compounds have duplicate entries</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_reaction_constraints</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_A_matrix</span><span class="p">(</span><span class="n">pulp</span><span class="p">)</span>
+           
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignorerxns</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reaction_constraints_ignore_reactions</span><span class="p">()</span>
+
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Building pre-stored variables...&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lp</span> <span class="o">=</span> <span class="n">lp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lp</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict_rev</span> <span class="o">=</span> <span class="n">allrxnsrev_dict_rev</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict</span> <span class="o">=</span> <span class="n">allrxnsrev_dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev</span> <span class="o">=</span> <span class="n">allrxnsrev</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignorerxns</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reaction_constraints_ignore_reactions</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ConstructInitialLP.retrieve_stoichiometry"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.ConstructInitialLP.retrieve_stoichiometry">[docs]</a>    <span class="k">def</span> <span class="nf">retrieve_stoichiometry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">met</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieve stoichometry for each compound&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">met</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactant_dict</span><span class="p">:</span>
+            <span class="n">reactantrxns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactant_dict</span><span class="p">[</span><span class="n">met</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reactantrxns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_reactants_reactions</span><span class="p">(</span><span class="n">met</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reactant_dict</span><span class="p">[</span><span class="n">met</span><span class="p">]</span> <span class="o">=</span> <span class="n">reactantrxns</span>
+        <span class="k">if</span> <span class="n">met</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_dict</span><span class="p">:</span>
+            <span class="n">productsrxns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_dict</span><span class="p">[</span><span class="n">met</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">productsrxns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_products_reactions</span><span class="p">(</span><span class="n">met</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">product_dict</span><span class="p">[</span><span class="n">met</span><span class="p">]</span> <span class="o">=</span> <span class="n">productsrxns</span>
+        <span class="n">stoich</span> <span class="o">=</span> <span class="n">load_stoichometry_for_met</span><span class="p">(</span><span class="n">reactantrxns</span><span class="p">,</span> <span class="n">productsrxns</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_index</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrevset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stoich</span></div>
+
+<div class="viewcode-block" id="ConstructInitialLP.initial_A_matrix"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.ConstructInitialLP.initial_A_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">initial_A_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Generates an matrix of compound constraints&#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Generating A matrix...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactant_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">met</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allcpds</span><span class="p">)):</span>
+            <span class="n">stoich</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retrieve_stoichiometry</span><span class="p">(</span><span class="n">met</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stoich</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stoich</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">allcpds_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">met</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allcpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allcpds_new</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_pulp_row_constraints</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConstructInitialLP.load_pulp_row_constraints"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.ConstructInitialLP.load_pulp_row_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">load_pulp_row_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pulp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Loads constraints in to pulp integer linear problem&#39;&#39;&#39;</span>
+
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Loading database A matrix (pulp)... &#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">stoich</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lp</span> <span class="o">+=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpConstraint</span><span class="p">(</span><span class="n">pulp</span><span class="o">.</span><span class="n">lpSum</span><span class="p">(</span><span class="n">stoich</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">stoich</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;c&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; constraint&#39;</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lp</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span></div>
+
+    <span class="c1">###GENERATE REACTION VARIABLE CONSTRAINTS</span>
+<div class="viewcode-block" id="ConstructInitialLP.reaction_constraints_pulp"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.ConstructInitialLP.reaction_constraints_pulp">[docs]</a>    <span class="k">def</span> <span class="nf">reaction_constraints_pulp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">rxn_name</span><span class="p">,</span> <span class="n">pulp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set reaction constraints (pulp)&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">rxn_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;EX_&#39;</span><span class="p">):</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">,</span>
+                                       <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">variable</span> <span class="o">=</span> <span class="n">pulp</span><span class="o">.</span><span class="n">LpVariable</span><span class="p">(</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">cat</span><span class="o">=</span><span class="n">pulp</span><span class="o">.</span><span class="n">LpInteger</span><span class="p">,</span>
+                                       <span class="n">lowBound</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upBound</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables_load</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">variable</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_update_reaction_constraints_for_ingorerxns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_id</span><span class="p">):</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="n">reaction_id</span><span class="p">]</span>
+        <span class="n">variable</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">variable</span><span class="o">.</span><span class="n">upBound</span> <span class="o">=</span> <span class="mi">0</span> 
+        <span class="n">variable</span><span class="o">.</span><span class="n">lowBound</span> <span class="o">=</span> <span class="mi">0</span>
+ 
+<div class="viewcode-block" id="ConstructInitialLP.reaction_constraints_ignore_reactions"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.ConstructInitialLP.reaction_constraints_ignore_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">reaction_constraints_ignore_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignorerxns</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">reaction_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict_rev</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_update_reaction_constraints_for_ingorerxns</span><span class="p">(</span><span class="n">reaction_id</span><span class="p">)</span> 
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">reaction_id_forward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict_rev</span><span class="p">[</span><span class="n">reaction</span><span class="o">+</span><span class="s1">&#39;_F&#39;</span><span class="p">]</span>
+                    <span class="n">reaction_id_reverse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict_rev</span><span class="p">[</span><span class="n">reaction</span><span class="o">+</span><span class="s1">&#39;_R&#39;</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_update_reaction_constraints_for_ingorerxns</span><span class="p">(</span><span class="n">reaction_id_forward</span><span class="p">)</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_update_reaction_constraints_for_ingorerxns</span><span class="p">(</span><span class="n">reaction_id_reverse</span><span class="p">)</span> 
+
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING: </span><span class="si">{}</span><span class="s1"> is not in reaction list&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reaction</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ConstructInitialLP.load_reaction_variables"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.ConstructInitialLP.load_reaction_variables">[docs]</a>    <span class="k">def</span> <span class="nf">load_reaction_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn_rev</span><span class="p">,</span> <span class="n">rxn</span><span class="p">,</span> <span class="n">rxn_id</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rxn_rev</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reaction_constraints_pulp</span><span class="p">(</span><span class="n">rxn_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rxn</span><span class="p">),</span> <span class="n">pulp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict</span><span class="p">[</span><span class="n">rxn_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">rxn_rev</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_dict_rev</span><span class="p">[</span><span class="n">rxn_rev</span><span class="p">]</span> <span class="o">=</span> <span class="n">rxn_id</span></div>
+
+<div class="viewcode-block" id="ConstructInitialLP.initial_reaction_constraints"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.constraints.ConstructInitialLP.initial_reaction_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">initial_reaction_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Sets up column (individual reaction) constraints&#39;&#39;&#39;</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Generating reaction constraints ...&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allrxns</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">is_reversible_all</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">load_reaction_variables</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_F&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rxn</span><span class="p">),</span> <span class="s1">&#39;R&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">load_reaction_variables</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_R&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rxn</span><span class="p">),</span> <span class="s1">&#39;R&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">load_reaction_variables</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">rxn</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">rxn</span><span class="p">),</span> <span class="s1">&#39;R&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrevset</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev_index</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">index</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allrxnsrev</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variables_load</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ShortestPath.constraints</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

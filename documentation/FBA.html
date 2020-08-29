@@ -1,0 +1,305 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FBA module &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="_static/jquery.cookie.js"></script>
+    <script src="_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">FBA module</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="fba-module">
+<h1>FBA module<a class="headerlink" href="#fba-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-FBA.build_model">
+<span id="fba-build-model"></span><h3>FBA.build_model<a class="headerlink" href="#module-FBA.build_model" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="FBA.build_model.BuildModel">
+<em class="property">class </em><code class="sig-prename descclassname">FBA.build_model.</code><code class="sig-name descname">BuildModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_organism_ID</span></em>, <em class="sig-param"><span class="n">inmets</span></em>, <em class="sig-param"><span class="n">inrxns</span></em>, <em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">media</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/build_model.html#BuildModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.build_model.BuildModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Constructs a CobraPy FBA metabolic model for aspecific organism and runs FBA on new model</p>
+<dl class="py method">
+<dt id="FBA.build_model.BuildModel.build_model">
+<code class="sig-name descname">build_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/build_model.html#BuildModel.build_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.build_model.BuildModel.build_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds compounds and rxns to cobrapy FBA model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.build_model.BuildModel.run_flux">
+<code class="sig-name descname">run_flux</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/build_model.html#BuildModel.run_flux"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.build_model.BuildModel.run_flux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs FBA on model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.build_model.BuildModel.set_objective_function">
+<code class="sig-name descname">set_objective_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">biomass_rxn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/build_model.html#BuildModel.set_objective_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.build_model.BuildModel.set_objective_function" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="FBA.build_model.verbose_print">
+<code class="sig-prename descclassname">FBA.build_model.</code><code class="sig-name descname">verbose_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/build_model.html#verbose_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.build_model.verbose_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-FBA.optimize_target">
+<span id="fba-optimize-target"></span><h3>FBA.optimize_target<a class="headerlink" href="#module-FBA.optimize_target" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="FBA.optimize_target.OptimizeTarget">
+<em class="property">class </em><code class="sig-prename descclassname">FBA.optimize_target.</code><code class="sig-name descname">OptimizeTarget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_compound_ID</span></em>, <em class="sig-param"><span class="n">target_organism_ID</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">temp_rxns</span></em>, <em class="sig-param"><span class="n">temp_exmets</span></em>, <em class="sig-param"><span class="n">compounds_dict</span></em>, <em class="sig-param"><span class="n">inmets</span></em>, <em class="sig-param"><span class="n">inrxns</span></em>, <em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">KO</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">remove</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#OptimizeTarget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.OptimizeTarget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Adds compounds and reactions needed to produce target compound
+into previously constructed CobraPy FBA model and runs FBA</p>
+<dl class="py method">
+<dt id="FBA.optimize_target.OptimizeTarget.add_external_metabolites">
+<code class="sig-name descname">add_external_metabolites</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#OptimizeTarget.add_external_metabolites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.OptimizeTarget.add_external_metabolites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds compounds that need to be present to produce target compound</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.optimize_target.OptimizeTarget.add_external_reactions">
+<code class="sig-name descname">add_external_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#OptimizeTarget.add_external_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.OptimizeTarget.add_external_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds reactions that need to be present to produce target compound</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.optimize_target.OptimizeTarget.add_sink_reaction">
+<code class="sig-name descname">add_sink_reaction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sink_cpd</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#OptimizeTarget.add_sink_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.OptimizeTarget.add_sink_reaction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="FBA.optimize_target.OptimizeTarget.perform_knockouts">
+<code class="sig-name descname">perform_knockouts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#OptimizeTarget.perform_knockouts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.OptimizeTarget.perform_knockouts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes each reaction one at a time and runs FBA to see if there is
+a difference in production of target compound</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.optimize_target.OptimizeTarget.remove_modifications">
+<code class="sig-name descname">remove_modifications</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#OptimizeTarget.remove_modifications"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.OptimizeTarget.remove_modifications" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes external reactions and compounds from an FBA model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.optimize_target.OptimizeTarget.run_fba">
+<code class="sig-name descname">run_fba</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#OptimizeTarget.run_fba"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.OptimizeTarget.run_fba" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs FBA on CobraPy FBA model with added reactions and compounds
+optimizing production of target compound and (maybe) biomass</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.optimize_target.OptimizeTarget.set_objective_function">
+<code class="sig-name descname">set_objective_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">biomass_rxn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#OptimizeTarget.set_objective_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.OptimizeTarget.set_objective_function" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="FBA.optimize_target.verbose_print">
+<code class="sig-prename descclassname">FBA.optimize_target.</code><code class="sig-name descname">verbose_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/optimize_target.html#verbose_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.optimize_target.verbose_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-FBA.compare_results">
+<span id="fba-compare-results"></span><h3>FBA.compare_results<a class="headerlink" href="#module-FBA.compare_results" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="FBA.compare_results.Compare">
+<em class="property">class </em><code class="sig-prename descclassname">FBA.compare_results.</code><code class="sig-name descname">Compare</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_compound_ID</span></em>, <em class="sig-param"><span class="n">wtresults</span></em>, <em class="sig-param"><span class="n">exresults</span></em>, <em class="sig-param"><span class="n">ex_paths</span></em>, <em class="sig-param"><span class="n">DB</span></em>, <em class="sig-param"><span class="n">fold_threshold</span><span class="o">=</span><span class="default_value">1.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/compare_results.html#Compare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.compare_results.Compare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Compares flux values between simulation without added reactions and compounds and simulation
+with the reactions and compounds</p>
+<dl class="py method">
+<dt id="FBA.compare_results.Compare.analyze_fluxes">
+<code class="sig-name descname">analyze_fluxes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rxn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/compare_results.html#Compare.analyze_fluxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.compare_results.Compare.analyze_fluxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if flux differences between simulations is greater than 2.5 fold</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.compare_results.Compare.external_pathanalyze_fluxes">
+<code class="sig-name descname">external_pathanalyze_fluxes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/compare_results.html#Compare.external_pathanalyze_fluxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.compare_results.Compare.external_pathanalyze_fluxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the external (added reactions) path carrying the most flux</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.compare_results.Compare.get_flux_differences">
+<code class="sig-name descname">get_flux_differences</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/compare_results.html#Compare.get_flux_differences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.compare_results.Compare.get_flux_differences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets reactions for the flux difference is greater than 2.5 fold</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-FBA.compareKO_results">
+<span id="fba-compareko-results"></span><h3>FBA.compareKO_results<a class="headerlink" href="#module-FBA.compareKO_results" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="FBA.compareKO_results.CompareKO">
+<em class="property">class </em><code class="sig-prename descclassname">FBA.compareKO_results.</code><code class="sig-name descname">CompareKO</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_compound_ID</span></em>, <em class="sig-param"><span class="n">compounds_dict</span></em>, <em class="sig-param"><span class="n">wtresults</span></em>, <em class="sig-param"><span class="n">exresults</span></em>, <em class="sig-param"><span class="n">ex_paths</span></em>, <em class="sig-param"><span class="n">DB</span></em>, <em class="sig-param"><span class="n">fold_threshold</span><span class="o">=</span><span class="default_value">1.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/compareKO_results.html#CompareKO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.compareKO_results.CompareKO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Compares flux values between simulation with added reactions simulations
+for each reaction knockout</p>
+<dl class="py method">
+<dt id="FBA.compareKO_results.CompareKO.analyze_fluxes">
+<code class="sig-name descname">analyze_fluxes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">rko</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/compareKO_results.html#CompareKO.analyze_fluxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.compareKO_results.CompareKO.analyze_fluxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if flux differences between simulations is greater than 2.5 fold</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.compareKO_results.CompareKO.external_pathanalyze_fluxes">
+<code class="sig-name descname">external_pathanalyze_fluxes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/compareKO_results.html#CompareKO.external_pathanalyze_fluxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.compareKO_results.CompareKO.external_pathanalyze_fluxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts external path carrying the most flux</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FBA.compareKO_results.CompareKO.get_flux_differences">
+<code class="sig-name descname">get_flux_differences</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/compareKO_results.html#CompareKO.get_flux_differences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.compareKO_results.CompareKO.get_flux_differences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets reactions for the flux difference is greater than 2.5 fold</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-FBA.retrieve_producable_mets">
+<span id="fba-retrieve-producable-mets"></span><h3>FBA.retrieve_producable_mets<a class="headerlink" href="#module-FBA.retrieve_producable_mets" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="FBA.retrieve_producable_mets.RetrieveActiveRxnsCompounds">
+<code class="sig-prename descclassname">FBA.retrieve_producable_mets.</code><code class="sig-name descname">RetrieveActiveRxnsCompounds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_organism_ID</span></em>, <em class="sig-param"><span class="n">inmets</span></em>, <em class="sig-param"><span class="n">inrxns</span></em>, <em class="sig-param"><span class="n">DB</span></em>, <em class="sig-param"><span class="n">output_queue</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">media</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/retrieve_producable_mets.html#RetrieveActiveRxnsCompounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.retrieve_producable_mets.RetrieveActiveRxnsCompounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifies active compounds in an organism</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="FBA.retrieve_producable_mets.add_sink_reaction">
+<code class="sig-prename descclassname">FBA.retrieve_producable_mets.</code><code class="sig-name descname">add_sink_reaction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sink_cpd</span></em>, <em class="sig-param"><span class="n">compound_dict</span></em>, <em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/retrieve_producable_mets.html#add_sink_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.retrieve_producable_mets.add_sink_reaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds reaction for optimizing production of a specified target compound,
+used to determine if compound can be produced or not on a provided media</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="FBA.retrieve_producable_mets.parse_solution">
+<code class="sig-prename descclassname">FBA.retrieve_producable_mets.</code><code class="sig-name descname">parse_solution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">cpd</span></em>, <em class="sig-param"><span class="n">removerxns</span></em>, <em class="sig-param"><span class="n">removecpds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/retrieve_producable_mets.html#parse_solution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.retrieve_producable_mets.parse_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if compound can be produced</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="FBA.retrieve_producable_mets.verbose_print">
+<code class="sig-prename descclassname">FBA.retrieve_producable_mets.</code><code class="sig-name descname">verbose_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FBA/retrieve_producable_mets.html#verbose_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FBA.retrieve_producable_mets.verbose_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="fba-generating-model-generate-model-components">
+<h3>FBA.generating_model.generate_model_components<a class="headerlink" href="#fba-generating-model-generate-model-components" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="sphinxlocaltoc">
+    <h3><a href="index.html">Page contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">FBA module</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a><ul>
+<li><a class="reference internal" href="#module-FBA.build_model">FBA.build_model</a></li>
+<li><a class="reference internal" href="#module-FBA.optimize_target">FBA.optimize_target</a></li>
+<li><a class="reference internal" href="#module-FBA.compare_results">FBA.compare_results</a></li>
+<li><a class="reference internal" href="#module-FBA.compareKO_results">FBA.compareKO_results</a></li>
+<li><a class="reference internal" href="#module-FBA.retrieve_producable_mets">FBA.retrieve_producable_mets</a></li>
+<li><a class="reference internal" href="#fba-generating-model-generate-model-components">FBA.generating_model.generate_model_components</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/FBA.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">FBA module</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

@@ -1,0 +1,328 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortestPath module &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="_static/jquery.cookie.js"></script>
+    <script src="_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">ShortestPath module</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="shortestpath-module">
+<h1>ShortestPath module<a class="headerlink" href="#shortestpath-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ShortestPath.constraints">
+<span id="shortestpath-constraints"></span><h3>ShortestPath.constraints<a class="headerlink" href="#module-ShortestPath.constraints" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="ShortestPath.constraints.ConstructInitialLP">
+<em class="property">class </em><code class="sig-prename descclassname">ShortestPath.constraints.</code><code class="sig-name descname">ConstructInitialLP</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">allrxns</span></em>, <em class="sig-param"><span class="n">allcpds</span></em>, <em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">ignorerxns</span></em>, <em class="sig-param"><span class="n">lp</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">variables</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">allrxnsrev_dict_rev</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">allrxnsrev_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">allrxnsrev</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#ConstructInitialLP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.ConstructInitialLP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Constructs A matrix and indidvidual reaction constraints</p>
+<dl class="py method">
+<dt id="ShortestPath.constraints.ConstructInitialLP.initial_A_matrix">
+<code class="sig-name descname">initial_A_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#ConstructInitialLP.initial_A_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.ConstructInitialLP.initial_A_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an matrix of compound constraints</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.constraints.ConstructInitialLP.initial_reaction_constraints">
+<code class="sig-name descname">initial_reaction_constraints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#ConstructInitialLP.initial_reaction_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.ConstructInitialLP.initial_reaction_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up column (individual reaction) constraints</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.constraints.ConstructInitialLP.load_pulp_row_constraints">
+<code class="sig-name descname">load_pulp_row_constraints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pulp</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#ConstructInitialLP.load_pulp_row_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.ConstructInitialLP.load_pulp_row_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads constraints in to pulp integer linear problem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.constraints.ConstructInitialLP.load_reaction_variables">
+<code class="sig-name descname">load_reaction_variables</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rxn_rev</span></em>, <em class="sig-param"><span class="n">rxn</span></em>, <em class="sig-param"><span class="n">rxn_id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#ConstructInitialLP.load_reaction_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.ConstructInitialLP.load_reaction_variables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.constraints.ConstructInitialLP.reaction_constraints_ignore_reactions">
+<code class="sig-name descname">reaction_constraints_ignore_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#ConstructInitialLP.reaction_constraints_ignore_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.ConstructInitialLP.reaction_constraints_ignore_reactions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.constraints.ConstructInitialLP.reaction_constraints_pulp">
+<code class="sig-name descname">reaction_constraints_pulp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">variable_name</span></em>, <em class="sig-param"><span class="n">rxn_name</span></em>, <em class="sig-param"><span class="n">pulp</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#ConstructInitialLP.reaction_constraints_pulp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.ConstructInitialLP.reaction_constraints_pulp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set reaction constraints (pulp)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.constraints.ConstructInitialLP.retrieve_stoichiometry">
+<code class="sig-name descname">retrieve_stoichiometry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">met</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#ConstructInitialLP.retrieve_stoichiometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.ConstructInitialLP.retrieve_stoichiometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve stoichometry for each compound</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="ShortestPath.constraints.load_stoichometry_for_met">
+<code class="sig-prename descclassname">ShortestPath.constraints.</code><code class="sig-name descname">load_stoichometry_for_met</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reactantrxns</span></em>, <em class="sig-param"><span class="n">productsrxns</span></em>, <em class="sig-param"><span class="n">allrxnsrev</span></em>, <em class="sig-param"><span class="n">allrxnsrev_index</span></em>, <em class="sig-param"><span class="n">allrxnsrevset</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/constraints.html#load_stoichometry_for_met"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.constraints.load_stoichometry_for_met" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets stoichometry for all compounds to be in the A matrix</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ShortestPath.extractinfo">
+<span id="shortestpath-extractinfo"></span><h3>ShortestPath.extractinfo<a class="headerlink" href="#module-ShortestPath.extractinfo" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="ShortestPath.extractinfo.Extract_Information">
+<em class="property">class </em><code class="sig-prename descclassname">ShortestPath.extractinfo.</code><code class="sig-name descname">Extract_Information</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">optimal_pathways</span></em>, <em class="sig-param"><span class="n">incpds</span></em>, <em class="sig-param"><span class="n">inrxns</span></em>, <em class="sig-param"><span class="n">db</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/extractinfo.html#Extract_Information"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.extractinfo.Extract_Information" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Retrieves names of compounds, reactions and organisms for
+reactions and compounds that need to be added
+to produce a target compound</p>
+<dl class="py method">
+<dt id="ShortestPath.extractinfo.Extract_Information.extractinfo">
+<code class="sig-name descname">extractinfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/extractinfo.html#Extract_Information.extractinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.extractinfo.Extract_Information.extractinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds necessary dictionaries to hold the info found in the get_info function</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.extractinfo.Extract_Information.get_info">
+<code class="sig-name descname">get_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rxn</span></em>, <em class="sig-param"><span class="n">path_dict</span></em>, <em class="sig-param"><span class="n">excpds</span></em>, <em class="sig-param"><span class="n">Direction</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/extractinfo.html#Extract_Information.get_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.extractinfo.Extract_Information.get_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets information for reactions, compounds and organisms</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ShortestPath.integerprogram_pulp">
+<span id="shortestpath-integerprogram-pulp"></span><h3>ShortestPath.integerprogram_pulp<a class="headerlink" href="#module-ShortestPath.integerprogram_pulp" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram">
+<em class="property">class </em><code class="sig-prename descclassname">ShortestPath.integerprogram_pulp.</code><code class="sig-name descname">IntergerProgram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">limit_reactions</span></em>, <em class="sig-param"><span class="n">limit_cycle</span></em>, <em class="sig-param"><span class="n">k_paths</span></em>, <em class="sig-param"><span class="n">cycle</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">time_limit</span></em>, <em class="sig-param"><span class="n">OUTPUT</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Sets final constraints and solved integer linear program</p>
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.cycle_constraints">
+<code class="sig-name descname">cycle_constraints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">solution_internal</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">cycle_count</span></em>, <em class="sig-param"><span class="n">initialcheck</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.cycle_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.cycle_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check solution for cycles and implement new constraints and resolve
+if cycle is identified</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.cycle_constraints_internal">
+<code class="sig-name descname">cycle_constraints_internal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">cycle_count</span></em>, <em class="sig-param"><span class="n">length_external</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.cycle_constraints_internal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.cycle_constraints_internal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check solution for cycles and implement new constraints and resolve
+if cycle is identified</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.fill_allsolutions">
+<code class="sig-name descname">fill_allsolutions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.fill_allsolutions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.fill_allsolutions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.filling_optimal_solution_arrays">
+<code class="sig-name descname">filling_optimal_solution_arrays</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">solution_internal</span></em>, <em class="sig-param"><span class="n">op</span></em>, <em class="sig-param"><span class="n">op_internal</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.filling_optimal_solution_arrays"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.filling_optimal_solution_arrays" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.identify_internal_rxns">
+<code class="sig-name descname">identify_internal_rxns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">op</span></em>, <em class="sig-param"><span class="n">op_internal</span></em>, <em class="sig-param"><span class="n">lp</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.identify_internal_rxns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.identify_internal_rxns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.initiate_cycle_check">
+<code class="sig-name descname">initiate_cycle_check</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">solution_internal</span></em>, <em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">cycle_check_count</span></em>, <em class="sig-param"><span class="n">initialcheck_value</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.initiate_cycle_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.initiate_cycle_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.initiate_internal_cycle_check">
+<code class="sig-name descname">initiate_internal_cycle_check</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">cycle_check_count</span></em>, <em class="sig-param"><span class="n">length_external</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.initiate_internal_cycle_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.initiate_internal_cycle_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.initiate_multiple_solutions">
+<code class="sig-name descname">initiate_multiple_solutions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">op</span></em>, <em class="sig-param"><span class="n">op_internal</span></em>, <em class="sig-param"><span class="n">count_k_paths</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.initiate_multiple_solutions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.initiate_multiple_solutions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.ip_calculate">
+<code class="sig-name descname">ip_calculate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.ip_calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.ip_calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run glpk solver</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.k_number_paths">
+<code class="sig-name descname">k_number_paths</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">op</span></em>, <em class="sig-param"><span class="n">op_internal</span></em>, <em class="sig-param"><span class="n">count_k_paths</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.k_number_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.k_number_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘retrieve the next shortest path</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.multiple_optimal_solution">
+<code class="sig-name descname">multiple_optimal_solution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">originalsolution</span></em>, <em class="sig-param"><span class="n">op</span></em>, <em class="sig-param"><span class="n">op_internal</span></em>, <em class="sig-param"><span class="n">count_k_paths</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.multiple_optimal_solution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.multiple_optimal_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify multiple solutions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.multiple_optimal_solution_internal">
+<code class="sig-name descname">multiple_optimal_solution_internal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">originalsolution</span></em>, <em class="sig-param"><span class="n">op</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.multiple_optimal_solution_internal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.multiple_optimal_solution_internal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find multiple solutions that use organisms internal reactions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.run_cycle_check">
+<code class="sig-name descname">run_cycle_check</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.run_cycle_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.run_cycle_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run cycle check</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.run_glpk">
+<code class="sig-name descname">run_glpk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">LP</span></em>, <em class="sig-param"><span class="n">incpds</span></em>, <em class="sig-param"><span class="n">inrxns</span></em>, <em class="sig-param"><span class="n">target_compound_ID</span></em>, <em class="sig-param"><span class="n">multiplesolutions</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.run_glpk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.run_glpk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Final set up and solve integer linear program</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.set_lp_problem">
+<code class="sig-name descname">set_lp_problem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em>, <em class="sig-param"><span class="n">variables</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.set_lp_problem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.set_lp_problem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.set_objective_function">
+<code class="sig-name descname">set_objective_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">variables</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.set_objective_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.set_objective_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set objective function</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.set_objective_function_internal">
+<code class="sig-name descname">set_objective_function_internal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">variables</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.set_objective_function_internal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.set_objective_function_internal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set objective function</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.set_row_bounds">
+<code class="sig-name descname">set_row_bounds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lp</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.set_row_bounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.set_row_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set row bounds</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ShortestPath.integerprogram_pulp.IntergerProgram.set_weight">
+<code class="sig-name descname">set_weight</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">number_rxn_steps</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#IntergerProgram.set_weight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.IntergerProgram.set_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>retrieve weight to disfavor rxns in path</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="ShortestPath.integerprogram_pulp.verbose_print">
+<code class="sig-prename descclassname">ShortestPath.integerprogram_pulp.</code><code class="sig-name descname">verbose_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ShortestPath/integerprogram_pulp.html#verbose_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ShortestPath.integerprogram_pulp.verbose_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="sphinxlocaltoc">
+    <h3><a href="index.html">Page contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">ShortestPath module</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a><ul>
+<li><a class="reference internal" href="#module-ShortestPath.constraints">ShortestPath.constraints</a></li>
+<li><a class="reference internal" href="#module-ShortestPath.extractinfo">ShortestPath.extractinfo</a></li>
+<li><a class="reference internal" href="#module-ShortestPath.integerprogram_pulp">ShortestPath.integerprogram_pulp</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ShortestPath.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">ShortestPath module</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

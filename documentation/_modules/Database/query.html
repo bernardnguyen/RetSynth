@@ -1,0 +1,842 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database.query &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.query</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Database.query</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore and Lucy Chian&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;Interface for database of FBA models and compounds within SBML files&#39;</span>
+
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<div class="viewcode-block" id="test_db_4_error"><a class="viewcode-back" href="../../Database.html#Database.query.test_db_4_error">[docs]</a><span class="k">def</span> <span class="nf">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+    <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="k">return</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">DatabaseError</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Database Error with (&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;) ...reconnect to the database for </span><span class="si">{}</span><span class="s1"> time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">check_same_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="nb">str</span>
+            <span class="n">cnx</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="c1"># cnx.execute(&quot;PRAGMA synchronous = NORMAL&quot;)</span>
+            <span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA journal_mode = OFF&quot;</span><span class="p">)</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">return</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="mi">15</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Database could not get query </span><span class="si">{}</span><span class="s1"> therefore returning None at </span><span class="si">{}</span><span class="s1"> time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;Errored&#39;</span><span class="p">,</span> <span class="n">cnx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="fetching_all_query_results"><a class="viewcode-back" href="../../Database.html#Database.query.fetching_all_query_results">[docs]</a><span class="k">def</span> <span class="nf">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+    <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Q</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Q</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">hits</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">hits</span>
+            <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">DatabaseError</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Database Error with fetching all for query </span><span class="si">{}</span><span class="s1"> results...reconnect to the database for </span><span class="si">{}</span><span class="s1"> time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">query</span><span class="p">))</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+                <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">hits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">hits</span>       
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="mi">15</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">could not fetch results for query </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s1">&#39;Errored&#39;</span></div>
+
+<div class="viewcode-block" id="fetching_one_query_results"><a class="viewcode-back" href="../../Database.html#Database.query.fetching_one_query_results">[docs]</a><span class="k">def</span> <span class="nf">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+    <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+    <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Q</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Q</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">hits</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">hits</span>
+            <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">DatabaseError</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Database Error with fetching one query results...reconnect to the database for </span><span class="si">{}</span><span class="s1"> time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+                <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">hits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">hits</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;=</span> <span class="mi">15</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">could not fetch results for query </span><span class="si">{}</span><span class="s1"> is the </span><span class="si">{}</span><span class="s1"> time therefore returning None&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s1">&#39;Errored&#39;</span></div>
+
+<div class="viewcode-block" id="Connector"><a class="viewcode-back" href="../../Database.html#Database.query.Connector">[docs]</a><span class="k">class</span> <span class="nc">Connector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Connects to a generated database&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
+
+<div class="viewcode-block" id="Connector.connect_to_database"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.connect_to_database">[docs]</a>    <span class="k">def</span> <span class="nf">connect_to_database</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">check_same_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="nb">str</span>
+        <span class="n">cnx</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="c1"># cnx.execute(&quot;PRAGMA synchronous = NORMAL&quot;)</span>
+        <span class="c1">#cnx.execute(&quot;PRAGMA journal_mode = OFF&quot;)</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span></div>
+        
+<div class="viewcode-block" id="Connector.get_uniq_metabolic_clusters"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_uniq_metabolic_clusters">[docs]</a>    <span class="k">def</span> <span class="nf">get_uniq_metabolic_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves unique metabolic clusters (organisms</span>
+<span class="sd">            with the exact same metabolism) in the database&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT DISTINCT cluster_num FROM cluster&quot;</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Connector.get_models_from_cluster"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_models_from_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">get_models_from_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves model IDs from a specified cluster in the database&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from cluster where cluster_num = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">cluster</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">or</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">([</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_all_models"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_models">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves all model IDs in the database&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select * from model&quot;</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">or</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Connector.get_organism_name"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_organism_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_organism_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organism_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves name of metabolic model given a specific model ID&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">organism_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+            
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select file_name from model where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">organism_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">or</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+ 
+<div class="viewcode-block" id="Connector.get_organism_ID"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_organism_ID">[docs]</a>    <span class="k">def</span> <span class="nf">get_organism_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organism_name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves ID of metabolic model given a specific model name&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">organism_name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+ 
+        <span class="n">organism_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">+</span><span class="n">organism_name</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from model where name like &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">organism_name</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">or</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_compound_ID"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_compound_ID">[docs]</a>    <span class="k">def</span> <span class="nf">get_compound_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound_name</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves compound ID given a compound name&#39;&#39;&#39;</span>        
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT ID FROM compound WHERE name = &#39;</span><span class="si">%s</span><span class="s2">&#39; AND compartment &lt;&gt; &#39;e0&#39;&quot;</span> <span class="o">%</span> <span class="n">compound_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">compound_name</span> <span class="o">=</span> <span class="n">compound_name</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from compound where name like &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">compound_name</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_compound_name"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_compound_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_compound_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves compound name given a compound ID&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">compound_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select name from compound where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">compound_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>    
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_compound_compartment"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_compound_compartment">[docs]</a>    <span class="k">def</span> <span class="nf">get_compound_compartment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves the compartment that the compound is in&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">compound_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select compartment from compound where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">compound_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_reaction_name"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reaction_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_reaction_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves name of the reaction given the reaction ID&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select name from reaction where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> 
+        <span class="k">else</span><span class="p">:</span>   
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_reactions"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves reaction IDs that have a given compound ID as a reactant or product&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">compound_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select reaction_ID from reaction_compound where cpd_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and is_prod = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">compound_ID</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">)</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Connector.get_reaction_species"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reaction_species">[docs]</a>    <span class="k">def</span> <span class="nf">get_reaction_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Retrieves compound IDs that are in a given a reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select model_ID from model_reaction indexed by</span><span class="se">\</span>
+<span class="s2">                 modelreaction_ind2 where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_reactants"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reactants">[docs]</a>    <span class="k">def</span> <span class="nf">get_reactants</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves reactants (compound IDs) of a given reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select cpd_ID from reaction_compound where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and is_prod = (0)&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hits</span><span class="p">:</span>   
+                <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;Errored&#39;</span></div>
+
+<div class="viewcode-block" id="Connector.get_reactants_reactions"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reactants_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_reactants_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Retrieves reactions that have a given compound (ID) as a reactant&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">compound_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;select reaction_ID from reaction_compound where cpd_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and is_prod = (0)&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">compound_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Connector.get_products_reactions"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_products_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_products_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Retrieves reactions that have a given compound (ID) as a product&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">compound_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;select reaction_ID from reaction_compound where cpd_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and is_prod = (1)&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">compound_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>    
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Connector.get_products"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_products">[docs]</a>    <span class="k">def</span> <span class="nf">get_products</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves products (compound IDs) of a given reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;select cpd_ID from reaction_compound where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and is_prod = (1)&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hits</span><span class="p">:</span>   
+                <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;Errored&#39;</span></div>
+
+<div class="viewcode-block" id="Connector.get_compounds_in_model"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_compounds_in_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_compounds_in_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organism_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrives all compounds in a metabolic model given model ID&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">organism_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select cpd_ID from model_compound indexed by modelcompound_ind1 where model_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">organism_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Connector.get_all_compounds"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_compounds">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_compounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves all compounds in the database&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from compound&quot;</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Connector.get_reactions_in_model"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reactions_in_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_reactions_in_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organism_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves all reactions in a metabolic model given model ID&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">organism_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select reaction_ID from model_reaction indexed by modelreaction_ind1 where model_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">organism_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Connector.get_all_reactions"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves all reactions in the database&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from reaction&quot;</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Connector.is_reversible"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.is_reversible">[docs]</a>    <span class="k">def</span> <span class="nf">is_reversible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">organism_ID</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves reverisbility information of a reaction</span>
+<span class="sd">            in a specified metabolic model (model ID)&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">organism_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select is_rev from model_reaction where model_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">organism_ID</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">)</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> </div>
+
+<div class="viewcode-block" id="Connector.is_reversible_all"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.is_reversible_all">[docs]</a>    <span class="k">def</span> <span class="nf">is_reversible_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves reversibility information of a reaction independent of model&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select is_reversible from reaction_reversibility </span><span class="se">\</span>
+<span class="s2">                where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_genes"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_genes">[docs]</a>    <span class="k">def</span> <span class="nf">get_genes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">,</span> <span class="n">organism_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves gene associations for a reaction</span>
+<span class="sd">             of a given metabolic network (model ID)&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">organism_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select gene_ID from reaction_gene where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and model_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="n">organism_ID</span><span class="p">)</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_proteins"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_proteins">[docs]</a>    <span class="k">def</span> <span class="nf">get_proteins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">,</span> <span class="n">organism_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves protein associations for a reaction of a given metabolic network (model ID)&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">organism_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># query = &quot;select protein_ID from reaction_protein where\</span>
+        <span class="c1">#          reaction_ID = &#39;%s&#39; and model_ID = &#39;%s&#39;&quot; % (reaction_ID, organism_ID)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT protein_ID from reaction_protein WHERE reaction_ID=&#39;</span><span class="si">%s</span><span class="s2">&#39; and model_ID=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="n">organism_ID</span><span class="p">)</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>         
+        <span class="k">else</span><span class="p">:</span>
+          <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> </div>
+
+<div class="viewcode-block" id="Connector.get_stoichiometry"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_stoichiometry">[docs]</a>    <span class="k">def</span> <span class="nf">get_stoichiometry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves stoichiometry of a compound for a given reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">compound_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select stoichiometry from reaction_compound where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and cpd_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39; and is_prod = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">)</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_catalysts"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_catalysts">[docs]</a>    <span class="k">def</span> <span class="nf">get_catalysts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves the catalyst of reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select catalysts_ID from reaction_catalysts where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_compartment"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_compartment">[docs]</a>    <span class="k">def</span> <span class="nf">get_compartment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compartment</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves the compartment ID&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">compartment</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">compartment</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">+</span><span class="n">compartment</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from compartments where name like &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">compartment</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_solvents"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_solvents">[docs]</a>    <span class="k">def</span> <span class="nf">get_solvents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves solvent of reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select solvents_ID from reaction_solvents where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_temperature"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_temperature">[docs]</a>    <span class="k">def</span> <span class="nf">get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves the temperaature reaction is performed at&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select temperature from reaction_spresi_info where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Connector.get_pressure"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_pressure">[docs]</a>    <span class="k">def</span> <span class="nf">get_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves the pressure reaction is performed at&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select pressure from reaction_spresi_info where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_time"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves the time that is required to perform reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select total_time from reaction_spresi_info where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_yield"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_yield">[docs]</a>    <span class="k">def</span> <span class="nf">get_yield</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves yield that was reported with reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select yield from reaction_spresi_info where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_reference"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reference">[docs]</a>    <span class="k">def</span> <span class="nf">get_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves the reference of reaction&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">reaction_ID</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select reference from reaction_spresi_info where reaction_ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">reaction_ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_reactions_based_on_type"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reactions_based_on_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_reactions_based_on_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxntype</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves reactions based on type&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">rxntype</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from reaction where type = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">rxntype</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_reaction_type"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_reaction_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_reaction_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves reaction on type&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">rxn</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select type from reaction where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">rxn</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_all_keggIDs"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_keggIDs">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_keggIDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves reactions based on type&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select kegg_id from reaction&quot;</span> 
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_kegg_reaction_ID"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_kegg_reaction_ID">[docs]</a>    <span class="k">def</span> <span class="nf">get_kegg_reaction_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves kegg ID for a reaction based on main ID&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select kegg_id from reaction where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>  <span class="o">%</span> <span class="n">ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_kegg_cpd_ID"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_kegg_cpd_ID">[docs]</a>    <span class="k">def</span> <span class="nf">get_kegg_cpd_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves kegg ID for a compound based on main ID&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select kegg_id from compound where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>  <span class="o">%</span> <span class="n">ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_all_compound_keggIDs"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_compound_keggIDs">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_compound_keggIDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves all compound Kegg IDs&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select kegg_id from compound&quot;</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+    <span class="c1"># def get_all_cpd_fp(self):</span>
+    <span class="c1">#     &#39;&#39;&#39;Retrieves all fingerprints&#39;&#39;&#39;</span>
+    <span class="c1">#     query = &quot;select fingerprint from compound&quot;</span>
+    <span class="c1">#     conn, cnx = self.connect_to_database()</span>
+    <span class="c1">#     Q, cnx = test_db_4_error(conn, cnx, query, self.database, 0)</span>
+    <span class="c1">#     hits = fetching_all_query_results(Q, conn, cnx, self.database, query, 0)</span>
+    <span class="c1">#     if hits != &#39;Errored&#39; and hits is not None:</span>
+    <span class="c1">#         return [i[0] for i in hits]</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         return str(None)</span>
+ 
+    <span class="c1"># def get_cpd_fp(self, ID):</span>
+    <span class="c1">#     &#39;&#39;&#39;Retrieves fingerprint for compound ID&#39;&#39;&#39;</span>
+    <span class="c1">#     query = &quot;select fingerprint from compound where ID = &#39;%s&#39;&quot; % ID</span>
+    <span class="c1">#     conn, cnx = self.connect_to_database()</span>
+    <span class="c1">#     Q, cnx = test_db_4_error(conn, cnx, query, self.database, 0)</span>
+    <span class="c1">#     hits = fetching_one_query_results(Q, conn, cnx, self.database, query, 0)</span>
+    <span class="c1">#     if hits != &#39;Errored&#39; and hits is not None:</span>
+    <span class="c1">#         return hits[0]</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         return str(None)</span>
+
+<div class="viewcode-block" id="Connector.get_all_cpd_chemicalformulas"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_cpd_chemicalformulas">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_cpd_chemicalformulas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves all chemicalformulas&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select chemicalformula from compound&quot;</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Connector.get_cpd_chemicalformula"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_cpd_chemicalformula">[docs]</a>    <span class="k">def</span> <span class="nf">get_cpd_chemicalformula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves chemicalformula for compound ID&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select chemicalformula from compound where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_cpd_casnumber"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_cpd_casnumber">[docs]</a>    <span class="k">def</span> <span class="nf">get_cpd_casnumber</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves casnumber for compound ID&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select casnumber from compound where ID = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">ID</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_all_cpd_with_chemicalformula"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_cpd_with_chemicalformula">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_cpd_with_chemicalformula</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cf</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves chemicalformula for compound ID&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from compound where chemicalformula = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">cf</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_all_cpd_with_search"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_cpd_with_search">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_cpd_with_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves compound name for given search term (name/formula)&#39;&#39;&#39;</span>
+        <span class="c1"># query = (&quot;SELECT name FROM compound WHERE name LIKE &#39;%&quot; + search +</span>
+        <span class="c1">#     &quot;%&#39; OR chemicalformula LIKE &#39;%&quot; + search + &quot;%&#39;&quot;)</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;SELECT name, ID FROM compound WHERE &quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot;name LIKE &#39;%&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39;&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; OR chemicalformula LIKE &#39;%&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39;&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; OR ID LIKE &#39;%&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39;&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; OR kegg_id LIKE &#39;%&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39;&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; OR casnumber LIKE &#39;%&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39;&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; AND compartment &lt;&gt; &#39;e0&#39;&quot;</span>
+                    <span class="s2">&quot; ORDER BY &quot;</span> <span class="o">+</span>
+                        <span class="c1"># Exact match</span>
+                        <span class="s2">&quot;CASE WHEN name = &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;&#39; THEN 2 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; + CASE WHEN ID = &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;&#39; THEN 2 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; + CASE WHEN kegg_id = &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;&#39; THEN 2 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; + CASE WHEN chemicalformula = &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;&#39; THEN 2 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; + CASE WHEN casnumber = &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;&#39; THEN 2 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        
+                        <span class="c1"># Starts with ...</span>
+                        <span class="s2">&quot; + CASE WHEN name LIKE &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39; THEN 1 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; + CASE WHEN chemicalformula LIKE &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39; THEN 1 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; + CASE WHEN ID LIKE &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39; THEN 1 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; + CASE WHEN kegg_id LIKE &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39; THEN 1 ELSE 0 END&quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot; + CASE WHEN casnumber LIKE &#39;&quot;</span> <span class="o">+</span> <span class="n">search</span> <span class="o">+</span> <span class="s2">&quot;%&#39; THEN 1 ELSE 0 END&quot;</span> <span class="o">+</span>
+                    <span class="s2">&quot; DESC&quot;</span>
+                <span class="p">)</span>
+
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># return [i[0] for i in hits]</span>
+            <span class="k">return</span> <span class="n">hits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_model_ID"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_model_ID">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves model ID for given file_name&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT ID FROM model WHERE file_name=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">file_name</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_one_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">and</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.get_all_fba_models"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.get_all_fba_models">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_fba_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Retrieves all model IDs in the database&#39;&#39;&#39;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select * from fba_models&quot;</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">or</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connector.custom_query"><a class="viewcode-back" href="../../Database.html#Database.query.Connector.custom_query">[docs]</a>    <span class="k">def</span> <span class="nf">custom_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Takes a custom query and returns the results&#39;&#39;&#39;</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="n">test_db_4_error</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">fetching_all_query_results</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hits</span> <span class="o">!=</span> <span class="s1">&#39;Errored&#39;</span> <span class="ow">or</span> <span class="n">hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.query</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

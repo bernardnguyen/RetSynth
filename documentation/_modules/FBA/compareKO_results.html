@@ -1,0 +1,230 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FBA.compareKO_results &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FBA.compareKO_results</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for FBA.compareKO_results</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;Compare flux balance analysis </span><span class="se">\</span>
+<span class="s1">                   results from wildtype to results with added reactions&#39;</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<div class="viewcode-block" id="CompareKO"><a class="viewcode-back" href="../../FBA.html#FBA.compareKO_results.CompareKO">[docs]</a><span class="k">class</span> <span class="nc">CompareKO</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compares flux values between simulation with added reactions simulations</span>
+<span class="sd">    for each reaction knockout</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_compound_ID</span><span class="p">,</span> <span class="n">compounds_dict</span><span class="p">,</span> <span class="n">wtresults</span><span class="p">,</span> <span class="n">exresults</span><span class="p">,</span> <span class="n">ex_paths</span><span class="p">,</span> <span class="n">DB</span><span class="p">,</span> <span class="n">fold_threshold</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initalize classes&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span> <span class="o">=</span> <span class="n">wtresults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span> <span class="o">=</span> <span class="n">exresults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target_compound_ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ex_paths</span> <span class="o">=</span> <span class="n">ex_paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span> <span class="o">=</span> <span class="n">compounds_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">DB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fold_threshold</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fold_threshold</span><span class="p">)</span><span class="o">+</span><span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">externalrxnfluxes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ex_rxns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex_paths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex_rxns</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ex_rxns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Calculating flux differences&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_flux_differences</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">external_pathanalyze_fluxes</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CompareKO.analyze_fluxes"><a class="viewcode-back" href="../../FBA.html#FBA.compareKO_results.CompareKO.analyze_fluxes">[docs]</a>    <span class="k">def</span> <span class="nf">analyze_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">rko</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Determines if flux differences between simulations is greater than 2.5 fold</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_reaction_name</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex_rxns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">[</span><span class="n">rko</span><span class="p">][</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]),</span>
+                                                             <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">])])</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">[</span><span class="n">rko</span><span class="p">][</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]),</span>
+                                                             <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">])])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">upperfold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_threshold</span>
+                    <span class="n">changefold</span> <span class="o">=</span> <span class="n">upperfold</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+                    <span class="n">changefold</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">changefold</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">lowerfold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">+</span><span class="n">changefold</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">lowerfold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span><span class="o">-</span><span class="n">changefold</span>
+                    <span class="k">if</span> <span class="n">upperfold</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">upperfold</span> <span class="ow">or</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">lowerfold</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">[</span><span class="n">rko</span><span class="p">][</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">name</span><span class="p">,</span>
+                                                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]),</span>
+                                                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
+                                                                <span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">lowerfold</span> <span class="ow">or</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">upperfold</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">[</span><span class="n">rko</span><span class="p">][</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">name</span><span class="p">,</span>
+                                                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]),</span>
+                                                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">])</span>
+                                                                <span class="p">])</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">[</span><span class="n">rko</span><span class="p">][</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wtresults</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">]),</span>
+                                                             <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">r</span><span class="p">])])</span></div>
+
+<div class="viewcode-block" id="CompareKO.get_flux_differences"><a class="viewcode-back" href="../../FBA.html#FBA.compareKO_results.CompareKO.get_flux_differences">[docs]</a>    <span class="k">def</span> <span class="nf">get_flux_differences</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Gets reactions for the flux difference is greater than 2.5 fold</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">rko</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">analyze_fluxes</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">rko</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompareKO.external_pathanalyze_fluxes"><a class="viewcode-back" href="../../FBA.html#FBA.compareKO_results.CompareKO.external_pathanalyze_fluxes">[docs]</a>    <span class="k">def</span> <span class="nf">external_pathanalyze_fluxes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Extracts external path carrying the most flux</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">pathwayflux</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objective_function_ko</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxflux</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxpath</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">rko</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">:</span>
+            <span class="n">pathwayflux</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maxflux</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maxpath</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ex_paths</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ex_paths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">flux</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">[</span><span class="n">rko</span><span class="p">]:</span>
+                            <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fluxchange</span><span class="p">[</span><span class="n">rko</span><span class="p">][</span><span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                            <span class="n">flux</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                        <span class="n">pathwayflux</span><span class="p">[</span><span class="n">rko</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">pathwayflux</span><span class="p">[</span><span class="n">rko</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">flux</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maxflux</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">pathwayflux</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maxpath</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pathwayflux</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="nb">list</span><span class="p">(</span><span class="n">pathwayflux</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxflux</span><span class="p">[</span><span class="n">rko</span><span class="p">])]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maxpath</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;No added path&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maxflux</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">]</span>
+            <span class="n">glucose</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">glucoseimport</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="s1">&#39;EX_cpd00027_e0&#39;</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">glucose</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">glucose</span><span class="p">:</span>
+                <span class="n">objectivesol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exresults</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">]]</span>
+                <span class="n">glucoseimport</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">glucoseimport</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">ty</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">objectivesol</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="nb">round</span><span class="p">(</span><span class="n">glucoseimport</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">objective_function_ko</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="n">ty</span>
+                <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">objective_function_ko</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">objective_function_ko</span><span class="p">[</span><span class="n">rko</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FBA.compareKO_results</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

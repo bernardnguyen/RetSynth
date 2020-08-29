@@ -1,0 +1,172 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FBA.build_model &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FBA.build_model</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for FBA.build_model</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore and Lucy Chian&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;build flux balance analysis simulation using cobrapy&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">cobra</span> <span class="kn">import</span> <span class="n">Model</span>
+<span class="c1">#from cobra.flux_analysis.loopless import construct_loopless_model</span>
+<span class="kn">from</span> <span class="nn">FBA.generating_model</span> <span class="kn">import</span> <span class="n">generate_model_components</span> <span class="k">as</span> <span class="n">gmc</span>
+<span class="n">PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+
+<div class="viewcode-block" id="verbose_print"><a class="viewcode-back" href="../../FBA.html#FBA.build_model.verbose_print">[docs]</a><span class="k">def</span> <span class="nf">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BuildModel"><a class="viewcode-back" href="../../FBA.html#FBA.build_model.BuildModel">[docs]</a><span class="k">class</span> <span class="nc">BuildModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Constructs a CobraPy FBA metabolic model for aspecific organism and runs FBA on new model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_organism_ID</span><span class="p">,</span> <span class="n">inmets</span><span class="p">,</span> <span class="n">inrxns</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize class&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Building FBA model ... &#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_org</span> <span class="o">=</span> <span class="n">target_organism_ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">target_organism_ID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rxns</span> <span class="o">=</span> <span class="n">inrxns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metabolites</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">inmets</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">db</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">media_constraints</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">media</span> <span class="o">!=</span> <span class="s1">&#39;Complete&#39;</span> <span class="ow">and</span> <span class="n">media</span><span class="p">:</span>
+            <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">loading glucose media&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">media_constraints</span> <span class="o">=</span> <span class="n">gmc</span><span class="o">.</span><span class="n">load_media</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">media_constraints</span><span class="p">,</span> <span class="n">PATH</span><span class="o">+</span><span class="s1">&#39;/media/</span><span class="si">{}</span><span class="s1">.tsv&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">media</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">media</span> <span class="o">==</span> <span class="s1">&#39;Complete&#39;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">media</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_flux</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BuildModel.build_model"><a class="viewcode-back" href="../../FBA.html#FBA.build_model.BuildModel.build_model">[docs]</a>    <span class="k">def</span> <span class="nf">build_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds compounds and rxns to cobrapy FBA model</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span> <span class="o">=</span> <span class="n">gmc</span><span class="o">.</span><span class="n">load_compounds</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metabolites</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">gmc</span><span class="o">.</span><span class="n">load_reactions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_org</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rxns</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">media_constraints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BuildModel.set_objective_function"><a class="viewcode-back" href="../../FBA.html#FBA.build_model.BuildModel.set_objective_function">[docs]</a>    <span class="k">def</span> <span class="nf">set_objective_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">biomass_rxn</span><span class="p">):</span>
+        <span class="n">biomass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span><span class="n">biomass_rxn</span><span class="p">)</span>
+        <span class="n">objective_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">biomass</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">objective_dict</span></div>
+
+<div class="viewcode-block" id="BuildModel.run_flux"><a class="viewcode-back" href="../../FBA.html#FBA.build_model.BuildModel.run_flux">[docs]</a>    <span class="k">def</span> <span class="nf">run_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Runs FBA on model</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_objective_function</span><span class="p">(</span><span class="s1">&#39;biomass0_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">target_org</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_objective_function</span><span class="p">(</span><span class="s1">&#39;bio10&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_objective_function</span><span class="p">(</span><span class="s1">&#39;bio10_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">target_org</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>   
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">set_objective_function</span><span class="p">(</span><span class="s1">&#39;bio1&#39;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">No biomass rxn&#39;</span><span class="p">)</span>
+        <span class="c1">#print &#39;STATUS:\tConstruct loopless model&#39;</span>
+        <span class="c1">#self.solution1=construct_loopless_model(self.model).optimize()</span>
+        <span class="c1">#print self.solution1</span>
+        <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Finished optimizing first model&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FBA.build_model</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

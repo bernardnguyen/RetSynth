@@ -1,0 +1,667 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database.build_modelseed &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.build_modelseed</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Database.build_modelseed</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">urllib.request</span> <span class="k">as</span> <span class="nn">urllib2</span>
+    <span class="kn">import</span> <span class="nn">http.client</span> <span class="k">as</span> <span class="nn">httplib</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">urllib2</span>
+    <span class="kn">import</span> <span class="nn">httplib</span>
+<span class="c1"># from tqdm import tqdm</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">requests.exceptions</span> <span class="kn">import</span> <span class="ne">ConnectionError</span>
+<span class="kn">from</span> <span class="nn">cobra</span> <span class="kn">import</span> <span class="n">io</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">pubchempy</span>
+<span class="kn">import</span> <span class="nn">Database</span>
+<span class="kn">from</span> <span class="nn">Database</span> <span class="kn">import</span> <span class="n">mackinac</span>
+<span class="kn">from</span> <span class="nn">Pubchem</span> <span class="kn">import</span> <span class="n">pubchem_inchi_translator</span> <span class="k">as</span> <span class="n">pit</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+<span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;darwin&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win64&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;cygwin&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+
+<span class="n">KEGG</span> <span class="o">=</span> <span class="s1">&#39;http://rest.kegg.jp/&#39;</span>
+<span class="n">PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+<div class="viewcode-block" id="verbose_print"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.verbose_print">[docs]</a><span class="k">def</span> <span class="nf">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;verbose print function&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="extract_KEGG_data"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.extract_KEGG_data">[docs]</a><span class="k">def</span> <span class="nf">extract_KEGG_data</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Extract Kegg db info&#39;&#39;&#39;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;STATUS: Getting data for url &quot;</span><span class="o">+</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">darray</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">n&#39;</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">darray</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPError</span><span class="p">:</span>
+        <span class="k">return</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="retrieve_exact_inchi_values"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.retrieve_exact_inchi_values">[docs]</a><span class="k">def</span> <span class="nf">retrieve_exact_inchi_values</span><span class="p">(</span><span class="n">new_cpd_keggid</span><span class="p">,</span> <span class="n">raw_cpd_keggid</span><span class="p">,</span> <span class="n">cpd_name</span><span class="p">,</span> <span class="n">compart_info</span><span class="p">,</span>
+                                <span class="n">inchi_pubchem</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span> <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">CT</span><span class="p">,</span> <span class="n">INCHI</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Retrieve InChI values&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">new_cpd_keggid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">inchi_pubchem</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">raw_cpd_keggid</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">inchi</span><span class="p">,</span> <span class="n">cas</span> <span class="o">=</span> <span class="n">kegg2pubcheminchi</span><span class="p">(</span><span class="n">raw_cpd_keggid</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">inchi</span><span class="p">:</span>
+                    <span class="n">count</span> <span class="o">=</span> <span class="mi">4</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="n">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;WARNING: No INCHI was found from </span><span class="si">{}</span><span class="s1"> will try again for </span><span class="si">{}</span><span class="s1"> time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">raw_cpd_keggid</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">inchi</span><span class="p">:</span>
+                <span class="n">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS: trying to inchi for compound </span><span class="si">{}</span><span class="s1"> through pubchem&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">raw_cpd_keggid</span><span class="p">))</span>
+                <span class="n">inchi</span><span class="p">,</span> <span class="n">iupac_name</span><span class="p">,</span> <span class="n">cas</span> <span class="o">=</span> <span class="n">CT</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">cpd_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inchi</span><span class="p">,</span> <span class="n">iupac_name</span><span class="p">,</span> <span class="n">cas</span> <span class="o">=</span> <span class="n">CT</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">cpd_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inchi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="n">INCHI</span><span class="o">.</span><span class="n">loadMolecule</span><span class="p">(</span><span class="n">inchi</span><span class="p">)</span>
+            <span class="n">cf</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">grossFormula</span><span class="p">()</span>
+            <span class="n">cf</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cf</span><span class="p">)</span>
+            <span class="c1"># fp = mol.fingerprint(&#39;full&#39;)</span>
+            <span class="c1"># buffer = fp.toBuffer()</span>
+            <span class="c1"># buffer_array = [str(i) for i in buffer]</span>
+            <span class="c1"># buffer_string = &#39;,&#39;.join(buffer_array)</span>
+            <span class="n">inchi_cf</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span>
+            <span class="n">inchi_cas</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]</span> <span class="o">=</span> <span class="n">cas</span>
+            <span class="n">inchi_pubchem</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]</span> <span class="o">=</span> <span class="n">inchi</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compart_info</span><span class="o">+</span><span class="s1">&#39;0&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inchi_cf</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+            <span class="n">inchi_cas</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+            <span class="c1"># inchi_fp[new_cpd_keggid] = &#39;None&#39;</span>
+            <span class="n">inchi_pubchem</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cpd_keggid</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">inchi_pubchem</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span> <span class="n">inchi_cas</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="kegg2pubcheminchi"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.kegg2pubcheminchi">[docs]</a><span class="k">def</span> <span class="nf">kegg2pubcheminchi</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Convvert kegg ID to InChI value&#39;&#39;&#39;</span>
+    <span class="n">darray</span> <span class="o">=</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">KEGG</span><span class="o">+</span><span class="s1">&#39;get/&#39;</span><span class="o">+</span><span class="n">cpd</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">inchicpd</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">cas</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">darray</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">darray</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;PubChem:&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;PubChem:&#39;</span><span class="p">)</span>
+                <span class="n">sid</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">substance</span> <span class="o">=</span> <span class="n">pubchempy</span><span class="o">.</span><span class="n">Substance</span><span class="o">.</span><span class="n">from_sid</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+                    <span class="n">substance_cids</span> <span class="o">=</span> <span class="n">substance</span><span class="o">.</span><span class="n">cids</span>
+                    <span class="k">if</span> <span class="n">substance_cids</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">compounds</span> <span class="o">=</span> <span class="n">pubchempy</span><span class="o">.</span><span class="n">get_compounds</span><span class="p">(</span><span class="n">substance_cids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="n">compounds</span><span class="p">:</span>
+                                <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">compounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">inchi</span>
+                        <span class="k">except</span> <span class="p">(</span><span class="n">pubchempy</span><span class="o">.</span><span class="n">PubChemHTTPError</span><span class="p">,</span> <span class="n">httplib</span><span class="o">.</span><span class="n">BadStatusLine</span><span class="p">,</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">URLError</span><span class="p">):</span>
+                            <span class="k">pass</span>
+                <span class="k">except</span> <span class="p">(</span><span class="n">pubchempy</span><span class="o">.</span><span class="n">PubChemHTTPError</span><span class="p">,</span> <span class="n">httplib</span><span class="o">.</span><span class="n">BadStatusLine</span><span class="p">,</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">URLError</span><span class="p">):</span>
+                    <span class="n">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;WARNING: Could not get substance for </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">cpd</span><span class="p">))</span>
+                    <span class="k">pass</span>
+            <span class="k">if</span> <span class="s1">&#39;CAS:&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;CAS:&#39;</span><span class="p">)</span>
+                <span class="n">cas</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+            
+    <span class="k">return</span> <span class="p">(</span><span class="n">inchicpd</span><span class="p">,</span> <span class="n">cas</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="open_translation_file"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.open_translation_file">[docs]</a><span class="k">def</span> <span class="nf">open_translation_file</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;opens and stores KEGG translation files &#39;&#39;&#39;</span>
+    <span class="n">dictionary</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fin</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">larray</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">KEGGIDS</span> <span class="o">=</span> <span class="n">larray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+                <span class="n">dictionary</span><span class="p">[</span><span class="n">larray</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">KEGGIDS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="n">dictionary</span><span class="p">[</span><span class="n">larray</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">dictionary</span></div>
+
+<div class="viewcode-block" id="get_KEGG_IDs"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.get_KEGG_IDs">[docs]</a><span class="k">def</span> <span class="nf">get_KEGG_IDs</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">KEGGdict</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Retrieve KEGG IDs&#39;&#39;&#39;</span>
+    <span class="n">new_ID</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="o">+</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">KEGG_ID</span> <span class="o">=</span> <span class="n">KEGGdict</span><span class="p">[</span><span class="n">new_ID</span><span class="p">]</span>
+        <span class="n">original_KEGG_ID</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">KEGG_ID</span><span class="p">:</span>
+            <span class="n">KEGG_ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">+</span><span class="s1">&#39;0&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">KEGG_ID</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">compartment</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;0&#39;</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">KEGG_ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">+</span><span class="s1">&#39;0&#39;</span>
+        <span class="n">original_KEGG_ID</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">original_KEGG_ID</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="build_patric_models"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.build_patric_models">[docs]</a><span class="k">def</span> <span class="nf">build_patric_models</span><span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">,</span> <span class="n">media</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Builds patric models on the patric server&#39;&#39;&#39;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">patric_model</span><span class="o">=</span><span class="n">mackinac</span><span class="o">.</span><span class="n">create_patric_model</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">genome_id</span><span class="p">),</span> <span class="n">genome_name</span><span class="p">,</span>
+                                                  <span class="n">media_reference</span><span class="o">=</span><span class="s1">&#39;/chenry/public/modelsupport/media/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">media</span><span class="p">))</span> <span class="c1">#Carbon-D-Glucose&#39;</span>
+
+    <span class="k">except</span> <span class="ne">ConnectionError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: No model identified for genome </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">))</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Unexpected error generating patric model for genome </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">))</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="generate_sbml_output_folder"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.generate_sbml_output_folder">[docs]</a><span class="k">def</span> <span class="nf">generate_sbml_output_folder</span><span class="p">(</span><span class="n">output_folder</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Generate output folder for sbml fba models if user has specified this option&#39;&#39;&#39;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">output_folder</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">output_folder</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">output_folder</span><span class="p">)</span>   </div>
+
+<div class="viewcode-block" id="BuildModelSeed"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.BuildModelSeed">[docs]</a><span class="k">class</span> <span class="nc">BuildModelSeed</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span>  <span class="n">rxntype</span><span class="p">,</span> <span class="n">inchidb</span><span class="p">,</span> <span class="n">DBpath</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">,</span>
+                 <span class="n">media</span><span class="o">=</span><span class="s1">&#39;Complete&#39;</span><span class="p">,</span> <span class="n">newdb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">tokentype</span><span class="o">=</span><span class="s1">&#39;patric&#39;</span><span class="p">,</span> <span class="n">sbml_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">processors</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                 <span class="n">patricfile</span><span class="o">=</span><span class="n">PATH</span><span class="o">+</span><span class="s1">&#39;/data/PATRIC_genome_complete_07152018.csv&#39;</span><span class="p">,</span>
+                 <span class="n">previously_built_patric_models</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;initialize&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span> <span class="o">=</span> <span class="n">inchidb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokentype</span> <span class="o">=</span> <span class="n">tokentype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rxntype</span> <span class="o">=</span> <span class="n">rxntype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sbml_output</span> <span class="o">=</span> <span class="n">sbml_output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_folder</span> <span class="o">=</span> <span class="n">output_folder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">media</span> <span class="o">=</span> <span class="n">media</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">newdb</span> <span class="o">=</span> <span class="n">newdb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processors</span> <span class="o">=</span> <span class="n">processors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patricfile</span> <span class="o">=</span> <span class="n">patricfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previously_built_patric_models</span> <span class="o">=</span> <span class="n">previously_built_patric_models</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CPD2KEGG</span> <span class="o">=</span> <span class="n">open_translation_file</span><span class="p">(</span><span class="n">PATH</span><span class="o">+</span><span class="s1">&#39;/data/KbasetoKEGGCPD.txt&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RXN2KEGG</span> <span class="o">=</span> <span class="n">open_translation_file</span><span class="p">(</span><span class="n">PATH</span><span class="o">+</span><span class="s1">&#39;/data/KbasetoKEGGRXN.txt&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchi_fp_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allcompounds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allcompounds_check</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allreactions</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allreactions_id</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reaction_reversibility</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CT</span> <span class="o">=</span> <span class="n">pit</span><span class="o">.</span><span class="n">CompoundTranslator</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">L2D</span> <span class="o">=</span> <span class="n">LoadIntoDB</span><span class="p">(</span><span class="n">DBpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">originalIDs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">IN</span> <span class="o">=</span> <span class="n">indigo</span><span class="o">.</span><span class="n">Indigo</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">INCHI</span> <span class="o">=</span> <span class="n">indigo_inchi</span><span class="o">.</span><span class="n">IndigoInchi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IN</span><span class="p">)</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">mackinac</span><span class="o">.</span><span class="n">get_token</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">token_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tokentype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sbml_output</span><span class="p">:</span>
+           <span class="n">generate_sbml_output_folder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_folder</span><span class="o">+</span><span class="s1">&#39;sbml_models/&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_complete_genomes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_model_from_patric</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BuildModelSeed.process_cobra_model"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.BuildModelSeed.process_cobra_model">[docs]</a>    <span class="k">def</span> <span class="nf">process_cobra_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">genome_id</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Adds information from cobra model into appropriate arrays&#39;&#39;&#39;</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Processing cobra model </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">))</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Getting metabolites for cobra model </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">))</span>
+
+        <span class="n">model_compounds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model_reactions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reaction_gene</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reaction_protein</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reactions_compounds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cpd_IDs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">metabolites</span><span class="p">:</span>
+            <span class="n">new_cpd_keggid</span><span class="p">,</span> <span class="n">raw_cpd_keggid</span><span class="o">=</span><span class="n">get_KEGG_IDs</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">compartment</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CPD2KEGG</span><span class="p">)</span>
+            <span class="n">cpd_IDs</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cpd_keggid</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf_dict</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas_dict</span> <span class="o">=</span> <span class="n">retrieve_exact_inchi_values</span><span class="p">(</span><span class="n">new_cpd_keggid</span><span class="p">,</span> <span class="n">raw_cpd_keggid</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                                                                                      <span class="n">cpd</span><span class="o">.</span><span class="n">compartment</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">,</span>
+                                                                                                      <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas_dict</span><span class="p">,</span> 
+                                                                                                      <span class="bp">self</span><span class="o">.</span><span class="n">CT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">INCHI</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+                <span class="n">model_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">],</span> <span class="n">genome_id</span><span class="p">))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allcompounds_check</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">allcompounds</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">],</span> <span class="n">cpd</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">compartment</span><span class="o">+</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="n">raw_cpd_keggid</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf_dict</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas_dict</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]))</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;InChI&#39;</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">originalIDs</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">new_cpd_keggid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">]))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">allcompounds_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">[</span><span class="n">new_cpd_keggid</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">model_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_cpd_keggid</span><span class="p">,</span> <span class="n">genome_id</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">allcompounds</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">new_cpd_keggid</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">cpd</span><span class="o">.</span><span class="n">compartment</span><span class="o">+</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="n">raw_cpd_keggid</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">))</span>
+
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Getting reactions for cobra model </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">new_rxn_keggid</span><span class="p">,</span> <span class="n">raw_rxn_keggid</span><span class="o">=</span><span class="n">get_KEGG_IDs</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">compartments</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">RXN2KEGG</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: </span><span class="si">{}</span><span class="s1"> has no compartments </span><span class="si">{}</span><span class="s1"> make compartment c0&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">reaction</span><span class="o">.</span><span class="n">compartments</span><span class="p">))</span>
+                <span class="n">new_rxn_keggid</span><span class="p">,</span> <span class="n">raw_rxn_keggid</span><span class="o">=</span><span class="n">get_KEGG_IDs</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">RXN2KEGG</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">new_rxn_keggid</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;bio&#39;</span><span class="p">):</span>
+                <span class="n">new_rxn_keggid</span>  <span class="o">=</span> <span class="n">new_rxn_keggid</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">genome_id</span><span class="p">)</span>
+            <span class="n">model_reactions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_rxn_keggid</span><span class="p">,</span> <span class="n">genome_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">reversibility</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()))</span>
+            <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">genes</span><span class="p">:</span>
+                <span class="n">reaction_gene</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">new_rxn_keggid</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">genome_id</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">gene</span><span class="p">)))</span>
+            <span class="n">ECnames</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">gene_name_reaction_rule</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;\(EC \d+\.\d+\.\d+\.\d+\)&#39;</span><span class="p">,</span> <span class="n">ECnames</span><span class="p">)</span>
+            <span class="n">match_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match_set</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ec</span> <span class="ow">in</span> <span class="n">match_set</span><span class="p">:</span>
+                    <span class="n">reaction_protein</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">new_rxn_keggid</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">genome_id</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">ec</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">new_rxn_keggid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allreactions_id</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+                    <span class="n">stoich</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">get_coefficient</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">:</span>
+                        <span class="n">reactions_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_rxn_keggid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">[</span><span class="n">cpd_IDs</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">id</span><span class="p">]],</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stoich</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">reactions_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_rxn_keggid</span><span class="p">,</span> <span class="n">cpd_IDs</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stoich</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
+                    <span class="n">stoich</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">get_coefficient</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">:</span>
+                        <span class="n">reactions_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_rxn_keggid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_dict</span><span class="p">[</span><span class="n">cpd_IDs</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">id</span><span class="p">]],</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stoich</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">reactions_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_rxn_keggid</span><span class="p">,</span> <span class="n">cpd_IDs</span><span class="p">[</span><span class="n">cpd</span><span class="o">.</span><span class="n">id</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stoich</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">allreactions</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">new_rxn_keggid</span><span class="p">,</span> <span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">raw_rxn_keggid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rxntype</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">allreactions_id</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_rxn_keggid</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">new_rxn_keggid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reaction_reversibility</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reaction_reversibility</span><span class="p">[</span><span class="n">new_rxn_keggid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">reversibility</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reaction_reversibility</span><span class="p">[</span><span class="n">new_rxn_keggid</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;false&#39;</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">reversibility</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">reaction_reversibility</span><span class="p">[</span><span class="n">new_rxn_keggid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">reaction</span><span class="o">.</span><span class="n">reversibility</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="c1">#ADD TO DATABASE</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">L2D</span><span class="o">.</span><span class="n">add_model_compounds</span><span class="p">(</span><span class="n">model_compounds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">L2D</span><span class="o">.</span><span class="n">add_model_reactions</span><span class="p">(</span><span class="n">model_reactions</span><span class="p">,</span> <span class="n">reaction_gene</span><span class="p">,</span> <span class="n">reaction_protein</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">L2D</span><span class="o">.</span><span class="n">add_reaction_compound</span><span class="p">(</span><span class="n">reactions_compounds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">newdb</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BuildModelSeed.load_complete_genomes"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.BuildModelSeed.load_complete_genomes">[docs]</a>    <span class="k">def</span> <span class="nf">load_complete_genomes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Loads a list of patric genome IDs that are complete genomes&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">complete_genomes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Loading complete patric genome IDs&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patricfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fin</span><span class="p">:</span>
+               <span class="n">larray</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span> 
+               <span class="bp">self</span><span class="o">.</span><span class="n">complete_genomes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">larray</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">larray</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="BuildModelSeed.get_model_from_patric"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.BuildModelSeed.get_model_from_patric">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_from_patric</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Builds models in patric and converts them to cobra models which are then imported into retsynth database&#39;&#39;&#39;</span>
+        <span class="n">model_compartments</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">model_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: getting patric modeling information from genomes&#39;</span><span class="p">)</span>
+        <span class="n">models_in_ws</span> <span class="o">=</span> <span class="n">mackinac</span><span class="o">.</span><span class="n">list_patric_models</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">models_in_ws</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">models_in_ws_id</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">models_in_ws</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">models_in_ws_id</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">new_patric_models</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">count_models</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">complete_genomes_new_name</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">complete_genomes</span><span class="p">:</span>
+            <span class="n">genome_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\&#39;</span><span class="s2">|</span><span class="se">\&quot;</span><span class="s2">&quot;&quot;&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">)</span>
+            <span class="n">genome_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">complete_genomes_new_name</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">))</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;STATUS: getting patric model for genome </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">,</span> <span class="n">genome_id</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">genome_name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">media</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models_in_ws_id</span><span class="p">:</span>
+                <span class="n">new_patric_models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">count_models</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: </span><span class="si">{}</span><span class="s1"> models already generated&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count_models</span><span class="p">))</span>
+        <span class="c1">###Multiple processors used to get patric models </span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">previously_built_patric_models</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;STATUS: Generating new patric models&quot;</span><span class="p">)</span>
+            <span class="n">model_chunks</span> <span class="o">=</span> <span class="p">[</span><span class="n">new_patric_models</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">processors</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_patric_models</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">processors</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">models</span> <span class="ow">in</span> <span class="n">model_chunks</span><span class="p">:</span>
+                <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+                    <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">build_patric_models</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">model</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">model</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">model</span><span class="p">[</span><span class="mi">3</span><span class="p">])))</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+                    <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+                    <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Using models already in patric&#39;</span><span class="p">)</span>    
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Converting patric models into cobra models and loading into database ... &#39;</span><span class="p">)</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">complete_genomes_new_name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">genome_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+                <span class="n">count_attemps</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">while</span> <span class="n">count_attemps</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: retrieving cobra model for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_name</span><span class="p">))</span>
+                        <span class="n">cobra_model</span> <span class="o">=</span> <span class="n">mackinac</span><span class="o">.</span><span class="n">create_cobra_model_from_patric_model</span><span class="p">(</span><span class="n">genome_name</span><span class="p">)</span>
+                        <span class="n">count_attemps</span> <span class="o">=</span> <span class="mi">4</span>
+                        <span class="n">models</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">genome_id</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">process_cobra_model</span><span class="p">(</span><span class="n">cobra_model</span><span class="p">,</span> <span class="n">genome_id</span><span class="p">)</span>
+                        <span class="n">model_ids</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">))</span>
+                        <span class="n">compartments</span> <span class="o">=</span> <span class="n">cobra_model</span><span class="o">.</span><span class="n">compartments</span>
+                        <span class="k">for</span> <span class="n">comp_id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">compartments</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                            <span class="n">model_compartments</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">comp_id</span><span class="o">+</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sbml_output</span><span class="p">:</span>
+                            <span class="n">io</span><span class="o">.</span><span class="n">write_sbml_model</span><span class="p">(</span><span class="n">cobra_model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_folder</span><span class="o">+</span><span class="s1">&#39;sbml_models/&#39;</span><span class="o">+</span><span class="n">genome_name</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ConnectionError</span><span class="p">:</span>
+                        <span class="n">count_attemps</span><span class="o">+=</span><span class="mi">1</span>
+                        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Unable to get cobra model for genome </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">, error 1, attempt </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">,</span> <span class="n">count_attemps</span><span class="p">))</span>
+                        <span class="k">pass</span>
+                    <span class="k">except</span> <span class="n">mackinac</span><span class="o">.</span><span class="n">SeedClient</span><span class="o">.</span><span class="n">ObjectNotFoundError</span><span class="p">:</span>
+                        <span class="n">count_attemps</span><span class="o">+=</span><span class="mi">1</span>
+                        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Unable to get cobra model for genome </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">, error 2, attempt </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">,</span> <span class="n">count_attemps</span><span class="p">))</span>
+                        <span class="k">pass</span>
+                    <span class="k">except</span> <span class="n">Database</span><span class="o">.</span><span class="n">mackinac</span><span class="o">.</span><span class="n">SeedClient</span><span class="o">.</span><span class="n">ObjectNotFoundError</span><span class="p">:</span>
+                        <span class="n">count_attemps</span><span class="o">+=</span><span class="mi">1</span>
+                        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Unable to get cobra model for genome </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">,  error 3, attempt </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">,</span> <span class="n">count_attemps</span><span class="p">))</span>
+                        <span class="k">pass</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">count_attemps</span><span class="o">+=</span><span class="mi">1</span>
+                        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Unexpected error for cobra model for genome </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">,  error 4, attempt </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span> <span class="nb">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">,</span> <span class="n">genome_name</span><span class="p">,</span> <span class="n">count_attemps</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: </span><span class="si">{}</span><span class="s1"> genome already in database&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">genome_id</span><span class="p">))</span>
+            <span class="n">reaction_revers_total</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">rxnid</span><span class="p">,</span> <span class="n">revers</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reaction_reversibility</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">reaction_revers_total</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">rxnid</span><span class="p">,</span> <span class="n">revers</span><span class="p">))</span>
+        <span class="n">model_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">model_ids</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">newdb</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">L2D</span><span class="o">.</span><span class="n">add_all_info_new</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allcompounds</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">originalIDs</span><span class="p">),</span>
+                                      <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allreactions</span><span class="p">),</span>
+                                      <span class="n">reaction_revers_total</span><span class="p">,</span> <span class="n">model_ids</span><span class="p">,</span>
+                                      <span class="nb">list</span><span class="p">(</span><span class="n">model_compartments</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">L2D</span><span class="o">.</span><span class="n">add_cluster_info</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">L2D</span><span class="o">.</span><span class="n">add_all_info_existing</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allcompounds</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">originalIDs</span><span class="p">),</span>
+                                           <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allreactions</span><span class="p">),</span>
+                                           <span class="n">reaction_revers_total</span><span class="p">,</span> <span class="n">model_ids</span><span class="p">,</span>
+                                           <span class="nb">list</span><span class="p">(</span><span class="n">model_compartments</span><span class="p">))</span></div></div>
+
+
+
+<div class="viewcode-block" id="LoadIntoDB"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB">[docs]</a><span class="k">class</span> <span class="nc">LoadIntoDB</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DBpath</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">inchidb</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;initialize&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span> <span class="o">=</span> <span class="n">inchidb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">DBpath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA synchronous = OFF&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA journal_mode = OFF&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="LoadIntoDB.add_model_compounds"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB.add_model_compounds">[docs]</a>    <span class="k">def</span> <span class="nf">add_model_compounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_compounds</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Loads model compound information into database&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model_compound VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">model_compounds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoadIntoDB.add_model_reactions"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB.add_model_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">add_model_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_reactions</span><span class="p">,</span> <span class="n">reaction_genes</span><span class="p">,</span> <span class="n">reaction_protein</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Loads reaction information into database&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model_reaction VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">model_reactions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_gene VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">reaction_genes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_protein VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">reaction_protein</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="LoadIntoDB.add_reaction_compound"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB.add_reaction_compound">[docs]</a>    <span class="k">def</span> <span class="nf">add_reaction_compound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_compound</span><span class="p">,</span> <span class="n">newdb</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Loads reaction compound information into database&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">newdb</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_compound VALUES (?,?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">reaction_compound</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM reaction&quot;</span><span class="p">)</span> 
+            <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="n">db_rxns</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">reaction_compound</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">db_rxns</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_compound VALUES (?,?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>          </div>
+
+<div class="viewcode-block" id="LoadIntoDB.add_all_info_new"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB.add_all_info_new">[docs]</a>    <span class="k">def</span> <span class="nf">add_all_info_new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allcompounds</span><span class="p">,</span> <span class="n">originalIDs</span><span class="p">,</span> <span class="n">allreactions</span><span class="p">,</span> <span class="n">reaction_reversibility</span><span class="p">,</span> <span class="n">model_ids</span><span class="p">,</span> <span class="n">model_compartments</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Loads unique compound, reaction, compartment and model information into new database&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO compound VALUES (?,?,?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">allcompounds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction VALUES (?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">allreactions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_reversibility VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">reaction_reversibility</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO compartments VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">model_compartments</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">model_ids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO fba_models VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">model_ids</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO original_db_cpdIDs VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">originalIDs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoadIntoDB.add_all_info_existing"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB.add_all_info_existing">[docs]</a>    <span class="k">def</span> <span class="nf">add_all_info_existing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allcompounds</span><span class="p">,</span> <span class="n">originalIDs</span><span class="p">,</span> <span class="n">allreactions</span><span class="p">,</span> <span class="n">reaction_reversibility</span><span class="p">,</span> <span class="n">model_ids</span><span class="p">,</span> <span class="n">model_compartments</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Loads unique compound, reaction, compartment and model information into preexisting database&#39;&#39;&#39;</span>
+        <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM compound&quot;</span><span class="p">)</span> 
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">db_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">allcompounds</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">db_cpds</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO compound VALUES (?,?,?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        
+        <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM original_db_cpdIDs&quot;</span><span class="p">)</span> 
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">db_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">originalIDs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">db_cpds</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO original_db_cpdIDs VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>       
+        
+        <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM reaction&quot;</span><span class="p">)</span> 
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">db_rxns</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">allreactions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">db_rxns</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction VALUES (?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM reaction_reversibility&quot;</span><span class="p">)</span> 
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">db_rxns_rv</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="n">db_rxns_rv1</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">reaction_reversibility</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">db_rxns_rv</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_reversibility VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rxn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">db_rxns_rv1</span><span class="p">[</span><span class="n">db_rxns_rv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="ow">and</span> <span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;UPDATE reaction_reversibility SET is_reversible = &#39;true&#39; WHERE reaction_ID = ?&quot;&quot;&quot;</span><span class="p">,(</span><span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM compartments&quot;</span><span class="p">)</span> 
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">db_compartments</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">compartment</span> <span class="ow">in</span> <span class="n">model_compartments</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">compartment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">db_compartments</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO compartments VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">compartment</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM model&quot;</span><span class="p">)</span> 
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">db_models</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">model_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">model</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">db_models</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="LoadIntoDB.add_cluster_info"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB.add_cluster_info">[docs]</a>    <span class="k">def</span> <span class="nf">add_cluster_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Loads cluster information into database&#39;&#39;&#39;</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS: Adding patric cluster info&#39;</span><span class="p">)</span>
+        <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM cluster&quot;</span><span class="p">)</span>
+        <span class="n">db_clusters</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">metabolic_clusters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">cluster_org</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">db_clusters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS: getting cluster information which is already in the database...&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="n">db_clusters</span><span class="p">:</span>
+                <span class="n">cluster_org</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metabolic_clusters</span><span class="p">:</span>
+                    <span class="n">metabolic_clusters</span><span class="p">[</span><span class="n">cluster</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">=</span><span class="p">{}</span>
+                    <span class="n">sorted_cpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_model_sorted_cpds</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">sorted_rxns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_model_sorted_rxns</span><span class="p">(</span><span class="n">cluster</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">metabolic_clusters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;comps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_cpds</span>
+                    <span class="n">metabolic_clusters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;rxns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_rxns</span>                    
+
+        <span class="n">q</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM model&quot;</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">db_models</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">db_models</span><span class="p">:</span>
+            <span class="n">sorted_cpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_model_sorted_cpds</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+            <span class="n">sorted_rxns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_model_sorted_rxns</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metabolic_clusters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">metabolic_clusters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">metabolic_clusters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;comps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_cpds</span>
+                <span class="n">metabolic_clusters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;rxns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_rxns</span>
+                <span class="n">cluster_org</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">cluster_org</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">count_keys</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">metabolic_clusters</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">sorted_cpds</span> <span class="o">==</span> <span class="n">metabolic_clusters</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;comps&#39;</span><span class="p">]</span> <span class="ow">and</span>
+                            <span class="n">sorted_rxns</span> <span class="o">==</span> <span class="n">metabolic_clusters</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;rxns&#39;</span><span class="p">]):</span>
+                        <span class="n">cluster_org</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+                        <span class="k">break</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">count_keys</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metabolic_clusters</span><span class="p">)</span> <span class="o">==</span> <span class="n">count_keys</span><span class="p">:</span>
+                    <span class="n">num_keys</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">metabolic_clusters</span><span class="p">)</span>
+                    <span class="n">metabolic_clusters</span><span class="p">[</span><span class="n">num_keys</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">metabolic_clusters</span><span class="p">[</span><span class="n">num_keys</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;comps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_cpds</span>
+                    <span class="n">metabolic_clusters</span><span class="p">[</span><span class="n">num_keys</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;rxns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_rxns</span>
+                    <span class="n">cluster_org</span><span class="p">[</span><span class="n">num_keys</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">cluster_org</span><span class="p">[</span><span class="n">num_keys</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">cluster_org</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span> 
+                <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT cluster_num FROM cluster WHERE cluster_num= ? AND ID=?&quot;</span><span class="p">,</span>
+                                <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>     
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO cluster VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoadIntoDB.get_model_sorted_cpds"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB.get_model_sorted_cpds">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_sorted_cpds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT cpd_ID FROM model_compound WHERE model_ID=?&quot;</span><span class="p">,(</span><span class="n">model</span><span class="p">,))</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="n">sorted_cpds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cpds</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">sorted_cpds</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LoadIntoDB.get_model_sorted_rxns"><a class="viewcode-back" href="../../Database.html#Database.build_modelseed.LoadIntoDB.get_model_sorted_rxns">[docs]</a>    <span class="k">def</span> <span class="nf">get_model_sorted_rxns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT reaction_ID FROM model_reaction WHERE model_ID=?&quot;</span><span class="p">,(</span><span class="n">model</span><span class="p">,))</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">rxns</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="n">sorted_rxns</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rxns</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">sorted_rxns</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.build_modelseed</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

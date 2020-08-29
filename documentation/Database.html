@@ -1,0 +1,808 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database module &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="_static/jquery.cookie.js"></script>
+    <script src="_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Database module</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="database-module">
+<h1>Database module<a class="headerlink" href="#database-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-Database.initialize_database">
+<span id="database-initialize-database"></span><h3>Database.initialize_database<a class="headerlink" href="#module-Database.initialize_database" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="Database.initialize_database.Createdb">
+<em class="property">class </em><code class="sig-prename descclassname">Database.initialize_database.</code><code class="sig-name descname">Createdb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">database</span></em>, <em class="sig-param"><span class="n">inchidb</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/initialize_database.html#Createdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.initialize_database.Createdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generates new sqlite database and creates table and indicies</p>
+<dl class="py method">
+<dt id="Database.initialize_database.Createdb.create_model_tbls">
+<code class="sig-name descname">create_model_tbls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/initialize_database.html#Createdb.create_model_tbls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.initialize_database.Createdb.create_model_tbls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates tables and indicies in SQLite Database</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-Database.query">
+<span id="database-query"></span><h3>Database.query<a class="headerlink" href="#module-Database.query" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="Database.query.Connector">
+<em class="property">class </em><code class="sig-prename descclassname">Database.query.</code><code class="sig-name descname">Connector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">database</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Connects to a generated database</p>
+<dl class="py method">
+<dt id="Database.query.Connector.connect_to_database">
+<code class="sig-name descname">connect_to_database</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.connect_to_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.connect_to_database" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.custom_query">
+<code class="sig-name descname">custom_query</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.custom_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.custom_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a custom query and returns the results</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_compound_keggIDs">
+<code class="sig-name descname">get_all_compound_keggIDs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_compound_keggIDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_compound_keggIDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all compound Kegg IDs</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_compounds">
+<code class="sig-name descname">get_all_compounds</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_compounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_compounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all compounds in the database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_cpd_chemicalformulas">
+<code class="sig-name descname">get_all_cpd_chemicalformulas</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_cpd_chemicalformulas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_cpd_chemicalformulas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all chemicalformulas</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_cpd_with_chemicalformula">
+<code class="sig-name descname">get_all_cpd_with_chemicalformula</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cf</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_cpd_with_chemicalformula"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_cpd_with_chemicalformula" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves chemicalformula for compound ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_cpd_with_search">
+<code class="sig-name descname">get_all_cpd_with_search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">search</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_cpd_with_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_cpd_with_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves compound name for given search term (name/formula)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_fba_models">
+<code class="sig-name descname">get_all_fba_models</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_fba_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_fba_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all model IDs in the database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_keggIDs">
+<code class="sig-name descname">get_all_keggIDs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_keggIDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_keggIDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reactions based on type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_models">
+<code class="sig-name descname">get_all_models</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all model IDs in the database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_all_reactions">
+<code class="sig-name descname">get_all_reactions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_all_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_all_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all reactions in the database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_catalysts">
+<code class="sig-name descname">get_catalysts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_catalysts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_catalysts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the catalyst of reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_compartment">
+<code class="sig-name descname">get_compartment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compartment</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_compartment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_compartment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the compartment ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_compound_ID">
+<code class="sig-name descname">get_compound_ID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compound_name</span></em>, <em class="sig-param"><span class="n">strict</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_compound_ID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_compound_ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves compound ID given a compound name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_compound_compartment">
+<code class="sig-name descname">get_compound_compartment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compound_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_compound_compartment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_compound_compartment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the compartment that the compound is in</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_compound_name">
+<code class="sig-name descname">get_compound_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compound_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_compound_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_compound_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves compound name given a compound ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_compounds_in_model">
+<code class="sig-name descname">get_compounds_in_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">organism_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_compounds_in_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_compounds_in_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrives all compounds in a metabolic model given model ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_cpd_casnumber">
+<code class="sig-name descname">get_cpd_casnumber</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_cpd_casnumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_cpd_casnumber" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves casnumber for compound ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_cpd_chemicalformula">
+<code class="sig-name descname">get_cpd_chemicalformula</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_cpd_chemicalformula"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_cpd_chemicalformula" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves chemicalformula for compound ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_genes">
+<code class="sig-name descname">get_genes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em>, <em class="sig-param"><span class="n">organism_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_genes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_genes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves gene associations for a reaction
+of a given metabolic network (model ID)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_kegg_cpd_ID">
+<code class="sig-name descname">get_kegg_cpd_ID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_kegg_cpd_ID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_kegg_cpd_ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves kegg ID for a compound based on main ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_kegg_reaction_ID">
+<code class="sig-name descname">get_kegg_reaction_ID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_kegg_reaction_ID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_kegg_reaction_ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves kegg ID for a reaction based on main ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_model_ID">
+<code class="sig-name descname">get_model_ID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_model_ID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_model_ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves model ID for given file_name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_models_from_cluster">
+<code class="sig-name descname">get_models_from_cluster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cluster</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_models_from_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_models_from_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves model IDs from a specified cluster in the database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_organism_ID">
+<code class="sig-name descname">get_organism_ID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">organism_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_organism_ID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_organism_ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves ID of metabolic model given a specific model name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_organism_name">
+<code class="sig-name descname">get_organism_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">organism_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_organism_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_organism_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves name of metabolic model given a specific model ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_pressure">
+<code class="sig-name descname">get_pressure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_pressure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_pressure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the pressure reaction is performed at</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_products">
+<code class="sig-name descname">get_products</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_products"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_products" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves products (compound IDs) of a given reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_products_reactions">
+<code class="sig-name descname">get_products_reactions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compound_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_products_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_products_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reactions that have a given compound (ID) as a product</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_proteins">
+<code class="sig-name descname">get_proteins</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em>, <em class="sig-param"><span class="n">organism_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_proteins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_proteins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves protein associations for a reaction of a given metabolic network (model ID)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reactants">
+<code class="sig-name descname">get_reactants</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reactants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reactants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reactants (compound IDs) of a given reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reactants_reactions">
+<code class="sig-name descname">get_reactants_reactions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compound_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reactants_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reactants_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reactions that have a given compound (ID) as a reactant</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reaction_name">
+<code class="sig-name descname">get_reaction_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reaction_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reaction_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves name of the reaction given the reaction ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reaction_species">
+<code class="sig-name descname">get_reaction_species</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reaction_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reaction_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves compound IDs that are in a given a reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reaction_type">
+<code class="sig-name descname">get_reaction_type</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rxn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reaction_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reaction_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reaction on type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reactions">
+<code class="sig-name descname">get_reactions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compound_ID</span></em>, <em class="sig-param"><span class="n">is_prod</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reaction IDs that have a given compound ID as a reactant or product</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reactions_based_on_type">
+<code class="sig-name descname">get_reactions_based_on_type</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rxntype</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reactions_based_on_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reactions_based_on_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reactions based on type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reactions_in_model">
+<code class="sig-name descname">get_reactions_in_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">organism_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reactions_in_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reactions_in_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all reactions in a metabolic model given model ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_reference">
+<code class="sig-name descname">get_reference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_reference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the reference of reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_solvents">
+<code class="sig-name descname">get_solvents</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_solvents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_solvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves solvent of reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_stoichiometry">
+<code class="sig-name descname">get_stoichiometry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em>, <em class="sig-param"><span class="n">compound_ID</span></em>, <em class="sig-param"><span class="n">is_prod</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_stoichiometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_stoichiometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves stoichiometry of a compound for a given reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_temperature">
+<code class="sig-name descname">get_temperature</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_temperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_temperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the temperaature reaction is performed at</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_time">
+<code class="sig-name descname">get_time</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the time that is required to perform reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_uniq_metabolic_clusters">
+<code class="sig-name descname">get_uniq_metabolic_clusters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_uniq_metabolic_clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_uniq_metabolic_clusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves unique metabolic clusters (organisms
+with the exact same metabolism) in the database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.get_yield">
+<code class="sig-name descname">get_yield</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.get_yield"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.get_yield" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves yield that was reported with reaction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.is_reversible">
+<code class="sig-name descname">is_reversible</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">organism_ID</span></em>, <em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.is_reversible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.is_reversible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reverisbility information of a reaction
+in a specified metabolic model (model ID)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.query.Connector.is_reversible_all">
+<code class="sig-name descname">is_reversible_all</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#Connector.is_reversible_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.Connector.is_reversible_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves reversibility information of a reaction independent of model</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.query.fetching_all_query_results">
+<code class="sig-prename descclassname">Database.query.</code><code class="sig-name descname">fetching_all_query_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Q</span></em>, <em class="sig-param"><span class="n">conn</span></em>, <em class="sig-param"><span class="n">cnx</span></em>, <em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">query</span></em>, <em class="sig-param"><span class="n">count</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#fetching_all_query_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.fetching_all_query_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="Database.query.fetching_one_query_results">
+<code class="sig-prename descclassname">Database.query.</code><code class="sig-name descname">fetching_one_query_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Q</span></em>, <em class="sig-param"><span class="n">conn</span></em>, <em class="sig-param"><span class="n">cnx</span></em>, <em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">query</span></em>, <em class="sig-param"><span class="n">count</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#fetching_one_query_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.fetching_one_query_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="Database.query.test_db_4_error">
+<code class="sig-prename descclassname">Database.query.</code><code class="sig-name descname">test_db_4_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conn</span></em>, <em class="sig-param"><span class="n">cnx</span></em>, <em class="sig-param"><span class="n">query</span></em>, <em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">count</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/query.html#test_db_4_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.query.test_db_4_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="database-build-atlas-db">
+<h3>Database.build_ATLAS_db<a class="headerlink" href="#database-build-atlas-db" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="database-build-kbase-db">
+<h3>Database.build_kbase_db<a class="headerlink" href="#database-build-kbase-db" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="module-Database.build_modelseed">
+<span id="database-build-modelseed"></span><h3>Database.build_modelseed<a class="headerlink" href="#module-Database.build_modelseed" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="Database.build_modelseed.BuildModelSeed">
+<em class="property">class </em><code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">BuildModelSeed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">username</span></em>, <em class="sig-param"><span class="n">password</span></em>, <em class="sig-param"><span class="n">rxntype</span></em>, <em class="sig-param"><span class="n">inchidb</span></em>, <em class="sig-param"><span class="n">DBpath</span></em>, <em class="sig-param"><span class="n">output_folder</span></em>, <em class="sig-param"><span class="n">media</span><span class="o">=</span><span class="default_value">'Complete'</span></em>, <em class="sig-param"><span class="n">newdb</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">tokentype</span><span class="o">=</span><span class="default_value">'patric'</span></em>, <em class="sig-param"><span class="n">sbml_output</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">processors</span><span class="o">=</span><span class="default_value">4</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">patricfile</span><span class="o">=</span><span class="default_value">'/home/leann/sandia_work/RetSynth/rs/Database/data/PATRIC_genome_complete_07152018.csv'</span></em>, <em class="sig-param"><span class="n">previously_built_patric_models</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#BuildModelSeed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.BuildModelSeed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="Database.build_modelseed.BuildModelSeed.get_model_from_patric">
+<code class="sig-name descname">get_model_from_patric</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#BuildModelSeed.get_model_from_patric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.BuildModelSeed.get_model_from_patric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds models in patric and converts them to cobra models which are then imported into retsynth database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.BuildModelSeed.load_complete_genomes">
+<code class="sig-name descname">load_complete_genomes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#BuildModelSeed.load_complete_genomes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.BuildModelSeed.load_complete_genomes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a list of patric genome IDs that are complete genomes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.BuildModelSeed.process_cobra_model">
+<code class="sig-name descname">process_cobra_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">genome_id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#BuildModelSeed.process_cobra_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.BuildModelSeed.process_cobra_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds information from cobra model into appropriate arrays</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="Database.build_modelseed.LoadIntoDB">
+<em class="property">class </em><code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">LoadIntoDB</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">DBpath</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">inchidb</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="Database.build_modelseed.LoadIntoDB.add_all_info_existing">
+<code class="sig-name descname">add_all_info_existing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">allcompounds</span></em>, <em class="sig-param"><span class="n">originalIDs</span></em>, <em class="sig-param"><span class="n">allreactions</span></em>, <em class="sig-param"><span class="n">reaction_reversibility</span></em>, <em class="sig-param"><span class="n">model_ids</span></em>, <em class="sig-param"><span class="n">model_compartments</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB.add_all_info_existing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB.add_all_info_existing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads unique compound, reaction, compartment and model information into preexisting database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.LoadIntoDB.add_all_info_new">
+<code class="sig-name descname">add_all_info_new</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">allcompounds</span></em>, <em class="sig-param"><span class="n">originalIDs</span></em>, <em class="sig-param"><span class="n">allreactions</span></em>, <em class="sig-param"><span class="n">reaction_reversibility</span></em>, <em class="sig-param"><span class="n">model_ids</span></em>, <em class="sig-param"><span class="n">model_compartments</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB.add_all_info_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB.add_all_info_new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads unique compound, reaction, compartment and model information into new database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.LoadIntoDB.add_cluster_info">
+<code class="sig-name descname">add_cluster_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB.add_cluster_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB.add_cluster_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads cluster information into database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.LoadIntoDB.add_model_compounds">
+<code class="sig-name descname">add_model_compounds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_compounds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB.add_model_compounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB.add_model_compounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads model compound information into database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.LoadIntoDB.add_model_reactions">
+<code class="sig-name descname">add_model_reactions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_reactions</span></em>, <em class="sig-param"><span class="n">reaction_genes</span></em>, <em class="sig-param"><span class="n">reaction_protein</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB.add_model_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB.add_model_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads reaction information into database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.LoadIntoDB.add_reaction_compound">
+<code class="sig-name descname">add_reaction_compound</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_compound</span></em>, <em class="sig-param"><span class="n">newdb</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB.add_reaction_compound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB.add_reaction_compound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads reaction compound information into database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.LoadIntoDB.get_model_sorted_cpds">
+<code class="sig-name descname">get_model_sorted_cpds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB.get_model_sorted_cpds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB.get_model_sorted_cpds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_modelseed.LoadIntoDB.get_model_sorted_rxns">
+<code class="sig-name descname">get_model_sorted_rxns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#LoadIntoDB.get_model_sorted_rxns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.LoadIntoDB.get_model_sorted_rxns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_modelseed.build_patric_models">
+<code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">build_patric_models</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">genome_id</span></em>, <em class="sig-param"><span class="n">genome_name</span></em>, <em class="sig-param"><span class="n">media</span></em>, <em class="sig-param"><span class="n">username</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#build_patric_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.build_patric_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds patric models on the patric server</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_modelseed.extract_KEGG_data">
+<code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">extract_KEGG_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">verbose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#extract_KEGG_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.extract_KEGG_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract Kegg db info</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_modelseed.generate_sbml_output_folder">
+<code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">generate_sbml_output_folder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_folder</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#generate_sbml_output_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.generate_sbml_output_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate output folder for sbml fba models if user has specified this option</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_modelseed.get_KEGG_IDs">
+<code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">get_KEGG_IDs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ID</span></em>, <em class="sig-param"><span class="n">compartment</span></em>, <em class="sig-param"><span class="n">KEGGdict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#get_KEGG_IDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.get_KEGG_IDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve KEGG IDs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_modelseed.kegg2pubcheminchi">
+<code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">kegg2pubcheminchi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpd</span></em>, <em class="sig-param"><span class="n">verbose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#kegg2pubcheminchi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.kegg2pubcheminchi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convvert kegg ID to InChI value</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_modelseed.open_translation_file">
+<code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">open_translation_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#open_translation_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.open_translation_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>opens and stores KEGG translation files</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_modelseed.retrieve_exact_inchi_values">
+<code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">retrieve_exact_inchi_values</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_cpd_keggid</span></em>, <em class="sig-param"><span class="n">raw_cpd_keggid</span></em>, <em class="sig-param"><span class="n">cpd_name</span></em>, <em class="sig-param"><span class="n">compart_info</span></em>, <em class="sig-param"><span class="n">inchi_pubchem</span></em>, <em class="sig-param"><span class="n">inchi_cf</span></em>, <em class="sig-param"><span class="n">inchi_cas</span></em>, <em class="sig-param"><span class="n">CT</span></em>, <em class="sig-param"><span class="n">INCHI</span></em>, <em class="sig-param"><span class="n">verbose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#retrieve_exact_inchi_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.retrieve_exact_inchi_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve InChI values</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_modelseed.verbose_print">
+<code class="sig-prename descclassname">Database.build_modelseed.</code><code class="sig-name descname">verbose_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_modelseed.html#verbose_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_modelseed.verbose_print" title="Permalink to this definition">¶</a></dt>
+<dd><p>verbose print function</p>
+</dd></dl>
+
+</div>
+<div class="section" id="database-build-user-rxns-db">
+<h3>Database.build_user_rxns_db<a class="headerlink" href="#database-build-user-rxns-db" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="module-Database.build_KEGG_db">
+<span id="database-build-kegg-db"></span><h3>Database.build_KEGG_db<a class="headerlink" href="#module-Database.build_KEGG_db" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="Database.build_KEGG_db.BuildKEGG">
+<code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">BuildKEGG</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">types_orgs</span></em>, <em class="sig-param"><span class="n">inchidb</span></em>, <em class="sig-param"><span class="n">processors</span></em>, <em class="sig-param"><span class="n">currentcpds</span></em>, <em class="sig-param"><span class="n">num_organisms</span><span class="o">=</span><span class="default_value">'all'</span></em>, <em class="sig-param"><span class="n">num_pathways</span><span class="o">=</span><span class="default_value">'all'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#BuildKEGG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.BuildKEGG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build metabolic database from KEGG DB</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="Database.build_KEGG_db.CompileKEGGIntoDB">
+<em class="property">class </em><code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">CompileKEGGIntoDB</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">database</span></em>, <em class="sig-param"><span class="n">type_org</span></em>, <em class="sig-param"><span class="n">inchidb</span></em>, <em class="sig-param"><span class="n">processors</span></em>, <em class="sig-param"><span class="n">num_organisms</span></em>, <em class="sig-param"><span class="n">num_pathways</span></em>, <em class="sig-param"><span class="n">rxntype</span></em>, <em class="sig-param"><span class="n">add</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#CompileKEGGIntoDB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.CompileKEGGIntoDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Add KEGG info to sqlite database</p>
+<dl class="py method">
+<dt id="Database.build_KEGG_db.CompileKEGGIntoDB.add_to_preexisting_db">
+<code class="sig-name descname">add_to_preexisting_db</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#CompileKEGGIntoDB.add_to_preexisting_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.CompileKEGGIntoDB.add_to_preexisting_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add KEGG info to already developed database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_KEGG_db.CompileKEGGIntoDB.fill_new_database">
+<code class="sig-name descname">fill_new_database</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#CompileKEGGIntoDB.fill_new_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.CompileKEGGIntoDB.fill_new_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill database</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_KEGG_db.add_metabolite">
+<code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">add_metabolite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reactionID</span></em>, <em class="sig-param"><span class="n">cpd</span></em>, <em class="sig-param"><span class="n">stoichiometry</span></em>, <em class="sig-param"><span class="n">is_prod</span></em>, <em class="sig-param"><span class="n">reactioninfo</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#add_metabolite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.add_metabolite" title="Permalink to this definition">¶</a></dt>
+<dd><p>add metabolites to dictionary</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_KEGG_db.extract_KEGG_data">
+<code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">extract_KEGG_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">trycount</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#extract_KEGG_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.extract_KEGG_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract Kegg db info</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_KEGG_db.extract_KEGG_orgIDs">
+<code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">extract_KEGG_orgIDs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">types_orgs</span></em>, <em class="sig-param"><span class="n">num_organisms</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#extract_KEGG_orgIDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.extract_KEGG_orgIDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve organism IDs in KEGG</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_KEGG_db.extract_pathwayIDs">
+<code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">extract_pathwayIDs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orgID</span></em>, <em class="sig-param"><span class="n">num_pathways</span></em>, <em class="sig-param"><span class="n">output_queue</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#extract_pathwayIDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.extract_pathwayIDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve pathway IDs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_KEGG_db.extract_reactionIDs">
+<code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">extract_reactionIDs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pathway</span></em>, <em class="sig-param"><span class="n">output_queue</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#extract_reactionIDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.extract_reactionIDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract reactions in pathways</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_KEGG_db.process_compound">
+<code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">process_compound</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpd</span></em>, <em class="sig-param"><span class="n">reactionID</span></em>, <em class="sig-param"><span class="n">reactioninfo</span></em>, <em class="sig-param"><span class="n">is_prod</span></em>, <em class="sig-param"><span class="n">inchidb</span></em>, <em class="sig-param"><span class="n">compoundinfo</span></em>, <em class="sig-param"><span class="n">cpd2inchi</span></em>, <em class="sig-param"><span class="n">inchi_cf</span></em>, <em class="sig-param"><span class="n">inchi_cas</span></em>, <em class="sig-param"><span class="n">currentcpds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#process_compound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.process_compound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_KEGG_db.process_reaction">
+<code class="sig-prename descclassname">Database.build_KEGG_db.</code><code class="sig-name descname">process_reaction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reactionID</span></em>, <em class="sig-param"><span class="n">inchidb</span></em>, <em class="sig-param"><span class="n">compoundinfo</span></em>, <em class="sig-param"><span class="n">cpd2inchi</span></em>, <em class="sig-param"><span class="n">inchi_cf</span></em>, <em class="sig-param"><span class="n">inchi_cas</span></em>, <em class="sig-param"><span class="n">currentcpds</span></em>, <em class="sig-param"><span class="n">output_queue</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_KEGG_db.html#process_reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_KEGG_db.process_reaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract reaction info</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Database.build_metacyc_db">
+<span id="database-build-metacyc-db"></span><h3>Database.build_metacyc_db<a class="headerlink" href="#module-Database.build_metacyc_db" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="Database.build_metacyc_db.MetaCyc">
+<em class="property">class </em><code class="sig-prename descclassname">Database.build_metacyc_db.</code><code class="sig-name descname">MetaCyc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">DB</span></em>, <em class="sig-param"><span class="n">inchidb</span></em>, <em class="sig-param"><span class="n">cnx</span></em>, <em class="sig-param"><span class="n">verbose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Opens and parses metacyc xml file</p>
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.arrays">
+<code class="sig-name descname">arrays</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpdID</span></em>, <em class="sig-param"><span class="n">compartment</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">KEGG_ID</span></em>, <em class="sig-param"><span class="n">chemicalformula</span></em>, <em class="sig-param"><span class="n">cas</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.arrays"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds compound to compound arrays</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.check_db">
+<code class="sig-name descname">check_db</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpdID</span></em>, <em class="sig-param"><span class="n">kegg_id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.check_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.check_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks database for table original_db_cpdIDs if table exists and cpd ID exists
+the inchi value for that compound is retrieved</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.check_reaction_difference">
+<code class="sig-name descname">check_reaction_difference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rxnID</span></em>, <em class="sig-param"><span class="n">rxn_compounds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.check_reaction_difference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.check_reaction_difference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks to see if promiscus mets are only difference between reactions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.compound_translator">
+<code class="sig-name descname">compound_translator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compound_ID</span></em>, <em class="sig-param"><span class="n">biocyc_ID</span></em>, <em class="sig-param"><span class="n">inchi_ID</span></em>, <em class="sig-param"><span class="n">KEGG_ID</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">compartment</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.compound_translator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.compound_translator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if metacyc compound is in database, if it is not it adds it</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.fill_compound_arrays">
+<code class="sig-name descname">fill_compound_arrays</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ID</span></em>, <em class="sig-param"><span class="n">inchi</span></em>, <em class="sig-param"><span class="n">cpdID</span></em>, <em class="sig-param"><span class="n">KEGG_ID</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">compartment</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.fill_compound_arrays"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.fill_compound_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines whether or not to add compound to compound arrays which will
+later be added to the sqlite database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.fill_temp_array">
+<code class="sig-name descname">fill_temp_array</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpdID</span></em>, <em class="sig-param"><span class="n">is_prod</span></em>, <em class="sig-param"><span class="n">stoic</span></em>, <em class="sig-param"><span class="n">temp_all_rxn_compound</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.fill_temp_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.fill_temp_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds reaction information from metacyc xml file to temporary reaction
+list which later gets inserted into database</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.get_compounds_4_rxn">
+<code class="sig-name descname">get_compounds_4_rxn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">species</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.get_compounds_4_rxn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.get_compounds_4_rxn" title="Permalink to this definition">¶</a></dt>
+<dd><p>get reaction compounds</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.get_fp_cf_info">
+<code class="sig-name descname">get_fp_cf_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inchi</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.get_fp_cf_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.get_fp_cf_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.get_promiscuous_cpds">
+<code class="sig-name descname">get_promiscuous_cpds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.get_promiscuous_cpds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.get_promiscuous_cpds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.multiple_copies_of_rxns">
+<code class="sig-name descname">multiple_copies_of_rxns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rxnID</span></em>, <em class="sig-param"><span class="n">rxn</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">genes</span></em>, <em class="sig-param"><span class="n">proteins</span></em>, <em class="sig-param"><span class="n">kegg</span></em>, <em class="sig-param"><span class="n">temp_all_rxn_compound</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.multiple_copies_of_rxns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.multiple_copies_of_rxns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deals with rxns that have same catalytic enzyme but different substrates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.read_metacyc_file">
+<code class="sig-name descname">read_metacyc_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">BIOCYC_translator</span></em>, <em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.read_metacyc_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.read_metacyc_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads and parses metacyc SBML file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.retrieve_compartment_4_compartment">
+<code class="sig-name descname">retrieve_compartment_4_compartment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">temp_compartment</span></em>, <em class="sig-param"><span class="n">rxnID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.retrieve_compartment_4_compartment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.retrieve_compartment_4_compartment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.retrieve_rxn_info">
+<code class="sig-name descname">retrieve_rxn_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rxn</span></em>, <em class="sig-param"><span class="n">rxnID</span></em>, <em class="sig-param"><span class="n">genes</span></em>, <em class="sig-param"><span class="n">proteins</span></em>, <em class="sig-param"><span class="n">kegg_ID</span></em>, <em class="sig-param"><span class="n">biocycID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.retrieve_rxn_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.retrieve_rxn_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses reaction information from metacyc xml file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="Database.build_metacyc_db.MetaCyc.rxn_translator">
+<code class="sig-name descname">rxn_translator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_ID</span></em>, <em class="sig-param"><span class="n">temp_all_rxn_compound</span></em>, <em class="sig-param"><span class="n">revers</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">genes</span></em>, <em class="sig-param"><span class="n">proteins</span></em>, <em class="sig-param"><span class="n">kegg</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#MetaCyc.rxn_translator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.MetaCyc.rxn_translator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if metacyc reaction is in database, if it is not it adds it</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="Database.build_metacyc_db.Translate">
+<em class="property">class </em><code class="sig-prename descclassname">Database.build_metacyc_db.</code><code class="sig-name descname">Translate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">DBPath</span></em>, <em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">inchidb</span></em>, <em class="sig-param"><span class="n">rxntype</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">add</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#Translate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.Translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Translates metacyc compound and reaction IDs to Kbase compound and reaction IDs
+if a kbase database is used (ONLY WORKS WITH KBASE, ModelSeed/patric)</p>
+<dl class="py method">
+<dt id="Database.build_metacyc_db.Translate.add_metacyc_to_db">
+<code class="sig-name descname">add_metacyc_to_db</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#Translate.add_metacyc_to_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.Translate.add_metacyc_to_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds metacyc information to the database</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_metacyc_db.extract_KEGG_data">
+<code class="sig-prename descclassname">Database.build_metacyc_db.</code><code class="sig-name descname">extract_KEGG_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#extract_KEGG_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.extract_KEGG_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract Kegg db info</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_metacyc_db.get_inchi_from_kegg_ID">
+<code class="sig-prename descclassname">Database.build_metacyc_db.</code><code class="sig-name descname">get_inchi_from_kegg_ID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpd</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#get_inchi_from_kegg_ID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.get_inchi_from_kegg_ID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="Database.build_metacyc_db.verbose_print">
+<code class="sig-prename descclassname">Database.build_metacyc_db.</code><code class="sig-name descname">verbose_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/build_metacyc_db.html#verbose_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.build_metacyc_db.verbose_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="database-build-spresi-db">
+<h3>Database.build_SPRESI_db<a class="headerlink" href="#database-build-spresi-db" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="database-build-mine-db">
+<h3>Database.build_MINE_db<a class="headerlink" href="#database-build-mine-db" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="module-Database.remove_duplicate_cpds">
+<span id="database-remove-duplicate-cpds"></span><h3>Database.remove_duplicate_cpds<a class="headerlink" href="#module-Database.remove_duplicate_cpds" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="Database.remove_duplicate_cpds.OverlappingCpdIDs">
+<em class="property">class </em><code class="sig-prename descclassname">Database.remove_duplicate_cpds.</code><code class="sig-name descname">OverlappingCpdIDs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">database</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/remove_duplicate_cpds.html#OverlappingCpdIDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.remove_duplicate_cpds.OverlappingCpdIDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="Database.remove_duplicate_cpds.OverlappingCpdIDs.identify_overlapping_ids">
+<code class="sig-name descname">identify_overlapping_ids</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Database/remove_duplicate_cpds.html#OverlappingCpdIDs.identify_overlapping_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Database.remove_duplicate_cpds.OverlappingCpdIDs.identify_overlapping_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>find cpd IDs that are have different IDs (i.e. inchi and cpd for the same compound)
+and fix</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="sphinxlocaltoc">
+    <h3><a href="index.html">Page contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Database module</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a><ul>
+<li><a class="reference internal" href="#module-Database.initialize_database">Database.initialize_database</a></li>
+<li><a class="reference internal" href="#module-Database.query">Database.query</a></li>
+<li><a class="reference internal" href="#database-build-atlas-db">Database.build_ATLAS_db</a></li>
+<li><a class="reference internal" href="#database-build-kbase-db">Database.build_kbase_db</a></li>
+<li><a class="reference internal" href="#module-Database.build_modelseed">Database.build_modelseed</a></li>
+<li><a class="reference internal" href="#database-build-user-rxns-db">Database.build_user_rxns_db</a></li>
+<li><a class="reference internal" href="#module-Database.build_KEGG_db">Database.build_KEGG_db</a></li>
+<li><a class="reference internal" href="#module-Database.build_metacyc_db">Database.build_metacyc_db</a></li>
+<li><a class="reference internal" href="#database-build-spresi-db">Database.build_SPRESI_db</a></li>
+<li><a class="reference internal" href="#database-build-mine-db">Database.build_MINE_db</a></li>
+<li><a class="reference internal" href="#module-Database.remove_duplicate_cpds">Database.remove_duplicate_cpds</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Database.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Database module</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

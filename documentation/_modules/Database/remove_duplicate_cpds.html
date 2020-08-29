@@ -1,0 +1,148 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database.remove_duplicate_cpds &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.remove_duplicate_cpds</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Database.remove_duplicate_cpds</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore and Corey Hudson&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov and cmhudso@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;combined overlapping IDs&#39;</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">Database</span> <span class="kn">import</span> <span class="n">query</span> <span class="k">as</span> <span class="n">Q</span>
+
+<div class="viewcode-block" id="OverlappingCpdIDs"><a class="viewcode-back" href="../../Database.html#Database.remove_duplicate_cpds.OverlappingCpdIDs">[docs]</a><span class="k">class</span> <span class="nc">OverlappingCpdIDs</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="OverlappingCpdIDs.identify_overlapping_ids"><a class="viewcode-back" href="../../Database.html#Database.remove_duplicate_cpds.OverlappingCpdIDs.identify_overlapping_ids">[docs]</a>    <span class="k">def</span> <span class="nf">identify_overlapping_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;find cpd IDs that are have different IDs (i.e. inchi and cpd for the same compound)</span>
+<span class="sd">            and fix&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">olids</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keggidol</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_all_compounds</span><span class="p">()</span>
+        
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">get inchi compounds&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpds</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;InChI&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;compartment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_compartment</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;keggid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_kegg_cpd_ID</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">get overlapping compounds&#39;</span><span class="p">)</span>
+        <span class="n">query_search</span> <span class="o">=</span> <span class="s1">&#39;InChI&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select ID from compound where ID not like &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">query_search</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">connect_to_database</span><span class="p">()</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keggidsonly</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM compartments&quot;</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">compartments</span> <span class="o">=</span>  <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;keggid&#39;</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;compartment&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keggidsonly</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">keggidol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;keggid&#39;</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">inchicpds2keggids</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;compartment&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cpd</span>
+
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">removing duplicate kegg ids from compound table&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cpdkeggid</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keggidol</span><span class="p">):</span>
+            <span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;DELETE FROM compound where ID = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">cpdkeggid</span><span class="p">,))</span>
+            <span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;UPDATE model_compound SET cpd_ID=? WHERE cpd_ID=?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keggidol</span><span class="p">[</span><span class="n">cpdkeggid</span><span class="p">],</span> <span class="n">cpdkeggid</span><span class="p">))</span>
+            <span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;UPDATE reaction_compound SET cpd_ID=? WHERE cpd_ID=?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keggidol</span><span class="p">[</span><span class="n">cpdkeggid</span><span class="p">],</span> <span class="n">cpdkeggid</span><span class="p">))</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">Connector</span><span class="p">(</span><span class="n">database</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">identify_overlapping_ids</span><span class="p">()</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.remove_duplicate_cpds</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

@@ -1,0 +1,525 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization_chemdraw.reaction_files &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Visualization_chemdraw.reaction_files</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Visualization_chemdraw.reaction_files</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;Generate Reaction smiles file (can be used in ChemDraw)&#39;</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+<span class="kn">import</span> <span class="nn">pubchempy</span> <span class="k">as</span> <span class="nn">pcp</span>
+<span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;darwin&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo_renderer</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo_renderer</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;win64&#39;</span> <span class="ow">or</span> <span class="n">platform</span><span class="o">==</span><span class="s2">&quot;cygwin&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo_renderer</span>
+<span class="kn">from</span> <span class="nn">Visualization_chemdraw.exclude_cpds</span> <span class="kn">import</span> <span class="n">retrieve_promiscuous_mets</span>
+<span class="kn">from</span> <span class="nn">Visualization_chemdraw.cdxml_editor</span> <span class="kn">import</span> <span class="n">CDXML_Editor</span>
+
+
+<span class="sd">&#39;&#39;&#39; Tree Structure for Ordered Path &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">root</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Node.addChild"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.Node.addChild">[docs]</a>    <span class="k">def</span> <span class="nf">addChild</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">+=</span> <span class="p">[</span><span class="n">child</span><span class="p">]</span></div></div>
+
+<div class="viewcode-block" id="Tree"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.Tree">[docs]</a><span class="k">class</span> <span class="nc">Tree</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">root</span>
+
+<div class="viewcode-block" id="Tree.set_root"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.Tree.set_root">[docs]</a>    <span class="k">def</span> <span class="nf">set_root</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_root</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">new_root</span></div>
+
+<div class="viewcode-block" id="Tree.list_nodes"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.Tree.list_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">list_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Depth first search, outputs list of all nodes&#39;&#39;&#39;</span>
+        <span class="k">def</span> <span class="nf">traverse</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="n">traverse</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="p">[</span><span class="n">root</span><span class="o">.</span><span class="n">root</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">output</span>
+
+        <span class="k">return</span> <span class="n">traverse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ReactionFiles"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.ReactionFiles">[docs]</a><span class="k">class</span> <span class="nc">ReactionFiles</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">DB</span><span class="p">,</span> <span class="n">reactions</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span>
+                 <span class="n">target_organism</span><span class="p">,</span> <span class="n">incpds</span><span class="p">,</span> <span class="n">cdxmlfiles</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_path</span> <span class="o">=</span> <span class="n">output_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">DB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">incpds</span> <span class="o">=</span> <span class="n">incpds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">incpds_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">incpds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span> <span class="o">=</span> <span class="n">reactions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_organism</span> <span class="o">=</span> <span class="n">target_organism</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_organism_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_organism_name</span><span class="p">(</span><span class="n">target_organism</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cdxmlfiles</span> <span class="o">=</span> <span class="n">cdxmlfiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ordered_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">order_of_paths</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">promiscuous</span> <span class="o">=</span> <span class="n">retrieve_promiscuous_mets</span><span class="p">(</span><span class="n">DB</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enzyme_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ReactionFiles.get_cdxml"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.ReactionFiles.get_cdxml">[docs]</a>    <span class="k">def</span> <span class="nf">get_cdxml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compounds</span><span class="p">,</span> <span class="n">cdxml_cpds</span><span class="p">,</span> <span class="n">promiscuous_cpds</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get cdxml files for relevant compounds&#39;&#39;&#39;</span>
+        <span class="n">IN</span> <span class="o">=</span> <span class="n">indigo</span><span class="o">.</span><span class="n">Indigo</span><span class="p">()</span>
+        <span class="n">IR</span> <span class="o">=</span> <span class="n">indigo_renderer</span><span class="o">.</span><span class="n">IndigoRenderer</span><span class="p">(</span><span class="n">IN</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">:</span>
+            <span class="n">cpd_name</span> <span class="o">=</span> <span class="n">compounds</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span>           
+            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;InChI&#39;</span><span class="p">):</span>                
+                <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_\w+\d+$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cpd_name</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+                    <span class="n">cpd_name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+
+                <span class="n">mol</span> <span class="o">=</span> <span class="n">IN</span><span class="o">.</span><span class="n">loadMolecule</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span>                              
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">promiscuous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd_name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">cdxml_cpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpd_name</span><span class="p">)</span>
+                    <span class="n">IN</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span><span class="s2">&quot;render-comment&quot;</span><span class="p">,</span> <span class="n">cpd_name</span><span class="p">)</span>
+                    <span class="n">IN</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span><span class="s2">&quot;render-output-format&quot;</span><span class="p">,</span> <span class="s2">&quot;cdxml&quot;</span><span class="p">)</span>
+                    <span class="n">IR</span><span class="o">.</span><span class="n">renderToFile</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;/compounds/&#39;</span><span class="o">+</span><span class="n">cpd_name</span><span class="o">+</span><span class="s1">&#39;.cdxml&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">promiscuous_cpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpd_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cpd_name</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+                    <span class="n">cpd_name</span> <span class="o">=</span> <span class="n">cpd</span>
+                <span class="n">cdxml_cpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpd_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cdxml_cpds</span><span class="p">,</span> <span class="n">promiscuous_cpds</span></div>
+
+<div class="viewcode-block" id="ReactionFiles.generate_output_folders"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.ReactionFiles.generate_output_folders">[docs]</a>    <span class="k">def</span> <span class="nf">generate_output_folders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Check to see if output folders are present</span>
+<span class="sd">            if not set up new output folder&#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ReactionFiles.order_of_paths"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.ReactionFiles.order_of_paths">[docs]</a>    <span class="k">def</span> <span class="nf">order_of_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Ordered pathway with target as tree root &#39;&#39;&#39;</span>
+        <span class="n">ordered_paths</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">count_pathway</span><span class="p">,</span> <span class="n">os_dict</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">ordered_paths</span><span class="p">[</span><span class="n">count_pathway</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">()</span>
+            <span class="n">rxn_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">os_dict</span><span class="p">)</span>
+            <span class="n">node_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">rxn_set</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;forward&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="ow">in</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]:</span>
+                    <span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                    <span class="n">ordered_paths</span><span class="p">[</span><span class="n">count_pathway</span><span class="p">]</span><span class="o">.</span><span class="n">set_root</span><span class="p">(</span><span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                    <span class="n">rxn_set</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="k">elif</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;reverse&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="ow">in</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]:</span>
+                    <span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                    <span class="n">ordered_paths</span><span class="p">[</span><span class="n">count_pathway</span><span class="p">]</span><span class="o">.</span><span class="n">set_root</span><span class="p">(</span><span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                    <span class="n">rxn_set</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                    <span class="k">break</span>
+            
+
+            <span class="k">def</span> <span class="nf">add_all_children</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">rxn_set</span><span class="p">):</span>
+                <span class="sd">&#39;&#39;&#39; Adds all children of root and removes rxn from rxn_set &#39;&#39;&#39;</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn_set</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span>
+
+                <span class="n">store_reactants</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">root</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;forward&#39;</span><span class="p">:</span>
+                    <span class="n">store_reactants</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">root</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">store_reactants</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">root</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+                <span class="k">for</span> <span class="n">sr</span> <span class="ow">in</span> <span class="n">store_reactants</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">rxn_set</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;forward&#39;</span> <span class="ow">and</span> <span class="n">sr</span> <span class="ow">in</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]:</span>
+                            <span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                            <span class="n">node</span><span class="o">.</span><span class="n">addChild</span><span class="p">(</span><span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                            <span class="n">rxn_set</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                            <span class="n">add_all_children</span><span class="p">(</span><span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">rxn_set</span><span class="p">)</span>
+                            <span class="k">break</span>
+                        <span class="k">elif</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;reverse&#39;</span> <span class="ow">and</span> <span class="n">sr</span> <span class="ow">in</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]:</span>
+                            <span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                            <span class="n">node</span><span class="o">.</span><span class="n">addChild</span><span class="p">(</span><span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                            <span class="n">rxn_set</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                            <span class="n">add_all_children</span><span class="p">(</span><span class="n">node_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">rxn_set</span><span class="p">)</span>
+                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn_set</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+            <span class="n">add_all_children</span><span class="p">(</span><span class="n">ordered_paths</span><span class="p">[</span><span class="n">count_pathway</span><span class="p">]</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">rxn_set</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ordered_paths</span></div>
+
+
+<div class="viewcode-block" id="ReactionFiles.alter_name_length"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.ReactionFiles.alter_name_length">[docs]</a>    <span class="k">def</span> <span class="nf">alter_name_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_figure</span><span class="p">,</span> <span class="n">cpdname</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Shorten compound name if it is too long&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_to_figure</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">250</span><span class="p">:</span>
+            <span class="n">remove_variable</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_to_figure</span><span class="p">)</span> <span class="o">-</span> <span class="mi">250</span>
+            <span class="n">cpdname</span> <span class="o">=</span> <span class="n">cpdname</span><span class="p">[:</span><span class="o">-</span><span class="n">remove_variable</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cpdname</span></div>
+
+<div class="viewcode-block" id="ReactionFiles.get_target_name"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.ReactionFiles.get_target_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_target_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;:|/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;:|/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReactionFiles.generate_cdxml_files"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.reaction_files.ReactionFiles.generate_cdxml_files">[docs]</a>    <span class="k">def</span> <span class="nf">generate_cdxml_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">RP</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ranktype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fba_fluxes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_rxn_info</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Produce cdxml files for each pathway&#39;&#39;&#39;</span>   
+        <span class="n">_FBA</span> <span class="o">=</span> <span class="n">fba_fluxes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">RP</span><span class="p">:</span>
+            <span class="n">correct_type_paths</span> <span class="o">=</span> <span class="n">RP</span><span class="o">.</span><span class="n">correctly_typed_paths</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">correct_type_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">]</span>
+        <span class="n">target_reformat_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_target_name</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_output_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;/solution_figures&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_output_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;/solution_figures/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">target_organism_name</span><span class="p">)</span>                        
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_output_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;/solution_figures/&#39;</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_organism_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span>
+            <span class="n">target_reformat_orig</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_output_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;/compounds&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">RP</span><span class="p">:</span>
+            <span class="n">best_paths_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_path</span><span class="o">+</span><span class="s1">&#39;/solution_figures/&#39;</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_organism_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">target_reformat_orig</span><span class="o">+</span><span class="s1">&#39;/best_paths_for_sep_bp&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_output_folders</span><span class="p">(</span><span class="n">best_paths_folder</span><span class="p">)</span>
+            <span class="n">other_paths_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_path</span> <span class="o">+</span> <span class="s1">&#39;/solution_figures/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_organism_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">target_reformat_orig</span> <span class="o">+</span> <span class="s1">&#39;/other_nonideal_solutions&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_output_folders</span><span class="p">(</span><span class="n">other_paths_folder</span><span class="p">)</span>
+
+
+        <span class="c1"># For each pathway</span>
+        <span class="k">for</span> <span class="n">count_pathway</span><span class="p">,</span> <span class="n">os_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">count_pathway</span> <span class="ow">in</span> <span class="n">correct_type_paths</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">RP</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">count_pathway</span> <span class="ow">in</span> <span class="n">RP</span><span class="o">.</span><span class="n">best_sp_paths</span><span class="p">:</span>
+                        <span class="n">MAIN_CE</span> <span class="o">=</span> <span class="n">CDXML_Editor</span><span class="p">(</span><span class="n">output_path</span><span class="o">=</span><span class="n">best_paths_folder</span> <span class="o">+</span> <span class="s1">&#39;/solution_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_pathway</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.cdxml&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">MAIN_CE</span> <span class="o">=</span> <span class="n">CDXML_Editor</span><span class="p">(</span><span class="n">output_path</span><span class="o">=</span><span class="n">other_paths_folder</span> <span class="o">+</span> <span class="s1">&#39;/solution_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_pathway</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.cdxml&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">MAIN_CE</span> <span class="o">=</span> <span class="n">CDXML_Editor</span><span class="p">(</span><span class="n">output_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_path</span> <span class="o">+</span> <span class="s1">&#39;/solution_figures/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_organism_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">target_reformat_orig</span> <span class="o">+</span>
+                                          <span class="s1">&#39;/solution_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_pathway</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.cdxml&#39;</span><span class="p">)</span>                
+                <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordered_paths</span><span class="p">[</span><span class="n">count_pathway</span><span class="p">]</span>
+
+                <span class="n">cdxml_reactants</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">cdxml_products</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">promiscuous_reactants</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">promiscuous_products</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">misc_products</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="n">reaction_proteins</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">reaction_solvents</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">reaction_catalysts</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">reaction_SPRESI_info</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="n">fba_values</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="n">BP</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">BP_predicted</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="n">logP</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">logP_predicted</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="k">def</span> <span class="nf">get_boiling_points</span><span class="p">(</span><span class="n">compounds</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">:</span>
+                        <span class="n">cpd_name</span> <span class="o">=</span> <span class="n">compounds</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">cpd_name</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+                            <span class="n">cpd_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_\w+\d+$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+                            <span class="n">cpd_name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpd_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">BP</span><span class="p">[</span><span class="n">cpd_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">CRV</span><span class="o">.</span><span class="n">sp_processed</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;bp&#39;</span><span class="p">])</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">BP_predicted</span><span class="p">[</span><span class="n">cpd_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">predicted_bps</span><span class="p">[</span><span class="n">cpd</span><span class="p">])</span>
+                            <span class="k">except</span><span class="p">:</span>
+                                <span class="k">pass</span>
+
+                <span class="k">def</span> <span class="nf">get_logP</span><span class="p">(</span><span class="n">compounds</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">:</span>
+                        <span class="n">cpd_name</span> <span class="o">=</span> <span class="n">compounds</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">cpd_name</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+                            <span class="n">cpd_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_\w+\d+$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+                            <span class="n">cpd_name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpd_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">logP</span><span class="p">[</span><span class="n">cpd_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">CRV</span><span class="o">.</span><span class="n">sp_processed</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;logP&#39;</span><span class="p">])</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                              <span class="n">logP_predicted</span><span class="p">[</span><span class="n">cpd_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RP</span><span class="o">.</span><span class="n">predicted_logps</span><span class="p">[</span><span class="n">cpd</span><span class="p">])</span>  
+                            <span class="k">except</span><span class="p">:</span>
+                                <span class="k">pass</span>
+
+                <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+                        <span class="n">get_info</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">root</span><span class="p">)</span>
+
+                    <span class="n">rxn</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">root</span>
+                    <span class="n">cdxml_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">cdxml_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">misc_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="n">reaction_proteins</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">reaction_solvents</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">reaction_catalysts</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">reaction_SPRESI_info</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+                    <span class="k">if</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;forward&#39;</span><span class="p">:</span>
+                        <span class="n">cdxml_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cdxml</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">],</span>
+                                <span class="n">cdxml_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                        <span class="n">cdxml_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cdxml</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">],</span>
+                                <span class="n">cdxml_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cdxml_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cdxml</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">],</span>
+                                <span class="n">cdxml_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                        <span class="n">cdxml_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cdxml</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">],</span>
+                                <span class="n">cdxml_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="n">_FBA</span><span class="p">:</span>
+                        <span class="n">fba_values</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">fba_fluxes</span><span class="p">[</span><span class="n">rxn</span><span class="p">]))</span>
+
+                    <span class="k">if</span> <span class="n">RP</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ranktype</span> <span class="o">==</span> <span class="s1">&#39;bp&#39;</span><span class="p">:</span>
+                        <span class="n">get_boiling_points</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">])</span>
+                        <span class="n">get_boiling_points</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="n">RP</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ranktype</span> <span class="o">==</span> <span class="s1">&#39;logP&#39;</span><span class="p">:</span>
+                        <span class="n">get_logP</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">])</span>
+                        <span class="n">get_logP</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">])</span>
+
+                    <span class="n">org</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="n">count_pathway</span><span class="p">][</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;organisms&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">protein</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_proteins</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">org</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">protein</span> <span class="o">!=</span> <span class="s2">&quot;None&quot;</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">ec_number</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;\d+\.\d+\.\d+\.\d+&#39;</span><span class="p">,</span><span class="n">protein</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">enzyme_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ec_number</span><span class="p">)</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                        <span class="n">reaction_proteins</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="n">protein</span>                    
+                    <span class="k">elif</span> <span class="n">show_rxn_info</span><span class="p">:</span>
+                        <span class="c1"># RXN SOLVENT</span>
+                        <span class="c1"># solvents = self.DB.get_solvents(rxn)                        </span>
+                        <span class="c1"># if solvents != &quot;None&quot; and len(solvents) &gt; 0:</span>
+                        <span class="c1">#     solvents = [re.sub(&#39;_\w+\d+$&#39;, &#39;&#39;, s) for s in solvents]</span>
+                        <span class="c1">#     if self.use_iupac_names:</span>
+                        <span class="c1">#         for idx,s in enumerate(solvents):</span>
+                        <span class="c1">#             try:</span>
+                        <span class="c1">#                 solvents[idx] = pcp.get_properties(&#39;IUPACName&#39;,identifier=s,namespace=&#39;inchi&#39;)[0][&#39;IUPACName&#39;]</span>
+                        <span class="c1">#             except:</span>
+                        <span class="c1">#                 pass</span>
+                        <span class="c1">#     reaction_solvents[rxn] = &quot;Solvent: %s&quot; % &#39;,&#39;.join(solvents)</span>
+
+                        <span class="c1"># # RXN CATALYST</span>
+                        <span class="c1"># catalysts = self.DB.get_catalysts(rxn)</span>
+                        <span class="c1"># if catalysts != &quot;None&quot; and len(catalysts) &gt; 0:</span>
+                        <span class="c1">#     catalysts = [re.sub(&#39;_\w+\d+$&#39;, &#39;&#39;, c) for c in catalysts]</span>
+                        <span class="c1">#     if self.use_iupac_names:</span>
+                        <span class="c1">#         for idx,c in enumerate(catalysts):</span>
+                        <span class="c1">#             try:</span>
+                        <span class="c1">#                 catalysts[idx] = pcp.get_properties(&#39;IUPACName&#39;,identifier=c,namespace=&#39;inchi&#39;)[0][&#39;IUPACName&#39;]</span>
+                        <span class="c1">#             except:</span>
+                        <span class="c1">#                 pass</span>
+                        <span class="c1">#     reaction_catalysts[rxn] = &quot;Catalyst: %s&quot; % &#39;,&#39;.join(catalysts)</span>
+                        
+                        <span class="c1"># RXN SPRESI</span>
+                        <span class="n">spresi_info</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="c1"># Reaxys RXN</span>
+                        <span class="k">if</span> <span class="n">rxn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_RY&#39;</span><span class="p">):</span>
+                            <span class="n">spresi_info</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;Reaxys Reaction ID: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">rxn</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">rxn_temperatures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_temperature</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                            <span class="n">rxn_pressures</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_pressure</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                            <span class="n">rxn_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_time</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                            <span class="n">rxn_yields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_yield</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">rxn_temperatures</span> <span class="o">!=</span> <span class="s2">&quot;None&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn_temperatures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">spresi_info</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Temperature: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rxn_temperatures</span><span class="p">)]</span>
+                            <span class="k">if</span> <span class="n">rxn_pressures</span> <span class="o">!=</span> <span class="s2">&quot;None&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn_pressures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">spresi_info</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Pressure: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rxn_pressures</span><span class="p">)]</span>
+                            <span class="k">if</span> <span class="n">rxn_times</span> <span class="o">!=</span> <span class="s2">&quot;None&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn_times</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">spresi_info</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Time: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rxn_times</span><span class="p">)]</span>
+                            <span class="k">if</span> <span class="n">rxn_yields</span> <span class="o">!=</span> <span class="s2">&quot;None&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rxn_yields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">spresi_info</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Yield: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rxn_yields</span><span class="p">)]</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spresi_info</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">reaction_SPRESI_info</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">spresi_info</span><span class="p">)</span>
+                    
+
+                    <span class="k">if</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;forward&#39;</span><span class="p">:</span>
+                        <span class="n">cur_prods</span> <span class="o">=</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cur_prods</span> <span class="o">=</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]</span>
+                    
+                    <span class="n">difference</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">if</span> <span class="n">parent</span><span class="p">:</span>
+                        <span class="n">next_rxn</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">root</span> 
+                        <span class="k">if</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">next_rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;forward&#39;</span><span class="p">:</span>
+                            <span class="n">next_reacts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">next_rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">next_reacts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">os_dict</span><span class="p">[</span><span class="n">next_rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                        <span class="n">difference</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cur_prods</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cur_prods</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="n">next_reacts</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">difference</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cur_prods</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cur_prods</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">symmetric_difference</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">])))</span>
+
+                    <span class="k">for</span> <span class="n">cpd_id</span> <span class="ow">in</span> <span class="n">difference</span><span class="p">:</span>
+                        <span class="n">cpd</span> <span class="o">=</span> <span class="n">cur_prods</span><span class="p">[</span><span class="n">cpd_id</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">cpd</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+                            <span class="n">cpd_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_\w+\d+$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+                            <span class="n">cpd_name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpd_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+                            <span class="k">if</span> <span class="n">cpd_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]:</span>
+                                <span class="n">misc_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">cpd_id</span><span class="p">]</span>
+                        <span class="k">elif</span> <span class="n">cpd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]:</span>
+                            <span class="n">misc_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">cpd</span><span class="p">]</span>
+
+                <span class="n">get_info</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">_FBA</span><span class="p">:</span>
+                    <span class="n">max_flux</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">fba_values</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">max_flux</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">fba_values</span> <span class="o">=</span> <span class="p">{</span><span class="n">fv_key</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">fv_val</span><span class="o">/</span><span class="n">max_flux</span><span class="p">)</span> <span class="k">for</span> <span class="n">fv_key</span><span class="p">,</span> <span class="n">fv_val</span> <span class="ow">in</span> <span class="n">fba_values</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+                
+                
+                <span class="n">last_id</span><span class="o">=</span><span class="mi">0</span>
+                <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">cdxml_compounds_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_path</span> <span class="o">+</span> <span class="s1">&#39;/compounds/&#39;</span>
+
+                <span class="k">def</span> <span class="nf">generate_cdxml</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">color_index</span><span class="o">=</span><span class="n">color_index</span><span class="p">,</span><span class="n">last_id</span><span class="o">=</span><span class="n">last_id</span><span class="p">):</span>
+                    <span class="n">previous</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+                        <span class="n">child_box</span><span class="p">,</span> <span class="n">last_id</span> <span class="o">=</span> <span class="n">generate_cdxml</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">last_id</span><span class="o">=</span><span class="n">last_id</span><span class="p">)</span>
+                        <span class="n">previous</span> <span class="o">+=</span> <span class="p">[</span><span class="n">child_box</span><span class="p">]</span>
+
+                    <span class="n">rxn</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">root</span>
+                    <span class="n">CE</span> <span class="o">=</span> <span class="n">CDXML_Editor</span><span class="p">(</span><span class="n">cdxml_files_path</span><span class="o">=</span><span class="n">cdxml_compounds_path</span><span class="p">,</span> <span class="n">BP</span><span class="o">=</span><span class="n">BP</span><span class="p">,</span> <span class="n">BP_predicted</span><span class="o">=</span><span class="n">BP_predicted</span><span class="p">,</span> <span class="n">logP</span><span class="o">=</span><span class="n">logP</span><span class="p">,</span> <span class="n">logp_predicted</span><span class="o">=</span><span class="n">logP_predicted</span><span class="p">)</span>
+                    
+                    <span class="c1"># If first reaction and only reactants are promiscuous compounds</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cdxml_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">previous</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">cdxml_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+                        <span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+                    
+
+                    <span class="n">last_id</span> <span class="o">=</span> <span class="n">CE</span><span class="o">.</span><span class="n">add_reactants</span><span class="p">(</span><span class="n">cdxml_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">previous</span><span class="p">,</span> <span class="n">last_id</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">reaction_proteins</span><span class="p">[</span><span class="n">rxn</span><span class="p">]:</span>
+                        <span class="n">CE</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span><span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span><span class="n">misc_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> 
+                                        <span class="n">reaction_proteins</span><span class="o">=</span><span class="n">reaction_proteins</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">CE</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">promiscuous_reactants</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span><span class="n">promiscuous_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span><span class="n">misc_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> 
+                                        <span class="n">reaction_solvents</span><span class="o">=</span><span class="n">reaction_solvents</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">reaction_catalysts</span><span class="o">=</span><span class="n">reaction_catalysts</span><span class="p">[</span><span class="n">rxn</span><span class="p">],</span> <span class="n">reaction_SPRESI_info</span><span class="o">=</span><span class="n">reaction_SPRESI_info</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                    
+                    <span class="k">if</span> <span class="n">_FBA</span><span class="p">:</span>
+                        <span class="n">MAIN_CE</span><span class="o">.</span><span class="n">add_color</span><span class="p">(</span><span class="n">fba_values</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>
+                        <span class="n">CE</span><span class="o">.</span><span class="n">set_FBA</span><span class="p">(</span><span class="n">color_index</span><span class="p">)</span>
+                        <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                    
+                    <span class="n">CE</span><span class="o">.</span><span class="n">set_products</span><span class="p">(</span><span class="n">cdxml_products</span><span class="p">[</span><span class="n">rxn</span><span class="p">])</span>                
+                    <span class="k">return</span> <span class="n">CE</span><span class="p">,</span> <span class="n">last_id</span>
+
+                <span class="n">pathway_cdxml</span><span class="p">,</span> <span class="n">last_id</span> <span class="o">=</span> <span class="n">generate_cdxml</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+
+                <span class="c1"># FINALLY ADD TARGET</span>
+                <span class="n">target_CE</span> <span class="o">=</span> <span class="n">CDXML_Editor</span><span class="p">(</span><span class="n">cdxml_files_path</span><span class="o">=</span><span class="n">cdxml_compounds_path</span><span class="p">,</span> <span class="n">BP</span><span class="o">=</span><span class="n">BP</span><span class="p">,</span> <span class="n">BP_predicted</span><span class="o">=</span><span class="n">BP_predicted</span><span class="p">,</span> <span class="n">logP</span><span class="o">=</span><span class="n">logP</span><span class="p">,</span> <span class="n">logp_predicted</span><span class="o">=</span><span class="n">logP_predicted</span><span class="p">)</span>
+                <span class="n">target_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">target_name</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+                    <span class="n">target_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_\w+\d+$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+                    <span class="n">target_name</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>       
+                <span class="n">target_CE</span><span class="o">.</span><span class="n">add_product</span><span class="p">(</span><span class="n">target_name</span><span class="p">,</span> <span class="n">last_id</span><span class="p">)</span>
+                <span class="n">pathway_cdxml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_CE</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">arrange</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+
+                <span class="n">MAIN_CE</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pathway_cdxml</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
+                <span class="n">MAIN_CE</span><span class="o">.</span><span class="n">generate_file</span><span class="p">()</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Visualization_chemdraw.reaction_files</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

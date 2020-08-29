@@ -1,0 +1,306 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FBA.optimize_target &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FBA.optimize_target</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for FBA.optimize_target</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;Insert reactions necessary for producing target </span><span class="se">\</span>
+<span class="s1">                    compound and run flux balance analysis&#39;</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">exit</span>
+<span class="kn">from</span> <span class="nn">cobra</span> <span class="kn">import</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">Metabolite</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="c1">#from cobra.flux_analysis.loopless import construct_loopless_model</span>
+
+<div class="viewcode-block" id="verbose_print"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.verbose_print">[docs]</a><span class="k">def</span> <span class="nf">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OptimizeTarget"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.OptimizeTarget">[docs]</a><span class="k">class</span> <span class="nc">OptimizeTarget</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds compounds and reactions needed to produce target compound</span>
+<span class="sd">    into previously constructed CobraPy FBA model and runs FBA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="OptimizeTarget.add_external_metabolites"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.OptimizeTarget.add_external_metabolites">[docs]</a>    <span class="k">def</span> <span class="nf">add_external_metabolites</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds compounds that need to be present to produce target compound</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">metabolite</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">external_metabolites</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">metabolite</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">metabolite</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;E&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+                <span class="n">met</span> <span class="o">=</span> <span class="n">Metabolite</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_name</span><span class="p">(</span><span class="n">metabolite</span><span class="p">),</span>
+                                 <span class="n">compartment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_compartment</span><span class="p">(</span><span class="n">metabolite</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_metabolites</span><span class="p">(</span><span class="n">met</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OptimizeTarget.add_external_reactions"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.OptimizeTarget.add_external_reactions">[docs]</a>    <span class="k">def</span> <span class="nf">add_external_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds reactions that need to be present to produce target compound</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">reactants</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">products</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inrxns</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">reaction</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                <span class="n">reaction</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_reaction_name</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+                <span class="n">met_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;reverse&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">react</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]:</span>
+                        <span class="n">products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">react</span><span class="p">)</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_stoichiometry</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">react</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                        <span class="n">met_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">react</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]:</span>
+                        <span class="n">reactants</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_stoichiometry</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">met_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">prod</span><span class="p">])]</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">react</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]:</span>
+                        <span class="n">reactants</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">react</span><span class="p">)</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_stoichiometry</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">react</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                        <span class="n">met_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span>
+                        	   <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">react</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="o">-</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]:</span>
+                        <span class="n">products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_stoichiometry</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">met_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span>
+                        	   <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">prod</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">reaction</span><span class="o">.</span><span class="n">add_metabolites</span><span class="p">(</span><span class="n">met_dict</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="n">sink_comp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink_rxns</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reactants</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sink_comp</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inmets</span><span class="p">:</span>
+                <span class="n">sink_comp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sc</span> <span class="ow">in</span> <span class="n">sink_comp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_sink_reaction</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_compound</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sink_comp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_sink_reaction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_compound</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OptimizeTarget.add_sink_reaction"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.OptimizeTarget.add_sink_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">add_sink_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sink_cpd</span><span class="p">):</span>
+        <span class="n">reaction</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">sink_cpd</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sink_rxns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">sink_cpd</span><span class="p">])</span>
+        <span class="n">reaction</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">sink_cpd</span><span class="p">]</span>
+        <span class="n">reaction</span><span class="o">.</span><span class="n">lower_bound</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">reaction</span><span class="o">.</span><span class="n">upper_bound</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="n">met_dict_sink</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">met_dict_sink</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span>
+        	   <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">sink_cpd</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">reaction</span><span class="o">.</span><span class="n">add_metabolites</span><span class="p">(</span><span class="n">met_dict_sink</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OptimizeTarget.set_objective_function"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.OptimizeTarget.set_objective_function">[docs]</a>    <span class="k">def</span> <span class="nf">set_objective_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">biomass_rxn</span><span class="p">):</span>
+        <span class="n">biomass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span><span class="n">biomass_rxn</span><span class="p">)</span>
+        <span class="n">sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span><span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_compound</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objective_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">biomass</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="n">sink</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective_dict</span></div>
+ 
+<div class="viewcode-block" id="OptimizeTarget.run_fba"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.OptimizeTarget.run_fba">[docs]</a>    <span class="k">def</span> <span class="nf">run_fba</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Runs FBA on CobraPy FBA model with added reactions and compounds</span>
+<span class="sd">        optimizing production of target compound and (maybe) biomass</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_objective_function</span><span class="p">(</span><span class="s1">&#39;biomass0_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">target_org</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_objective_function</span><span class="p">(</span><span class="s1">&#39;bio10&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_objective_function</span><span class="p">(</span><span class="s1">&#39;bio10_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">target_org</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">set_objective_function</span><span class="p">(</span><span class="s1">&#39;bio1&#39;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">No biomass rxn&#39;</span><span class="p">)</span>
+                        <span class="n">sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span><span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_compound</span><span class="p">])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">objective_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">sink</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective_dict</span>
+        <span class="c1"># self.fbasol=construct_loopless_model(self.model).optimize()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fbasol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OptimizeTarget.remove_modifications"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.OptimizeTarget.remove_modifications">[docs]</a>    <span class="k">def</span> <span class="nf">remove_modifications</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Removes external reactions and compounds from an FBA model</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">metabolites</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="n">m</span><span class="p">])</span>
+         <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">external_metabolites</span><span class="p">]</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">remove_reactions</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">]</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">remove_reactions</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sink_rxns</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="OptimizeTarget.perform_knockouts"><a class="viewcode-back" href="../../FBA.html#FBA.optimize_target.OptimizeTarget.perform_knockouts">[docs]</a>    <span class="k">def</span> <span class="nf">perform_knockouts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Removes each reaction one at a time and runs FBA to see if there is</span>
+<span class="sd">        a difference in production of target compound</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">KOsolutions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objrxns_KO</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">essentialrxns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">KOfbasol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+        <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s2">&quot;STATUS:</span><span class="se">\t</span><span class="s2">Performing knockouts&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">reactions</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">rxn</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">target_compound</span> <span class="ow">or</span> <span class="n">rxn</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="s1">&#39;biomass0_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">target_org</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">org_lb</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">)</span>
+                <span class="n">org_up</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">upper_bound</span><span class="p">)</span>
+                <span class="n">rxn</span><span class="o">.</span><span class="n">lower_bound</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">rxn</span><span class="o">.</span><span class="n">upper_bound</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">KOfbasol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">rxn_obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective_dict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fbasol</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">rxn_obj</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">KOfbasol</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">rxn_obj</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="ow">or</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">fbasol</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">rxn_obj</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">KOfbasol</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">rxn_obj</span><span class="o">.</span><span class="n">id</span><span class="p">]):</span>
+                        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">objrxns_KO</span><span class="p">[</span><span class="n">rxn</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">objrxns_KO</span><span class="p">[</span><span class="n">rxn</span><span class="o">.</span><span class="n">id</span><span class="p">][</span><span class="n">rxn_obj</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fbasol</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">rxn_obj</span><span class="o">.</span><span class="n">id</span><span class="p">]),</span>
+                                                                         <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KOfbasol</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="n">rxn_obj</span><span class="o">.</span><span class="n">id</span><span class="p">])])</span>
+                <span class="k">if</span> <span class="n">count</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">KOsolutions</span><span class="p">[</span><span class="n">rxn</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KOfbasol</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fbasol</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_compound</span><span class="p">]],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&gt;</span>
+                        <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KOfbasol</span><span class="o">.</span><span class="n">fluxes</span><span class="p">[</span><span class="s1">&#39;Sink_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_compound</span><span class="p">]],</span> <span class="mi">2</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">essentialrxns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="n">rxn</span><span class="o">.</span><span class="n">lower_bound</span> <span class="o">=</span> <span class="n">org_lb</span>
+                <span class="n">rxn</span><span class="o">.</span><span class="n">upper_bound</span> <span class="o">=</span> <span class="n">org_up</span></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_compound_ID</span><span class="p">,</span> <span class="n">target_organism_ID</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">temp_rxns</span><span class="p">,</span>
+                 <span class="n">temp_exmets</span><span class="p">,</span> <span class="n">compounds_dict</span><span class="p">,</span> <span class="n">inmets</span><span class="p">,</span> <span class="n">inrxns</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">KO</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize class&#39;&#39;&#39;</span>
+        <span class="n">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Running FBA to optimize target </span><span class="si">{}</span><span class="s1">...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">target_compound_ID</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inmets</span> <span class="o">=</span> <span class="n">inmets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inrxns</span> <span class="o">=</span> <span class="n">inrxns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_org</span> <span class="o">=</span> <span class="n">target_organism_ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_compound</span> <span class="o">=</span> <span class="n">target_compound_ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">external_metabolites</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">db</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compounds_dict</span> <span class="o">=</span> <span class="n">compounds_dict</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">os_dict</span> <span class="ow">in</span> <span class="n">temp_rxns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">os_dict</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">os_dict</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">exmets</span> <span class="ow">in</span> <span class="n">temp_exmets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">exmets</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">external_metabolites</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">external_metabolites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exrxns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_external_metabolites</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_external_reactions</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run_fba</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">KO</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">perform_knockouts</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">remove</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">remove_modifications</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;ERROR:</span><span class="se">\t</span><span class="s1">No external reactions in solution, likely issue else where in code&#39;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FBA.optimize_target</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

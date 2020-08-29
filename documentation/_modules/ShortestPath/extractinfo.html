@@ -1,0 +1,202 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortestPath.extractinfo &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ShortestPath.extractinfo</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ShortestPath.extractinfo</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;Pull out all reactants and products for reactions </span><span class="se">\</span>
+<span class="s1">                  that need to be inserted to organism&#39;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<div class="viewcode-block" id="Extract_Information"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.extractinfo.Extract_Information">[docs]</a><span class="k">class</span> <span class="nc">Extract_Information</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves names of compounds, reactions and organisms for</span>
+<span class="sd">    reactions and compounds that need to be added</span>
+<span class="sd">    to produce a target compound</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimal_pathways</span><span class="p">,</span> <span class="n">incpds</span><span class="p">,</span> <span class="n">inrxns</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initalize class&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_rxns</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_exmets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_external</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inrxns</span> <span class="o">=</span> <span class="n">inrxns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">db</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">incpds</span> <span class="o">=</span> <span class="n">incpds</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">optimal_pathways</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+                <span class="n">os_dict</span><span class="p">,</span> <span class="n">excpds</span><span class="p">,</span> <span class="n">count_external</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extractinfo</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">temp_rxns</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">os_dict</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">temp_exmets</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">excpds</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">temp_external</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">count_external</span>
+<div class="viewcode-block" id="Extract_Information.get_info"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.extractinfo.Extract_Information.get_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">,</span> <span class="n">path_dict</span><span class="p">,</span> <span class="n">excpds</span><span class="p">,</span> <span class="n">Direction</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Gets information for reactions, compounds and organisms</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;organisms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;genes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_reaction_species</span><span class="p">(</span><span class="n">rxn</span><span class="p">):</span>
+            <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;organisms&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">org</span><span class="p">)</span>
+            <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;genes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_genes</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">org</span><span class="p">))</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;genes&#39;</span><span class="p">]))</span>
+
+        <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_reaction_name</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+        <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">Direction</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_products</span><span class="p">(</span><span class="n">rxn</span><span class="p">):</span>
+                <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">][</span><span class="n">prod</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_name</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">prod</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">incpds</span><span class="p">:</span>
+                    <span class="n">excpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">react</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_reactants</span><span class="p">(</span><span class="n">rxn</span><span class="p">):</span>
+                <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">][</span><span class="n">react</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_name</span><span class="p">(</span><span class="n">react</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">react</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">incpds</span><span class="p">:</span>
+                    <span class="n">excpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">react</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">react</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_reactants</span><span class="p">(</span><span class="n">rxn</span><span class="p">):</span>
+                <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">][</span><span class="n">react</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_name</span><span class="p">(</span><span class="n">react</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">react</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">incpds</span><span class="p">:</span>
+                    <span class="n">excpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">react</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">prod</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_products</span><span class="p">(</span><span class="n">rxn</span><span class="p">):</span>
+                <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">][</span><span class="n">prod</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compound_name</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">prod</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">incpds</span><span class="p">:</span>
+                    <span class="n">excpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">path_dict</span><span class="p">,</span> <span class="n">excpds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Extract_Information.extractinfo"><a class="viewcode-back" href="../../ShortestPath.html#ShortestPath.extractinfo.Extract_Information.extractinfo">[docs]</a>    <span class="k">def</span> <span class="nf">extractinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Builds necessary dictionaries to hold the info found in the get_info function</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">path_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">excpds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">count_external</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+            <span class="n">rxn</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;_R$&#39;</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">rxn</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_R$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">rxn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inrxns</span><span class="p">:</span>
+                    <span class="n">count_external</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="n">rxn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">path_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;reverse&#39;</span>
+                    <span class="n">path_dict</span><span class="p">,</span> <span class="n">excpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">path_dict</span><span class="p">,</span> <span class="n">excpds</span><span class="p">,</span> <span class="n">Direction</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;_F$&#39;</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">rxn</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_F$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">rxn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inrxns</span><span class="p">:</span>
+                    <span class="n">count_external</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="n">rxn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">path_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">path_dict</span><span class="p">[</span><span class="n">rxn</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;forward&#39;</span>
+                    <span class="n">path_dict</span><span class="p">,</span> <span class="n">excpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">path_dict</span><span class="p">,</span> <span class="n">excpds</span><span class="p">,</span> <span class="n">Direction</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">excpds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">excpds</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">(</span><span class="n">path_dict</span><span class="p">,</span> <span class="n">excpds</span><span class="p">,</span> <span class="n">count_external</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Solution may have reversible reactions&#39;</span><span class="p">)</span>
+            <span class="k">return</span><span class="p">(</span><span class="n">path_dict</span><span class="p">,</span> <span class="n">excpds</span><span class="p">,</span> <span class="n">count_external</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ShortestPath.extractinfo</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

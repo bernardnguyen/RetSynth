@@ -1,0 +1,296 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parser.structure_similarity &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Parser.structure_similarity</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Parser.structure_similarity</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;Check based on compound structure if it is in the database&#39;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+<span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;darwin&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win64&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;cygwin&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+
+<div class="viewcode-block" id="verbose_print"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.verbose_print">[docs]</a><span class="k">def</span> <span class="nf">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity">[docs]</a><span class="k">class</span> <span class="nc">TanimotoStructureSimilarity</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Identifies if compounds are in the database but under a different ID</span>
+<span class="sd">    based on structure similarity&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">all_compounds</span><span class="p">,</span> <span class="n">cytosol</span><span class="p">,</span> <span class="n">extracellular</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">threshold_score</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">track_final_cpd</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="sd">&#39;&#39;&#39;Remove duplicated targets&#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">targets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">individualtargets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">organisms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">individualtargets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">organism</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">target</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">target</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">target</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+            <span class="k">if</span> <span class="n">organism</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">organisms</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">organisms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">organism</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">organisms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">organisms</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_compounds</span> <span class="o">=</span> <span class="n">all_compounds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span> <span class="o">=</span> <span class="n">cytosol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extracellular</span> <span class="o">=</span> <span class="n">extracellular</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">threshold_score</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">IN</span> <span class="o">=</span> <span class="n">indigo</span><span class="o">.</span><span class="n">Indigo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">INCHI</span> <span class="o">=</span> <span class="n">indigo_inchi</span><span class="o">.</span><span class="n">IndigoInchi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IN</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculate_tanimoto_score</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity.remove_compartment_info_from_cpdID"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity.remove_compartment_info_from_cpdID">[docs]</a>    <span class="k">def</span> <span class="nf">remove_compartment_info_from_cpdID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpd</span><span class="p">):</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\_\w</span><span class="si">{1}</span><span class="s1">0$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__MIT__45__IM__45__SPC__45__CCO__45__MIT__45__LUM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__CYTOSOL__45__CCO__45__CHLOR__45__STR&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_CCO__45__CW__45__BAC__45__POS0&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCI__45__PERI__45__BAC__45__GN&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__OUT__45__CCO__45__IN&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__PM__45__BAC__45__NEG&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__CW__45__BAC__45__POS&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__RGH__45__ER__45__LUM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_CCO__45__PLASTID__45__STR0&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__UNKNOWN__45__SPACE&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_CCO__45__PEROX__45__MEM0&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__PLASTID__45__STR&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__CHROM__45__STR&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__CHROM__45__STR&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__GOLGI__45__LUM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__PEROX__45__MEM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__MIT__45__IMEM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__VESICLE&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO-PEROX-LUM&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_CCO__45__IN0&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__OUT&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;CCO__45__IN&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\_0$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cpd</span></div>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity.process_targets"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity.process_targets">[docs]</a>    <span class="k">def</span> <span class="nf">process_targets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reformat targets to remove compartment information&quot;&quot;&quot;</span>
+        <span class="n">reformat_target</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">targets</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_compartment_info_from_cpdID</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">reformat_target</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">reformat_target</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity.get_original_target"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity.get_original_target">[docs]</a>    <span class="k">def</span> <span class="nf">get_original_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Obtain original target&quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">tmol</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span>  <span class="n">count</span>
+         
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">index</span><span class="p">:</span> 
+            <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Could not get target &#39;</span><span class="o">+</span><span class="n">tmol</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">index</span></div>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity.get_tanimoto_score"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity.get_tanimoto_score">[docs]</a>    <span class="k">def</span> <span class="nf">get_tanimoto_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmol</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># print (threshold)</span>
+        <span class="k">for</span> <span class="n">db_cpd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_cpds_fp</span><span class="p">:</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">IN</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individualtargets_p_fp</span><span class="p">[</span><span class="n">tmol</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_cpds_fp</span><span class="p">[</span><span class="n">db_cpd</span><span class="p">],</span> <span class="s1">&#39;tanimoto&#39;</span><span class="p">)</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">db_cpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span>
+        <span class="c1"># print (temp)</span>
+        <span class="n">max_score_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">threshold</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">max_score_cpds</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity.calculate_tanimoto_score"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity.calculate_tanimoto_score">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_tanimoto_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate similarity for compounds that are not in the database&quot;&quot;&quot;</span>
+           
+        <span class="bp">self</span><span class="o">.</span><span class="n">finaltargets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">individualtargets_p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_targets</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individualtargets</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">retrieve_fingerprints</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">count</span> <span class="p">,</span><span class="n">tmol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individualtargets_p_fp</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="c1"># print (tmol)</span>
+            <span class="k">if</span> <span class="n">tmol</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_compounds</span><span class="p">:</span>
+                <span class="n">max_score_cpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tanimoto_score</span><span class="p">(</span><span class="n">tmol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_score</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">max_score_cpds</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">max_score_cpd</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">max_score_cpds</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">max_score_cpd</span> <span class="o">!=</span> <span class="n">tmol</span><span class="p">:</span>
+                            <span class="n">new_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_db_cpd_ID</span><span class="p">(</span><span class="n">max_score_cpd</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">new_target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">individualtargets</span> <span class="ow">and</span> <span class="n">new_target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">track_final_cpd</span><span class="p">:</span>
+                                <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s2">&quot;STATUS:</span><span class="se">\t</span><span class="s2">The following compound </span><span class="si">{}</span><span class="s2"> have 100 percent similarity with the original target </span><span class="si">{}</span><span class="s2"> therefore adding them to to targets&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_score_cpd</span><span class="p">,</span> <span class="n">tmol</span><span class="p">))</span>                
+                                <span class="bp">self</span><span class="o">.</span><span class="n">fill_final_targets</span><span class="p">(</span><span class="n">new_target</span><span class="p">)</span>
+            
+            <span class="k">elif</span> <span class="n">tmol</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpd_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_original_target</span><span class="p">(</span><span class="n">tmol</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">index</span><span class="p">:</span>
+                    <span class="n">new_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_db_cpd_ID</span><span class="p">(</span><span class="n">tmol</span><span class="p">)</span>
+                    <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s2">&quot;STATUS:</span><span class="se">\t</span><span class="s2">Switching target ID from </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tmol</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">new_target</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">finaltargets</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_target</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">max_score_cpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tanimoto_score</span><span class="p">(</span><span class="n">tmol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_score</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">max_score_cpds</span><span class="p">:</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_original_target</span><span class="p">(</span><span class="n">tmol</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">index</span><span class="p">:</span>
+                        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">finaltargets</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                    <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> compounds have </span><span class="si">{}</span><span class="s1"> or greater similarity to target compound </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">max_score_cpds</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold_score</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="n">tmol</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">max_score_cpd</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">max_score_cpds</span><span class="p">):</span>
+                        <span class="n">new_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_db_cpd_ID</span><span class="p">(</span><span class="n">max_score_cpd</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">new_target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">individualtargets</span> <span class="ow">and</span> <span class="n">new_target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">track_final_cpd</span><span class="p">:</span>
+                            <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Adding compound </span><span class="si">{}</span><span class="s1"> to target list&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_score_cpd</span><span class="p">))</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">fill_final_targets</span><span class="p">(</span><span class="n">new_target</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">No compounds in the database that are </span><span class="si">{}</span><span class="s1"> percent similar to target </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold_score</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="n">tmol</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity.fill_final_targets"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity.fill_final_targets">[docs]</a>    <span class="k">def</span> <span class="nf">fill_final_targets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_target</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">organism</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">organisms</span><span class="p">:</span>
+            <span class="n">organisms</span> <span class="o">=</span> <span class="n">organism</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finaltargets</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">new_target</span><span class="p">]</span><span class="o">+</span><span class="n">organisms</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">track_final_cpd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_target</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity.retrieve_fingerprints"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity.retrieve_fingerprints">[docs]</a>    <span class="k">def</span> <span class="nf">retrieve_fingerprints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve fingerprints for database compounds and targets&quot;&quot;&quot;</span>
+        <span class="n">db_cpds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cpd_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_compounds</span><span class="p">:</span>
+            <span class="n">originalcpd</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span>
+            <span class="n">cpd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_compartment_info_from_cpdID</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span>
+            <span class="n">db_cpds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cpd_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">originalcpd</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">individualtargets_p_fp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s2">&quot;STATUS:</span><span class="se">\t</span><span class="s2">getting fingerprints for target compounds&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">tmol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">individualtargets_p</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">individualtargets_p_fp</span><span class="p">[</span><span class="n">tmol</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INCHI</span><span class="o">.</span><span class="n">loadMolecule</span><span class="p">(</span><span class="n">tmol</span><span class="p">)</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">(</span><span class="s1">&#39;full&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">indigo</span><span class="o">.</span><span class="n">IndigoException</span><span class="p">:</span>
+                <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Could not get fingerprint for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tmol</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_cpds_fp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">db_cpds_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">db_cpds</span><span class="p">)</span>
+        <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s2">&quot;STATUS:</span><span class="se">\t</span><span class="s2">getting fingerprints for database compounds&quot;</span><span class="p">)</span>        
+        <span class="k">for</span> <span class="n">db_cpd</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">db_cpds_set</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INCHI</span><span class="o">.</span><span class="n">loadMolecule</span><span class="p">(</span><span class="n">db_cpd</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db_cpds_fp</span><span class="p">[</span><span class="n">db_cpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">(</span><span class="s1">&#39;full&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">indigo</span><span class="o">.</span><span class="n">IndigoException</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="TanimotoStructureSimilarity.extract_db_cpd_ID"><a class="viewcode-back" href="../../Parser.html#Parser.structure_similarity.TanimotoStructureSimilarity.extract_db_cpd_ID">[docs]</a>    <span class="k">def</span> <span class="nf">extract_db_cpd_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpdID</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract correct database ID for a compound&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cpdID</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpd_dict</span><span class="p">[</span><span class="n">cpdID</span><span class="p">]:</span>
+            <span class="n">new_target</span> <span class="o">=</span> <span class="n">cpdID</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cytosol</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpd_dict</span><span class="p">[</span><span class="n">cpdID</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpd_dict</span><span class="p">[</span><span class="n">cpdID</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extracellular</span><span class="p">):</span>
+                        <span class="k">pass</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">new_target</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpd_dict</span><span class="p">[</span><span class="n">cpdID</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">new_target</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Parser.structure_similarity</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

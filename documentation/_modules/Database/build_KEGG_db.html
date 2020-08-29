@@ -1,0 +1,780 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database.build_KEGG_db &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.build_KEGG_db</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Database.build_KEGG_db</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;Build metabolic db using KEGG db&#39;</span>
+
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Queue</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span><span class="o">,</span> <span class="nn">urllib.error</span><span class="o">,</span> <span class="nn">urllib.parse</span>
+<span class="kn">import</span> <span class="nn">http.client</span>
+<span class="kn">import</span> <span class="nn">pubchempy</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">Database</span> <span class="kn">import</span> <span class="n">query</span> <span class="k">as</span> <span class="n">Q</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+<span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;darwin&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win64&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;cygwin&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+
+<span class="n">KEGG</span> <span class="o">=</span> <span class="s1">&#39;http://rest.kegg.jp/&#39;</span>
+
+<div class="viewcode-block" id="BuildKEGG"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.BuildKEGG">[docs]</a><span class="k">def</span> <span class="nf">BuildKEGG</span><span class="p">(</span><span class="n">types_orgs</span><span class="p">,</span> <span class="n">inchidb</span><span class="p">,</span> <span class="n">processors</span><span class="p">,</span> <span class="n">currentcpds</span><span class="p">,</span>
+             <span class="n">num_organisms</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">num_pathways</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build metabolic database from KEGG DB&quot;&quot;&quot;</span>
+    <span class="n">types_orgs</span> <span class="o">=</span> <span class="n">types_orgs</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">orgIDs</span> <span class="o">=</span> <span class="n">extract_KEGG_orgIDs</span><span class="p">(</span><span class="n">types_orgs</span><span class="p">,</span> <span class="n">num_organisms</span><span class="p">)</span>
+    
+    <span class="n">metabolic_clusters</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">pathwayIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">pathwayIDs_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">removeorg</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">output_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+    <span class="n">args_organism</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">orgIDs</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">processors</span><span class="p">]</span>
+                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">orgIDs</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span> <span class="n">processors</span><span class="p">)]</span>
+
+    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">get KEGG pathway IDs&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">orgs</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">args_organism</span><span class="p">):</span>
+        <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">orgs</span><span class="p">:</span>
+            <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">extract_pathwayIDs</span><span class="p">,</span>
+                                     <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="n">num_pathways</span><span class="p">,</span> <span class="n">output_queue</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">result_tuples</span> <span class="o">=</span> <span class="n">output_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">pathwayIDs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">removeorg</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">orgID</span> <span class="ow">in</span> <span class="n">removeorg</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">orgIDs</span><span class="p">[</span><span class="n">orgID</span><span class="p">]</span>
+
+    <span class="n">cluster_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">orgID</span><span class="p">,</span> <span class="n">pathways</span> <span class="ow">in</span> <span class="n">pathwayIDs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">pathway</span> <span class="ow">in</span> <span class="n">pathways</span><span class="p">:</span>
+            <span class="n">pathwayIDs_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pathway</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">metabolic_clusters</span><span class="p">:</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">metabolic_clusters</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pathways</span> <span class="o">==</span> <span class="n">pathwayIDs</span><span class="p">[</span><span class="n">metabolic_clusters</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]]:</span>
+                    <span class="n">check</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">metabolic_clusters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orgID</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">check</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">cluster_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">metabolic_clusters</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cluster_count</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orgID</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cluster_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">metabolic_clusters</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cluster_count</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orgID</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">get KEGG reaction IDs&#39;</span><span class="p">)</span>
+    <span class="n">output_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+    <span class="n">pathwayIDs_set_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pathwayIDs_set</span><span class="p">)</span>
+    <span class="n">args_pathways</span> <span class="o">=</span> <span class="p">[</span><span class="n">pathwayIDs_set_list</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">processors</span><span class="p">]</span>
+                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pathwayIDs_set_list</span><span class="p">),</span> <span class="n">processors</span><span class="p">)]</span>
+    <span class="n">pathway_reactionIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">noreactions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pathways</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">args_pathways</span><span class="p">):</span>
+        <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pathway</span> <span class="ow">in</span> <span class="n">pathways</span><span class="p">:</span>
+            <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">extract_reactionIDs</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">pathway</span><span class="p">,</span> <span class="n">output_queue</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">result_tuples</span> <span class="o">=</span> <span class="n">output_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">pathway_reactionIDs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">noreactions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">reactionIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">reactions_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">orgID</span><span class="p">,</span> <span class="n">pathways</span> <span class="ow">in</span> <span class="n">pathwayIDs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">reactionIDs</span><span class="p">[</span><span class="n">orgID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pathway</span> <span class="ow">in</span> <span class="n">pathways</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">pathway_reactionIDs</span><span class="p">[</span><span class="n">pathway</span><span class="p">]:</span>
+                    <span class="n">reactionIDs</span><span class="p">[</span><span class="n">orgID</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
+                    <span class="n">reactions_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">No reactions for &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">pathway</span><span class="p">))</span>
+
+    <span class="n">reactions_set_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">reactions_set</span><span class="p">)</span>
+    <span class="n">reactioninfo_final</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">inchi_cf</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">inchi_cas</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">cpd2inchi_final</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">compoundinfo_final</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">output_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+    <span class="n">args_reactions</span> <span class="o">=</span> <span class="p">[</span><span class="n">reactions_set_list</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">processors</span><span class="p">]</span>
+                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">reactions_set_list</span><span class="p">),</span> <span class="n">processors</span><span class="p">)]</span>
+
+    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">get KEGG reaction detailed information&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">reactions</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">args_reactions</span><span class="p">):</span>
+        <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
+            <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">process_reaction</span><span class="p">,</span>
+                                     <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">reaction</span><span class="p">,</span> <span class="n">inchidb</span><span class="p">,</span> <span class="n">compoundinfo_final</span><span class="p">,</span>
+                                           <span class="n">cpd2inchi_final</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span> <span class="n">inchi_cas</span><span class="p">,</span>
+                                           <span class="n">currentcpds</span><span class="p">,</span> <span class="n">output_queue</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">result_tuples</span> <span class="o">=</span> <span class="n">output_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">reactioninfo_final</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">cpd2inchi_final</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">inchi_cf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">inchi_cas</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">compoundinfo_final</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">result_tuples</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+
+    <span class="k">return</span><span class="p">(</span><span class="n">orgIDs</span><span class="p">,</span> <span class="n">metabolic_clusters</span><span class="p">,</span> <span class="n">reactioninfo_final</span><span class="p">,</span>
+           <span class="n">reactionIDs</span><span class="p">,</span> <span class="n">cpd2inchi_final</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span> <span class="n">inchi_cas</span><span class="p">,</span>
+           <span class="n">compoundinfo_final</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="extract_KEGG_orgIDs"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.extract_KEGG_orgIDs">[docs]</a><span class="k">def</span> <span class="nf">extract_KEGG_orgIDs</span><span class="p">(</span><span class="n">types_orgs</span><span class="p">,</span> <span class="n">num_organisms</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve organism IDs in KEGG&quot;&quot;&quot;</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">get KEGG &#39;</span><span class="o">+</span><span class="n">types_orgs</span><span class="o">+</span><span class="s1">&#39; organism IDs&#39;</span><span class="p">)</span>
+    <span class="n">orgIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">darray</span> <span class="o">=</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">KEGG</span><span class="o">+</span><span class="s1">&#39;list/organism&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">types_orgs</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">darray</span><span class="p">):</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">orgIDs</span><span class="p">[</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="k">pass</span> 
+            <span class="k">if</span> <span class="n">num_organisms</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">orgIDs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_organisms</span><span class="p">):</span>
+                     <span class="k">break</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">types_orgs</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">types_orgs</span><span class="p">)</span>
+        <span class="n">types_orgs_array</span> <span class="o">=</span> <span class="n">types_orgs</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="n">types_orgs_array</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">darray</span><span class="p">):</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">org</span> <span class="ow">in</span> <span class="n">types_orgs_array</span><span class="p">:</span>
+                    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">org</span><span class="p">,</span> <span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                        <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">matches</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                    <span class="n">orgIDs</span><span class="p">[</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">if</span> <span class="n">num_organisms</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">orgIDs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_organisms</span><span class="p">):</span>
+                     <span class="k">break</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> organisms from KEGG&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">orgIDs</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">orgIDs</span></div>
+
+<div class="viewcode-block" id="extract_pathwayIDs"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.extract_pathwayIDs">[docs]</a><span class="k">def</span> <span class="nf">extract_pathwayIDs</span><span class="p">(</span><span class="n">orgID</span><span class="p">,</span> <span class="n">num_pathways</span><span class="p">,</span> <span class="n">output_queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve pathway IDs&quot;&quot;&quot;</span>
+    <span class="n">pathwayIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">removeorg</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">darray</span> <span class="o">=</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">KEGG</span><span class="o">+</span><span class="s1">&#39;list/pathway/&#39;</span><span class="o">+</span><span class="n">orgID</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">darray</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">count1</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">darray</span><span class="p">):</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;path:&#39;</span><span class="o">+</span><span class="n">orgID</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">pathwayIDs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">orgID</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">num_pathways</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">count1</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_pathways</span><span class="p">):</span>
+                    <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Could not get pathways for &#39;</span><span class="o">+</span><span class="n">orgID</span><span class="o">+</span><span class="s1">&#39; so removing it from organisms&#39;</span><span class="p">)</span>
+        <span class="n">removeorg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orgID</span><span class="p">)</span>
+    <span class="n">output_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">pathwayIDs</span><span class="p">,</span> <span class="n">removeorg</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="extract_reactionIDs"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.extract_reactionIDs">[docs]</a><span class="k">def</span> <span class="nf">extract_reactionIDs</span><span class="p">(</span><span class="n">pathway</span><span class="p">,</span> <span class="n">output_queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract reactions in pathways&quot;&quot;&quot;</span>
+    <span class="n">temp_reactionIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">temp_noreactions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">darray</span> <span class="o">=</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">KEGG</span><span class="o">+</span><span class="s1">&#39;link/rn/map&#39;</span><span class="o">+</span><span class="n">pathway</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">darray</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">darray</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;rn:&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">temp_reactionIDs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">pathway</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">No reactions linked to pathway &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">pathway</span><span class="p">))</span>
+        <span class="n">temp_noreactions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pathway</span><span class="p">)</span>
+    <span class="n">output_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">temp_reactionIDs</span><span class="p">,</span> <span class="n">temp_noreactions</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="process_reaction"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.process_reaction">[docs]</a><span class="k">def</span> <span class="nf">process_reaction</span><span class="p">(</span><span class="n">reactionID</span><span class="p">,</span> <span class="n">inchidb</span><span class="p">,</span> <span class="n">compoundinfo</span><span class="p">,</span> <span class="n">cpd2inchi</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span> <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">currentcpds</span><span class="p">,</span> <span class="n">output_queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract reaction info&quot;&quot;&quot;</span>
+    <span class="n">reactioninfo</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">darray</span> <span class="o">=</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">KEGG</span><span class="o">+</span><span class="s1">&#39;get/&#39;</span><span class="o">+</span><span class="n">reactionID</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">darray</span><span class="p">:</span>
+        <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">darray</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;NAME&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;ENZYME&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;enzyme&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;EQUATION&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                <span class="n">array</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;EQUATION&#39;</span><span class="p">)</span>
+                <span class="n">equation_string</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;&lt;=&gt;&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                    <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;reversible&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+                    <span class="n">reaction</span> <span class="o">=</span> <span class="n">equation_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &lt;=&gt; &#39;</span><span class="p">)</span>
+                    <span class="n">reactants</span> <span class="o">=</span> <span class="n">reaction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; + &#39;</span><span class="p">)</span>
+                    <span class="n">products</span> <span class="o">=</span> <span class="n">reaction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; + &#39;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">reactants</span><span class="p">:</span>
+                        <span class="p">(</span><span class="n">reactioninfo</span><span class="p">,</span>
+                         <span class="n">cpd2inchi_individual</span><span class="p">,</span>
+                         <span class="n">inchi_cf_individual</span><span class="p">,</span>
+                         <span class="n">inchi_cas_individual</span><span class="p">,</span>
+                         <span class="n">compoundinfo_individual</span><span class="p">)</span> <span class="o">=</span> <span class="n">process_compound</span><span class="p">(</span><span class="n">reactant</span><span class="p">,</span> <span class="n">reactionID</span><span class="p">,</span>
+                                                                     <span class="n">reactioninfo</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
+                                                                     <span class="n">inchidb</span><span class="p">,</span> <span class="n">compoundinfo</span><span class="p">,</span>
+                                                                     <span class="n">cpd2inchi</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span>
+                                                                     <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">currentcpds</span><span class="p">)</span>
+                        <span class="n">cpd2inchi</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cpd2inchi_individual</span><span class="p">)</span>
+                        <span class="n">inchi_cf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inchi_cf_individual</span><span class="p">)</span>
+                        <span class="n">inchi_cas</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inchi_cas_individual</span><span class="p">)</span>
+                        <span class="n">compoundinfo</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compoundinfo_individual</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
+                        <span class="p">(</span><span class="n">reactioninfo</span><span class="p">,</span>
+                         <span class="n">cpd2inchi_individual</span><span class="p">,</span>
+                         <span class="n">inchi_cf_individual</span><span class="p">,</span>
+                         <span class="n">inchi_cas_individual</span><span class="p">,</span>
+                         <span class="n">compoundinfo_individual</span><span class="p">)</span> <span class="o">=</span> <span class="n">process_compound</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="n">reactionID</span><span class="p">,</span>
+                                                                     <span class="n">reactioninfo</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span>
+                                                                     <span class="n">inchidb</span><span class="p">,</span> <span class="n">compoundinfo</span><span class="p">,</span>
+                                                                     <span class="n">cpd2inchi</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span>
+                                                                     <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">currentcpds</span><span class="p">)</span>
+                        <span class="n">cpd2inchi</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cpd2inchi_individual</span><span class="p">)</span>
+                        <span class="n">inchi_cf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inchi_cf_individual</span><span class="p">)</span>
+                        <span class="n">inchi_cas</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inchi_cas_individual</span><span class="p">)</span>
+                        <span class="n">compoundinfo</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compoundinfo_individual</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;reversible&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;false&#39;</span>
+                    <span class="n">reaction</span> <span class="o">=</span> <span class="n">equation_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; =&gt; &#39;</span><span class="p">)</span>
+                    <span class="n">reactants</span> <span class="o">=</span> <span class="n">reaction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; + &#39;</span><span class="p">)</span>
+                    <span class="n">products</span> <span class="o">=</span> <span class="n">reaction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; + &#39;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="n">reactants</span><span class="p">:</span>
+                        <span class="p">(</span><span class="n">reactioninfo</span><span class="p">,</span>
+                         <span class="n">cpd2inchi_individual</span><span class="p">,</span>
+                         <span class="n">inchi_cf_individual</span><span class="p">,</span>
+                         <span class="n">inchi_cas_individual</span><span class="p">,</span>
+                         <span class="n">compoundinfo_individual</span><span class="p">)</span> <span class="o">=</span> <span class="n">process_compound</span><span class="p">(</span><span class="n">reactant</span><span class="p">,</span> <span class="n">reactionID</span><span class="p">,</span>
+                                                                     <span class="n">reactioninfo</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
+                                                                     <span class="n">inchidb</span><span class="p">,</span> <span class="n">compoundinfo</span><span class="p">,</span>
+                                                                     <span class="n">cpd2inchi</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span>
+                                                                     <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">currentcpds</span><span class="p">)</span>
+                        <span class="n">cpd2inchi</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cpd2inchi_individual</span><span class="p">)</span>
+                        <span class="n">inchi_cf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inchi_cf_individual</span><span class="p">)</span>
+                        <span class="n">inchi_cas</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inchi_cas_individual</span><span class="p">)</span>
+                        <span class="n">compoundinfo</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compoundinfo_individual</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
+                        <span class="p">(</span><span class="n">reactioninfo</span><span class="p">,</span>
+                         <span class="n">cpd2inchi_individual</span><span class="p">,</span>
+                         <span class="n">inchi_cf_individual</span><span class="p">,</span>
+                         <span class="n">inchi_cas_individual</span><span class="p">,</span>
+                         <span class="n">compoundinfo_individual</span><span class="p">)</span> <span class="o">=</span> <span class="n">process_compound</span><span class="p">(</span><span class="n">product</span><span class="p">,</span> <span class="n">reactionID</span><span class="p">,</span>
+                                                                     <span class="n">reactioninfo</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span>
+                                                                     <span class="n">inchidb</span><span class="p">,</span> <span class="n">compoundinfo</span><span class="p">,</span>
+                                                                     <span class="n">cpd2inchi</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span>
+                                                                     <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">currentcpds</span><span class="p">)</span>
+                        <span class="n">cpd2inchi</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cpd2inchi_individual</span><span class="p">)</span>
+                        <span class="n">inchi_cf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inchi_cf_individual</span><span class="p">)</span>
+                        <span class="n">inchi_cas</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inchi_cas_individual</span><span class="p">)</span>
+                        <span class="n">compoundinfo</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">compoundinfo_individual</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;enzyme&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;enzyme&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+        <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+
+    <span class="n">output_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">reactioninfo</span><span class="p">,</span> <span class="n">cpd2inchi</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span> <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">compoundinfo</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="process_compound"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.process_compound">[docs]</a><span class="k">def</span> <span class="nf">process_compound</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="n">reactionID</span><span class="p">,</span> <span class="n">reactioninfo</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span>
+                     <span class="n">inchidb</span><span class="p">,</span> <span class="n">compoundinfo</span><span class="p">,</span> <span class="n">cpd2inchi</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span>
+                     <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">currentcpds</span><span class="p">):</span>
+    <span class="n">IN</span> <span class="o">=</span> <span class="n">indigo</span><span class="o">.</span><span class="n">Indigo</span><span class="p">()</span>
+    <span class="n">INCHI</span> <span class="o">=</span> <span class="n">indigo_inchi</span><span class="o">.</span><span class="n">IndigoInchi</span><span class="p">(</span><span class="n">IN</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;Extract compound info&quot;&quot;&quot;</span>
+    <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\s*\(\S+\)$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+    <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;^\(\S+\)\s*&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;^\d&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+    <span class="n">match2</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;^\w+\s+&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+        <span class="n">stoichiometry</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;^\d+ &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">match2</span><span class="p">:</span>
+        <span class="n">stoichiometry</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">cpd</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;^\w+\s+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stoichiometry</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">compoundinfo</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">inchidb</span><span class="p">:</span>
+        <span class="n">reactioninfo</span> <span class="o">=</span> <span class="n">add_metabolite</span><span class="p">(</span><span class="n">reactionID</span><span class="p">,</span> <span class="n">cpd</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">reactioninfo</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cpd</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">compoundinfo</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">inchidb</span><span class="p">:</span>
+        <span class="n">reactioninfo</span> <span class="o">=</span> <span class="n">add_metabolite</span><span class="p">(</span><span class="n">reactionID</span><span class="p">,</span> <span class="n">cpd</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">reactioninfo</span><span class="p">)</span>
+        <span class="n">darray</span> <span class="o">=</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">KEGG</span><span class="o">+</span><span class="s1">&#39;get/&#39;</span><span class="o">+</span><span class="n">cpd</span><span class="p">)</span>
+        <span class="n">count_name</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">darray</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">darray</span><span class="p">:</span>
+                <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s1">&#39;NAME&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                    <span class="n">count_name</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">compoundinfo</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">count_name</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">compoundinfo</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">compoundinfo</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+
+    <span class="k">elif</span> <span class="n">inchidb</span> <span class="ow">and</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cpd2inchi</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">reactioninfo</span> <span class="o">=</span> <span class="n">add_metabolite</span><span class="p">(</span><span class="n">reactionID</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">cpd2inchi</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="nb">list</span><span class="p">(</span><span class="n">cpd2inchi</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cpd</span><span class="p">)],</span>
+                                      <span class="n">stoichiometry</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">reactioninfo</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">currentcpds</span> <span class="ow">and</span> <span class="s1">&#39;c0&#39;</span> <span class="ow">in</span> <span class="n">currentcpds</span><span class="p">[</span><span class="n">cpd</span><span class="p">]:</span>
+            <span class="n">reactioninfo</span> <span class="o">=</span> <span class="n">add_metabolite</span><span class="p">(</span><span class="n">reactionID</span><span class="p">,</span> <span class="n">currentcpds</span><span class="p">[</span><span class="n">cpd</span><span class="p">][</span><span class="s1">&#39;c0&#39;</span><span class="p">],</span>
+                                          <span class="n">stoichiometry</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">reactioninfo</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">darray</span> <span class="o">=</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">KEGG</span><span class="o">+</span><span class="s1">&#39;get/&#39;</span><span class="o">+</span><span class="n">cpd</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">inchidb</span><span class="p">:</span>
+                <span class="n">inchicpd</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">darray</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">darray</span><span class="p">:</span>
+                        <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="s1">&#39;PubChem:&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                            <span class="n">index</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;PubChem:&#39;</span><span class="p">)</span>
+                            <span class="n">sid</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">substance</span> <span class="o">=</span> <span class="n">pubchempy</span><span class="o">.</span><span class="n">Substance</span><span class="o">.</span><span class="n">from_sid</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+                                <span class="n">substance_cids</span> <span class="o">=</span> <span class="n">substance</span><span class="o">.</span><span class="n">cids</span>
+                                <span class="k">if</span> <span class="n">substance_cids</span><span class="p">:</span>
+                                    <span class="k">try</span><span class="p">:</span>
+                                        <span class="n">compounds</span> <span class="o">=</span> <span class="n">pubchempy</span><span class="o">.</span><span class="n">get_compounds</span><span class="p">(</span><span class="n">substance_cids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                                        <span class="k">if</span> <span class="n">compounds</span><span class="p">:</span>
+                                            <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">compounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">inchi</span>
+                                            <span class="n">mol</span> <span class="o">=</span> <span class="n">INCHI</span><span class="o">.</span><span class="n">loadMolecule</span><span class="p">(</span><span class="n">inchicpd</span><span class="p">)</span>
+                                            <span class="c1"># fp = mol.fingerprint(&#39;full&#39;)</span>
+                                            <span class="c1"># buffer = fp.toBuffer()</span>
+                                            <span class="c1"># buffer_array = [str(i) for i in buffer]</span>
+                                            <span class="c1"># buffer_string = &#39;,&#39;.join(buffer_array)</span>
+                                            <span class="n">cf</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">grossFormula</span><span class="p">()</span>
+                                            <span class="n">cf</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cf</span><span class="p">)</span>
+                                            <span class="n">cpd2inchi</span><span class="p">[</span><span class="n">inchicpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpd</span>
+                                            <span class="c1"># inchi_fp[inchicpd] = buffer_string</span>
+                                            <span class="n">inchi_cf</span><span class="p">[</span><span class="n">inchicpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span>
+                                        <span class="k">else</span><span class="p">:</span>
+                                            <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">cpd</span>
+                                    <span class="k">except</span> <span class="p">(</span><span class="n">pubchempy</span><span class="o">.</span><span class="n">PubChemHTTPError</span><span class="p">,</span> <span class="n">http</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">BadStatusLine</span><span class="p">,</span>
+                                            <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span><span class="p">):</span>
+                                        <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">cpd</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">cpd</span>
+                            <span class="k">except</span> <span class="p">(</span><span class="n">pubchempy</span><span class="o">.</span><span class="n">PubChemHTTPError</span><span class="p">,</span> <span class="n">http</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">BadStatusLine</span><span class="p">,</span>
+                                    <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span><span class="p">):</span>
+                                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Could not get substance for &#39;</span><span class="o">+</span> <span class="n">sid</span><span class="p">)</span>
+                                <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">cpd</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">inchicpd</span><span class="p">:</span>
+                        <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">cpd</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">cpd</span>
+                <span class="n">reactioninfo</span> <span class="o">=</span> <span class="n">add_metabolite</span><span class="p">(</span><span class="n">reactionID</span><span class="p">,</span> <span class="n">inchicpd</span><span class="p">,</span>
+                                              <span class="n">stoichiometry</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">reactioninfo</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">reactioninfo</span> <span class="o">=</span> <span class="n">add_metabolite</span><span class="p">(</span><span class="n">reactionID</span><span class="p">,</span> <span class="n">cpd</span><span class="p">,</span>
+                                              <span class="n">stoichiometry</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">reactioninfo</span><span class="p">)</span>
+            <span class="n">count_name</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">darray</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">darray</span><span class="p">:</span>
+                    <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="s1">&#39;NAME&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                        <span class="n">count_name</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">inchidb</span><span class="p">:</span>
+                            <span class="n">compoundinfo</span><span class="p">[</span><span class="n">inchicpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">compoundinfo</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="s1">&#39;CAS:&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                        <span class="n">index</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;CAS:&#39;</span><span class="p">)</span>
+                        <span class="n">cas</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">inchidb</span><span class="p">:</span>
+                            <span class="n">inchi_cas</span><span class="p">[</span><span class="n">inchicpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">cas</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">inchi_cas</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">cas</span>
+            <span class="k">if</span> <span class="n">count_name</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">inchidb</span><span class="p">:</span>
+                    <span class="n">compoundinfo</span><span class="p">[</span><span class="n">inchicpd</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">compoundinfo</span><span class="p">[</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">reactioninfo</span><span class="p">,</span> <span class="n">cpd2inchi</span><span class="p">,</span> <span class="n">inchi_cf</span><span class="p">,</span> <span class="n">inchi_cas</span><span class="p">,</span> <span class="n">compoundinfo</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="add_metabolite"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.add_metabolite">[docs]</a><span class="k">def</span> <span class="nf">add_metabolite</span><span class="p">(</span><span class="n">reactionID</span><span class="p">,</span> <span class="n">cpd</span><span class="p">,</span> <span class="n">stoichiometry</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">reactioninfo</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;add metabolites to dictionary&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_prod</span><span class="p">:</span>
+        <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">][</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoichiometry</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">reactioninfo</span><span class="p">[</span><span class="n">reactionID</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">][</span><span class="n">cpd</span><span class="p">]</span> <span class="o">=</span> <span class="n">stoichiometry</span>
+    <span class="k">return</span> <span class="n">reactioninfo</span></div>
+
+<div class="viewcode-block" id="extract_KEGG_data"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.extract_KEGG_data">[docs]</a><span class="k">def</span> <span class="nf">extract_KEGG_data</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">trycount</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Extract Kegg db info&#39;&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="n">darray</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">darray</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">BadStatusLine</span><span class="p">,</span> <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">trycount</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">trycount</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompileKEGGIntoDB"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.CompileKEGGIntoDB">[docs]</a><span class="k">class</span> <span class="nc">CompileKEGGIntoDB</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add KEGG info to sqlite database&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">type_org</span><span class="p">,</span> <span class="n">inchidb</span><span class="p">,</span> <span class="n">processors</span><span class="p">,</span>
+                 <span class="n">num_organisms</span><span class="p">,</span> <span class="n">num_pathways</span><span class="p">,</span> <span class="n">rxntype</span><span class="p">,</span> <span class="n">add</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span> <span class="o">=</span> <span class="n">inchidb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rxntype</span> <span class="o">=</span> <span class="n">rxntype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currentcpds</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">,</span> <span class="n">check_same_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">text_factory</span> <span class="o">=</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">Connector</span><span class="p">(</span><span class="n">database</span><span class="p">)</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * from compound&#39;</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currentcpds</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="p">{})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currentcpds</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orgIDs</span><span class="p">,</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">metabolic_clusters</span><span class="p">,</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">,</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">reactionIDs</span><span class="p">,</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">cpd2inchi</span><span class="p">,</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf</span><span class="p">,</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas</span><span class="p">,</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">compoundinfo</span><span class="p">)</span> <span class="o">=</span> <span class="n">BuildKEGG</span><span class="p">(</span><span class="n">type_org</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">,</span> <span class="n">processors</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">currentcpds</span><span class="p">,</span> <span class="n">num_organisms</span><span class="p">,</span> <span class="n">num_pathways</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Adding kegg info to database&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">add</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_to_preexisting_db</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">database</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fill_new_database</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CompileKEGGIntoDB.add_to_preexisting_db"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.CompileKEGGIntoDB.add_to_preexisting_db">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_preexisting_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Add KEGG info to already developed database&#39;&#39;&#39;</span>
+        <span class="n">cytosol</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compartment</span><span class="p">(</span><span class="s1">&#39;cytosol&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">all_current_keggIDs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_all_keggIDs</span><span class="p">())</span>
+        <span class="n">all_cytosol_rxn</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">QC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;SELECT * from reaction&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">QC</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;c0&#39;</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+                <span class="n">all_cytosol_rxn</span><span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">KEGG ..ENTERING MODELS&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">orgID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">orgIDs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">orgID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orgIDs</span><span class="p">[</span><span class="n">orgID</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_KEGG&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">KEGG ..ENTERING CLUSTERS&#39;</span><span class="p">)</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;SELECT DISTINCT cluster_num FROM cluster&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">uniq_clusters</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">orgIDs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metabolic_clusters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">orgID</span> <span class="ow">in</span> <span class="n">orgIDs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO cluster VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq_clusters</span><span class="p">)</span><span class="o">+</span><span class="n">key</span><span class="p">,</span> <span class="n">orgID</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="sd">&#39;&#39;&#39;GET CURRENT COMPOUNDS IN DATABASE&#39;&#39;&#39;</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;SELECT ID from compound&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">dbcpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+        <span class="n">dbcpds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dbcpds</span><span class="p">))</span>
+
+        <span class="n">reaction_protein</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reaction_gene</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model_reactions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">model_compounds</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">KEGG ..ENTERING MODEL REACTIONS, GENES, PROTEINS&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">orgID</span><span class="p">,</span> <span class="n">reactions</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactionIDs</span><span class="o">.</span><span class="n">items</span><span class="p">())):</span>
+            <span class="n">cpds_all</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">all_cytosol_rxn</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">rxn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span>
+                        <span class="n">model_reactions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">all_cytosol_rxn</span><span class="p">[</span><span class="n">reaction</span><span class="p">],</span> <span class="n">orgID</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reversible&#39;</span><span class="p">]))</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">reaction_protein</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">all_cytosol_rxn</span><span class="p">[</span><span class="n">reaction</span><span class="p">],</span> <span class="n">orgID</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;enzyme&#39;</span><span class="p">]))</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="n">reaction_protein</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">all_cytosol_rxn</span><span class="p">[</span><span class="n">reaction</span><span class="p">],</span> <span class="n">orgID</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">))</span>
+                        <span class="n">reaction_gene</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">all_cytosol_rxn</span><span class="p">[</span><span class="n">reaction</span><span class="p">],</span> <span class="n">orgID</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">))</span>
+                        <span class="n">cpds_all</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reactants&#39;</span><span class="p">])</span>
+                        <span class="n">cpds_all</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;products&#39;</span><span class="p">])</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">No reaction info for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reaction</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">rxn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">]</span>
+                        <span class="n">model_reactions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">orgID</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reversible&#39;</span><span class="p">]))</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">reaction_protein</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">orgID</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;enzyme&#39;</span><span class="p">]))</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="n">reaction_protein</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">orgID</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">))</span>
+                        <span class="n">reaction_gene</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">orgID</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">))</span>
+                        <span class="n">cpds_all</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reactants&#39;</span><span class="p">])</span>
+                        <span class="n">cpds_all</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;products&#39;</span><span class="p">])</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">No reaction info for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reaction</span><span class="p">))</span>                    
+            <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">cpds_all</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;c0&#39;</span><span class="p">):</span>
+                    <span class="n">model_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cpd</span><span class="p">,</span> <span class="n">orgID</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">model_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cpd</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">orgID</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model_compound VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">model_compounds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model_reaction VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">model_reactions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_protein VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">reaction_protein</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_gene VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">reaction_gene</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">KEGG ..ENTERING REACTIONS&#39;</span><span class="p">)</span>
+        <span class="n">all_cpds_to_add</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">reaction_reversibility</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reactions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reaction_compounds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">reaction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_current_keggIDs</span><span class="p">:</span>
+                <span class="n">reaction_reversibility</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reversible&#39;</span><span class="p">]))</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">reactions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">reaction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rxntype</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">reactions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">reaction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rxntype</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]:</span>
+                    <span class="n">all_cpds_to_add</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reactant</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">reactant</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;c0&#39;</span><span class="p">):</span>
+                        <span class="n">reaction_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">reactant</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">][</span><span class="n">reactant</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">reaction_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">reactant</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">][</span><span class="n">reactant</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]:</span>
+                    <span class="n">all_cpds_to_add</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">product</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;c0&#39;</span><span class="p">):</span>
+                        <span class="n">reaction_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">][</span><span class="n">product</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">reaction_compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">product</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">][</span><span class="n">product</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_reversibility VALUES (?,?)&quot;</span><span class="p">,</span>
+                                <span class="n">reaction_reversibility</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction VALUES (?,?,?,?)&quot;</span><span class="p">,</span>
+                                <span class="n">reactions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_compound VALUES (?,?,?,?,?)&quot;</span><span class="p">,</span>
+                                <span class="n">reaction_compounds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">compounds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">KEGG ..ENTERING COMPOUNDS&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">all_cpds_to_add</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_c0&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">cpd</span><span class="o">+</span><span class="s1">&#39;_c0&#39;</span> <span class="ow">in</span> <span class="n">dbcpds</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;InChI&#39;</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cpd</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">compoundinfo</span><span class="p">[</span><span class="n">cpd</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compartment</span><span class="p">(</span><span class="s1">&#39;cytosol&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">cpd2inchi</span><span class="p">[</span><span class="n">cpd</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">),</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">)))</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cpd</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compartment</span><span class="p">(</span><span class="s1">&#39;cytosol&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">cpd2inchi</span><span class="p">[</span><span class="n">cpd</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">),</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">)))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cpd</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">compoundinfo</span><span class="p">[</span><span class="n">cpd</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compartment</span><span class="p">(</span><span class="s1">&#39;cytosol&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="s1">&#39;None&#39;</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">),</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">)))</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">compounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cpd</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_compartment</span><span class="p">(</span><span class="s1">&#39;cytosol&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="s1">&#39;None&#39;</span><span class="p">,</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">),</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO compound VALUES (?,?,?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">compounds</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CompileKEGGIntoDB.fill_new_database"><a class="viewcode-back" href="../../Database.html#Database.build_KEGG_db.CompileKEGGIntoDB.fill_new_database">[docs]</a>    <span class="k">def</span> <span class="nf">fill_new_database</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill database&quot;&quot;&quot;</span>
+        <span class="n">cytosol</span> <span class="o">=</span> <span class="s1">&#39;_c0&#39;</span> <span class="c1">#define compartment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO compartments VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;c0&#39;</span><span class="p">,</span> <span class="s1">&#39;cytosol&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO compartments VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;e0&#39;</span><span class="p">,</span> <span class="s1">&#39;extracellular&#39;</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">orgID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">orgIDs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">orgID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">orgIDs</span><span class="p">[</span><span class="n">orgID</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;_KEGG&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">orgIDs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metabolic_clusters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">orgID</span> <span class="ow">in</span> <span class="n">orgIDs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO cluster VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">orgID</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">orgID</span><span class="p">,</span> <span class="n">reactions</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactionIDs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">cpds_all</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="n">reactions</span><span class="p">:</span>
+                <span class="n">reaction_cm</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_protein VALUES (?,?,?)&quot;</span><span class="p">,</span>
+                                 <span class="p">(</span><span class="n">reaction_cm</span><span class="p">,</span> <span class="n">orgID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;enzyme&#39;</span><span class="p">]))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_gene VALUES (?,?,?)&quot;</span><span class="p">,</span>
+                                 <span class="p">(</span><span class="n">reaction_cm</span><span class="p">,</span> <span class="n">orgID</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model_reaction VALUES (?,?,?)&quot;</span><span class="p">,</span>
+                                 <span class="p">(</span><span class="n">reaction_cm</span><span class="p">,</span> <span class="n">orgID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reversible&#39;</span><span class="p">]))</span>
+                <span class="n">cpds_all</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">])</span>
+                <span class="n">cpds_all</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">cpds_all</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model_compound VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">cpd</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">orgID</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="n">all_cpds_to_add</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">reaction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">:</span>
+            <span class="n">reaction_cm</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">+</span><span class="n">cytosol</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_reversibility VALUES (?,?)&quot;</span><span class="p">,</span>
+                             <span class="p">(</span><span class="n">reaction_cm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reversible&#39;</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction VALUES (?,?,?,?)&quot;</span><span class="p">,</span>
+                             <span class="p">(</span><span class="n">reaction_cm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">reaction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rxntype</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">reactant</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_compound VALUES (?,?,?,?,?)&quot;</span><span class="p">,</span>
+                                 <span class="p">(</span><span class="n">reaction_cm</span><span class="p">,</span> <span class="n">reactant</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;reactants&#39;</span><span class="p">][</span><span class="n">reactant</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="n">all_cpds_to_add</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">reactant</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_compound VALUES (?,?,?,?,?)&quot;</span><span class="p">,</span>
+                                 <span class="p">(</span><span class="n">reaction_cm</span><span class="p">,</span> <span class="n">product</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">reactioninfo</span><span class="p">[</span><span class="n">reaction</span><span class="p">][</span><span class="s1">&#39;products&#39;</span><span class="p">][</span><span class="n">product</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="n">all_cpds_to_add</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">inchi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpd2inchi</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO original_db_cpdIDs VALUES (?,?)&quot;</span><span class="p">,</span>
+                                 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpd2inchi</span><span class="p">[</span><span class="n">inchi</span><span class="p">]</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="n">inchi</span><span class="o">+</span><span class="n">cytosol</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">all_cpds_to_add</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;INSERT INTO compound VALUES (?,?,?,?,?,?)&quot;&quot;&quot;</span><span class="p">,</span>
+                             <span class="p">(</span><span class="n">cpd</span><span class="o">+</span><span class="n">cytosol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">compoundinfo</span><span class="p">[</span><span class="n">cpd</span><span class="p">],</span> <span class="s1">&#39;c0&#39;</span><span class="p">,</span> <span class="n">cpd</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchi_cas</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cpd</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">Connector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.build_KEGG_db</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

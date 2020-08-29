@@ -1,0 +1,488 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization_chemdraw.cdxml_elements &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Visualization_chemdraw.cdxml_elements</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Visualization_chemdraw.cdxml_elements</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">et</span>
+
+<span class="n">ARROW_LENGTH</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">DEFAULT_Y_REFERENCE</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">SCALE_FACTOR</span> <span class="o">=</span> <span class="mf">0.75</span>
+
+<div class="viewcode-block" id="ELEMENT"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT">[docs]</a><span class="k">class</span> <span class="nc">ELEMENT</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el_id</span><span class="o">=</span><span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="n">x_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">el_id</span> <span class="o">=</span> <span class="n">el_id</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;element&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_0</span> <span class="o">=</span> <span class="n">x_0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_0</span> <span class="o">=</span> <span class="n">y_0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;placeholder_root&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ELEMENT.get_id"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.get_id">[docs]</a>	<span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">el_id</span></div>
+
+<div class="viewcode-block" id="ELEMENT.get_x"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.get_x">[docs]</a>	<span class="k">def</span> <span class="nf">get_x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_0</span></div>
+
+<div class="viewcode-block" id="ELEMENT.get_y"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.get_y">[docs]</a>	<span class="k">def</span> <span class="nf">get_y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span></div>
+
+<div class="viewcode-block" id="ELEMENT.get_color"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.get_color">[docs]</a>	<span class="k">def</span> <span class="nf">get_color</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span></div>
+
+<div class="viewcode-block" id="ELEMENT.set_id"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.set_id">[docs]</a>	<span class="k">def</span> <span class="nf">set_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_id</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">el_id</span> <span class="o">=</span> <span class="n">new_id</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELEMENT.update_position"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.update_position">[docs]</a>	<span class="k">def</span> <span class="nf">update_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ELEMENT.set_x"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.set_x">[docs]</a>	<span class="k">def</span> <span class="nf">set_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_x</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_0</span> <span class="o">=</span> <span class="n">new_x</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_position</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ELEMENT.set_y"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.set_y">[docs]</a>	<span class="k">def</span> <span class="nf">set_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_y</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_0</span> <span class="o">=</span> <span class="n">new_y</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_position</span><span class="p">()</span>	</div>
+
+<div class="viewcode-block" id="ELEMENT.set_color"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.set_color">[docs]</a>	<span class="k">def</span> <span class="nf">set_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_color</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">new_color</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">new_color</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELEMENT.append"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.append">[docs]</a>	<span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELEMENT.dump"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.dump">[docs]</a>	<span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">et</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ELEMENT.iter"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ELEMENT.iter">[docs]</a>	<span class="k">def</span> <span class="nf">iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="n">query</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="ARC"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ARC">[docs]</a><span class="k">class</span> <span class="nc">ARC</span><span class="p">(</span><span class="n">ELEMENT</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el_id</span><span class="o">=</span><span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="n">x_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">ARROW_LENGTH</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span> <span class="n">head</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">ARC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">el_id</span><span class="p">,</span><span class="n">x_0</span><span class="p">,</span><span class="n">y_0</span><span class="p">,</span><span class="n">color</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;graphic&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+			<span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">,</span>
+			<span class="s1">&#39;GraphicType&#39;</span><span class="p">:</span><span class="s1">&#39;Arc&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;Head3D&#39;</span><span class="p">:</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">),</span>
+			<span class="s1">&#39;Tail3D&#39;</span><span class="p">:</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">),</span>
+			<span class="s1">&#39;AngularSize&#39;</span><span class="p">:</span><span class="s1">&#39;-90&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;HeadSize&#39;</span><span class="p">:</span><span class="s1">&#39;1000&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;color&#39;</span><span class="p">:</span><span class="n">color</span>
+			<span class="p">})</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Tail3D&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;ArrowType&#39;</span><span class="p">,</span><span class="s1">&#39;FullHead&#39;</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Head3D&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ARC.update_position"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ARC.update_position">[docs]</a>	<span class="k">def</span> <span class="nf">update_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Head3D&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Tail3D&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">))</span></div></div>
+
+<div class="viewcode-block" id="ARROW"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ARROW">[docs]</a><span class="k">class</span> <span class="nc">ARROW</span><span class="p">(</span><span class="n">ELEMENT</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el_id</span><span class="o">=</span><span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="n">x_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">ARROW_LENGTH</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">ARROW</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">el_id</span><span class="p">,</span><span class="n">x_0</span><span class="p">,</span><span class="n">y_0</span><span class="p">,</span><span class="n">color</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;graphic&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+			<span class="s1">&#39;BoundingBox&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">),</span>
+			<span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">el_id</span><span class="p">,</span>
+			<span class="s1">&#39;GraphicType&#39;</span><span class="p">:</span><span class="s1">&#39;Line&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;ArrowType&#39;</span><span class="p">:</span><span class="s1">&#39;FullHead&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;HeadSize&#39;</span><span class="p">:</span><span class="s1">&#39;1000&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;color&#39;</span><span class="p">:</span><span class="n">color</span>
+			<span class="p">})</span>
+
+<div class="viewcode-block" id="ARROW.update_position"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.ARROW.update_position">[docs]</a>	<span class="k">def</span> <span class="nf">update_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">))</span></div></div>
+
+<div class="viewcode-block" id="TEXT"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.TEXT">[docs]</a><span class="k">class</span> <span class="nc">TEXT</span><span class="p">(</span><span class="n">ELEMENT</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">el_id</span><span class="o">=</span><span class="s2">&quot;-1&quot;</span><span class="p">,</span><span class="n">x_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">TEXT</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">el_id</span><span class="o">=</span><span class="n">el_id</span><span class="p">,</span><span class="n">x_0</span><span class="o">=</span><span class="n">x_0</span><span class="p">,</span> <span class="n">y_0</span><span class="o">=</span><span class="n">y_0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">6</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span><span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+			<span class="s1">&#39;p&#39;</span><span class="p">:</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">),</span>
+			<span class="s1">&#39;Justification&#39;</span><span class="p">:</span><span class="s1">&#39;Center&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;InterpretChemically&#39;</span><span class="p">:</span><span class="s1">&#39;no&#39;</span><span class="p">})</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+			<span class="s1">&#39;color&#39;</span><span class="p">:</span><span class="n">color</span><span class="p">,</span>
+			<span class="s1">&#39;face&#39;</span><span class="p">:</span> <span class="s1">&#39;96&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;font&#39;</span><span class="p">:</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="s1">&#39;10&#39;</span><span class="p">})</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+
+<div class="viewcode-block" id="TEXT.set_color"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.TEXT.set_color">[docs]</a>	<span class="k">def</span> <span class="nf">set_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_color</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">new_color</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TEXT.get_label"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.TEXT.get_label">[docs]</a>	<span class="k">def</span> <span class="nf">get_label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span></div>
+
+<div class="viewcode-block" id="TEXT.set_label"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.TEXT.set_label">[docs]</a>	<span class="k">def</span> <span class="nf">set_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_label</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">new_label</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span></div></div>
+
+
+
+<div class="viewcode-block" id="BOX"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.BOX">[docs]</a><span class="k">class</span> <span class="nc">BOX</span><span class="p">(</span><span class="n">ELEMENT</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">BOX</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;box&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">height</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;3&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">isEmpty</span> <span class="o">=</span> <span class="kc">True</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;placeholder_box&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BOX.append"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.BOX.append">[docs]</a>	<span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">arrange</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s2">&quot;middle&quot;</span><span class="p">):</span>
+		<span class="sd">&#39;&#39;&#39; Append elements/boxes to this box &#39;&#39;&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEmpty</span><span class="p">:</span> <span class="c1"># First element in the box</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">width</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">height</span>
+			<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">element</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;box&#39;</span><span class="p">:</span> <span class="c1"># Compound</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">x_reference</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">y_reference</span>
+			<span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span><span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">element</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;element&#39;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span><span class="s1">&#39;label&#39;</span><span class="p">):</span> <span class="c1"># Text</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">2</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">y_0</span>
+				<span class="n">element</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">element</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;element&#39;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">):</span>
+			<span class="n">element</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="n">element</span><span class="o">.</span><span class="n">x_reference</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="n">element</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+		<span class="k">if</span> <span class="n">arrange</span> <span class="o">==</span> <span class="s1">&#39;above&#39;</span> <span class="ow">or</span> <span class="n">arrange</span> <span class="o">==</span> <span class="s1">&#39;below&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEmpty</span><span class="p">:</span>
+			<span class="n">plus_symbol</span> <span class="o">=</span> <span class="n">TEXT</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s2">&quot;5&quot;</span><span class="p">)</span>
+			<span class="n">plus_symbol</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">x_reference</span><span class="p">))</span>
+			<span class="k">if</span> <span class="n">arrange</span> <span class="o">==</span> <span class="s1">&#39;above&#39;</span><span class="p">:</span>
+				<span class="n">plus_symbol</span><span class="o">.</span><span class="n">set_y</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">height</span> <span class="o">+</span> <span class="mi">10</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">plus_symbol</span><span class="o">.</span><span class="n">set_y</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">)</span>
+
+			
+			<span class="k">if</span> <span class="n">align</span> <span class="o">==</span> <span class="s2">&quot;middle&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">&gt;</span> <span class="n">element</span><span class="o">.</span><span class="n">width</span><span class="p">:</span>
+				<span class="n">element</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">align</span> <span class="o">==</span> <span class="s2">&quot;middle&quot;</span><span class="p">:</span> 
+				<span class="bp">self</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">x_0</span> <span class="o">+</span> <span class="n">element</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="n">align</span> <span class="o">==</span> <span class="s2">&quot;right&quot;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span><span class="p">,</span><span class="n">element</span><span class="o">.</span><span class="n">x_reference</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span><span class="p">)</span>
+				<span class="n">element</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">x_reference</span><span class="p">)</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">x_reference</span><span class="p">)</span>
+				<span class="k">if</span> <span class="n">arrange</span> <span class="o">==</span> <span class="s1">&#39;above&#39;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">height</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span>
+
+			<span class="n">element</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plus_symbol</span><span class="p">)</span>
+
+			<span class="k">if</span> <span class="n">arrange</span> <span class="o">==</span> <span class="s1">&#39;above&#39;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">set_y</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">height</span> <span class="o">+</span> <span class="mi">10</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">element</span><span class="o">.</span><span class="n">set_y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">+</span> <span class="mi">10</span><span class="p">)</span>
+
+			<span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">+</span> <span class="n">element</span><span class="o">.</span><span class="n">height</span> <span class="o">+</span> <span class="mi">10</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
+
+		<span class="k">elif</span> <span class="n">arrange</span> <span class="o">==</span> <span class="s1">&#39;right&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEmpty</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">element</span><span class="o">.</span><span class="n">x_reference</span>
+			<span class="n">element</span><span class="o">.</span><span class="n">set_x</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">+</span> <span class="mi">10</span><span class="p">)</span>
+			<span class="n">element</span><span class="o">.</span><span class="n">set_y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">-</span> <span class="n">element</span><span class="o">.</span><span class="n">y_reference</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">+</span> <span class="n">element</span><span class="o">.</span><span class="n">width</span> <span class="o">+</span> <span class="mi">10</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">element</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;box&#39;</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">append_box</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">super</span><span class="p">(</span><span class="n">BOX</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">isEmpty</span> <span class="o">=</span> <span class="kc">False</span></div>
+		
+		
+<div class="viewcode-block" id="BOX.append_box"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.BOX.append_box">[docs]</a>	<span class="k">def</span> <span class="nf">append_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box_element</span><span class="p">):</span>
+		<span class="n">subelements</span> <span class="o">=</span> <span class="n">box_element</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;./*&#39;</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">subelements</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BOX.set_color"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.BOX.set_color">[docs]</a>	<span class="k">def</span> <span class="nf">set_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_color</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">new_color</span>
+		<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">obj</span><span class="o">.</span><span class="n">tag</span><span class="o">==</span><span class="s1">&#39;graphic&#39;</span><span class="p">:</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BOX.set_x"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.BOX.set_x">[docs]</a>	<span class="k">def</span> <span class="nf">set_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_x</span><span class="p">):</span>
+		<span class="n">dx</span> <span class="o">=</span> <span class="n">new_x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_x</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_0</span> <span class="o">=</span> <span class="n">new_x</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_position</span><span class="p">(</span><span class="n">dx</span><span class="o">=</span><span class="n">dx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BOX.set_y"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.BOX.set_y">[docs]</a>	<span class="k">def</span> <span class="nf">set_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_y</span><span class="p">):</span>
+		<span class="n">dy</span> <span class="o">=</span> <span class="n">new_y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_y</span><span class="p">()</span>		
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">+</span> <span class="p">(</span><span class="n">new_y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_0</span> <span class="o">=</span> <span class="n">new_y</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">update_position</span><span class="p">(</span><span class="n">dy</span><span class="o">=</span><span class="n">dy</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BOX.update_position"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.BOX.update_position">[docs]</a>	<span class="k">def</span> <span class="nf">update_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dy</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">):</span>
+				<span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>				
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">dx</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="n">dy</span><span class="p">))</span>
+			<span class="k">elif</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">):</span>
+				<span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">y2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x1</span><span class="o">+</span><span class="n">dx</span><span class="p">,</span> <span class="n">y1</span><span class="o">+</span><span class="n">dy</span><span class="p">,</span> <span class="n">x2</span><span class="o">+</span><span class="n">dx</span><span class="p">,</span> <span class="n">y2</span><span class="o">+</span><span class="n">dy</span><span class="p">))</span>
+			<span class="k">elif</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Head3D&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Tail3D&#39;</span><span class="p">):</span>
+				<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Head3D&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Head3D&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">dx</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="n">dy</span><span class="p">))</span>
+				<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Tail3D&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Tail3D&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">dx</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="n">dy</span><span class="p">))</span> </div></div>
+
+
+<span class="c1"># ARROW WITH PROMISCUOUS COMPOUNDS</span>
+<div class="viewcode-block" id="TRANSITION"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.TRANSITION">[docs]</a><span class="k">class</span> <span class="nc">TRANSITION</span><span class="p">(</span><span class="n">BOX</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reactants</span><span class="p">,</span> <span class="n">products</span><span class="p">,</span> <span class="n">misc_products</span><span class="p">,</span>
+					<span class="n">reaction_proteins</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reaction_solvents</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reaction_catalysts</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reaction_SPRESI_info</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>	<span class="n">color</span><span class="o">=</span><span class="s2">&quot;3&quot;</span><span class="p">):</span>		
+		<span class="nb">super</span><span class="p">(</span><span class="n">TRANSITION</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">ARROW_LENGTH</span> <span class="o">*</span> <span class="n">SCALE_FACTOR</span><span class="p">)</span>		
+		<span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="o">=</span><span class="n">color</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">arrow</span> <span class="o">=</span> <span class="n">ARROW</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">arcs</span> <span class="o">=</span> <span class="kc">False</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">topArc</span> <span class="o">=</span> <span class="n">ARC</span><span class="p">(</span>
+			<span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+			<span class="n">x_0</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span>
+			<span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">bottomArc</span> <span class="o">=</span> <span class="n">ARC</span><span class="p">(</span>
+			<span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+			<span class="n">x_0</span><span class="o">=</span><span class="mi">5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span>
+			<span class="n">y_0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span>
+			<span class="n">head</span><span class="o">=</span><span class="kc">True</span>
+			<span class="p">)</span>		
+		
+		<span class="k">if</span> <span class="n">reactants</span> <span class="ow">or</span> <span class="n">products</span> <span class="ow">or</span> <span class="n">misc_products</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="o">=</span><span class="n">ARROW_LENGTH</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="o">/</span><span class="mi">2</span>			
+			<span class="bp">self</span><span class="o">.</span><span class="n">arcs</span> <span class="o">=</span> <span class="kc">True</span>
+			<span class="k">if</span> <span class="n">reactants</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topArc</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">products</span> <span class="ow">or</span> <span class="n">misc_products</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bottomArc</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="n">reactants</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">reactants</span> <span class="o">=</span> <span class="n">TEXT</span><span class="p">(</span>
+				<span class="s1">&#39; + &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reactants</span><span class="p">),</span> 
+				<span class="n">x_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
+				<span class="n">y_0</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
+				<span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;4&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">products</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">products</span> <span class="o">=</span> <span class="n">TEXT</span><span class="p">(</span>
+				<span class="s1">&#39; + &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">products</span><span class="p">),</span> 
+				<span class="n">x_0</span> <span class="o">=</span> <span class="mi">3</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
+				<span class="n">y_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
+				<span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;4&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">misc_products</span><span class="p">:</span>
+			<span class="n">txt</span> <span class="o">=</span> <span class="s1">&#39;+</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">misc_products</span><span class="p">)</span>
+			<span class="n">y_placement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="o">/</span><span class="mi">2</span>
+			<span class="k">if</span> <span class="n">products</span><span class="p">:</span>
+				<span class="n">txt</span> <span class="o">=</span> <span class="s1">&#39;+</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">txt</span>
+				<span class="n">y_placement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span>
+			
+			<span class="bp">self</span><span class="o">.</span><span class="n">misc_products</span> <span class="o">=</span> <span class="n">TEXT</span><span class="p">(</span>
+				<span class="n">txt</span><span class="p">,</span>
+				<span class="n">x_0</span> <span class="o">=</span> <span class="mi">3</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span>
+				<span class="n">y_0</span> <span class="o">=</span> <span class="n">y_placement</span><span class="p">,</span>
+				<span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;5&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">misc_products</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">reaction_proteins</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">reaction</span> <span class="o">=</span> <span class="n">TEXT</span><span class="p">(</span>
+				<span class="n">reaction_proteins</span><span class="p">,</span>
+				<span class="n">x_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
+				<span class="n">y_0</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+				<span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;3&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reaction</span><span class="p">)</span>
+
+		<span class="n">chemical_rxn_info</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">if</span> <span class="n">reaction_solvents</span><span class="p">:</span>
+			<span class="n">chemical_rxn_info</span> <span class="o">+=</span> <span class="p">[</span><span class="n">reaction_solvents</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">reaction_catalysts</span><span class="p">:</span>
+			<span class="n">chemical_rxn_info</span> <span class="o">+=</span> <span class="p">[</span><span class="n">reaction_catalysts</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">reaction_SPRESI_info</span><span class="p">:</span>
+			<span class="n">chemical_rxn_info</span> <span class="o">+=</span> <span class="p">[</span><span class="n">reaction_SPRESI_info</span><span class="p">]</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chemical_rxn_info</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">rxn_info</span> <span class="o">=</span> <span class="n">TEXT</span><span class="p">(</span>
+				<span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chemical_rxn_info</span><span class="p">),</span>
+				<span class="n">x_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
+				<span class="n">y_0</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+				<span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rxn_info</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">+=</span> <span class="mi">250</span>
+
+<div class="viewcode-block" id="TRANSITION.set_color"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.TRANSITION.set_color">[docs]</a>	<span class="k">def</span> <span class="nf">set_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_color</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">arrow</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">new_color</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arcs</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">topArc</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">new_color</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">bottomArc</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">new_color</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;rxn_info&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">rxn_info</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">new_color</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="COMPOUND"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.COMPOUND">[docs]</a><span class="k">class</span> <span class="nc">COMPOUND</span><span class="p">(</span><span class="n">BOX</span><span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpd_xml</span><span class="p">,</span> <span class="n">label_xml</span><span class="p">,</span> <span class="n">id_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">COMPOUND</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpd_xml</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label_xml</span><span class="p">,</span> <span class="n">shift_down</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">cpd_id</span> <span class="o">=</span> <span class="n">id_offset</span> <span class="o">+</span> <span class="mi">1</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">last_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset_ids</span><span class="p">(</span><span class="n">id_offset</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_dimensions</span><span class="p">()</span>
+
+<div class="viewcode-block" id="COMPOUND.append"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.COMPOUND.append">[docs]</a>	<span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_element</span><span class="p">,</span> <span class="n">shift_down</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">shift_down</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>
+				<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">):</span>
+					<span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+					<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="mi">20</span><span class="p">))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xml_element</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="COMPOUND.scale"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.COMPOUND.scale">[docs]</a>	<span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">):</span>
+				<span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="p">,</span> <span class="n">y</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="p">))</span>
+			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">):</span>
+				<span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">y2</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x1</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="p">,</span> <span class="n">y1</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="p">,</span> <span class="n">x2</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="p">,</span> <span class="n">y2</span><span class="o">*</span><span class="n">SCALE_FACTOR</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="COMPOUND.offset_ids"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.COMPOUND.offset_ids">[docs]</a>	<span class="k">def</span> <span class="nf">offset_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_offset</span><span class="p">):</span>		
+		<span class="n">last_id</span> <span class="o">=</span> <span class="n">id_offset</span>
+		<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;-1&quot;</span><span class="p">:</span>
+				<span class="n">last_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">id_offset</span><span class="p">)</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">last_id</span><span class="p">))</span>
+			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">):</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">id_offset</span><span class="p">)))</span>
+				<span class="n">obj</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">id_offset</span><span class="p">)))</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">last_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="COMPOUND.set_dimensions"><a class="viewcode-back" href="../../Visualization_chemdraw.html#Visualization_chemdraw.cdxml_elements.COMPOUND.set_dimensions">[docs]</a>	<span class="k">def</span> <span class="nf">set_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">max_x</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">max_y</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">y</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>			
+			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">):</span>
+				<span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>				
+			<span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">):</span>
+				<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;BoundingBox&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)]</span>
+			<span class="n">max_x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">max_x</span><span class="p">)</span>
+			<span class="n">max_y</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">max_y</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_x</span> <span class="o">+</span> <span class="mi">30</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_y</span> <span class="o">+</span> <span class="mi">30</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">x_reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">2</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">y_reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="o">/</span><span class="mi">2</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Visualization_chemdraw.cdxml_elements</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>

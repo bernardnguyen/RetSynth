@@ -1,0 +1,720 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database.build_metacyc_db &#8212; RetSynth 1 documentation</title>
+    <link rel="stylesheet" href="../../_static/p_sphinx_theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/local_fonts.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/jquery.cookie.js"></script>
+    <script src="../../_static/p_sphinx_theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+      <div class="relbar-top">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.build_metacyc_db</a></li> 
+      </ul>
+    </div>
+      </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Database.build_metacyc_db</h1><div class="highlight"><pre>
+<span></span><span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Leanne Whitmore&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s1">&#39;lwhitmo@sandia.gov&#39;</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="s1">&#39;Translates metacyc into database&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span><span class="o">,</span> <span class="nn">urllib.error</span><span class="o">,</span> <span class="nn">urllib.parse</span>
+<span class="kn">import</span> <span class="nn">http.client</span>
+<span class="kn">import</span> <span class="nn">pubchempy</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">Database</span> <span class="kn">import</span> <span class="n">query</span> <span class="k">as</span> <span class="n">Q</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span><span class="p">,</span> <span class="n">SoupStrainer</span>
+<span class="kn">import</span> <span class="nn">lxml</span>
+<span class="kn">from</span> <span class="nn">Pubchem</span> <span class="kn">import</span> <span class="n">pubchem_inchi_translator</span> <span class="k">as</span> <span class="n">pit</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+<span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;darwin&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_mac</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_linux</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+<span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win64&quot;</span> <span class="ow">or</span> <span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;cygwin&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo</span>
+    <span class="kn">from</span> <span class="nn">indigopython130_win</span> <span class="kn">import</span> <span class="n">indigo_inchi</span>
+
+<span class="n">PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+<span class="n">KEGG</span> <span class="o">=</span> <span class="s1">&#39;http://rest.kegg.jp/&#39;</span>
+
+<div class="viewcode-block" id="verbose_print"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.verbose_print">[docs]</a><span class="k">def</span> <span class="nf">verbose_print</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="extract_KEGG_data"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.extract_KEGG_data">[docs]</a><span class="k">def</span> <span class="nf">extract_KEGG_data</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Extract Kegg db info&#39;&#39;&#39;</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="n">darray</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">darray</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">BadStatusLine</span><span class="p">,</span> <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="get_inchi_from_kegg_ID"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.get_inchi_from_kegg_ID">[docs]</a><span class="k">def</span> <span class="nf">get_inchi_from_kegg_ID</span><span class="p">(</span><span class="n">cpd</span><span class="p">):</span>
+    <span class="n">darray</span> <span class="o">=</span> <span class="n">extract_KEGG_data</span><span class="p">(</span><span class="n">KEGG</span><span class="o">+</span><span class="s1">&#39;get/&#39;</span><span class="o">+</span><span class="n">cpd</span><span class="p">)</span>
+    <span class="n">inchicpd</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">cas</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">darray</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">darray</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;PubChem:&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;PubChem:&#39;</span><span class="p">)</span>
+                <span class="n">sid</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">substance</span> <span class="o">=</span> <span class="n">pubchempy</span><span class="o">.</span><span class="n">Substance</span><span class="o">.</span><span class="n">from_sid</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+                    <span class="n">substance_cids</span> <span class="o">=</span> <span class="n">substance</span><span class="o">.</span><span class="n">cids</span>
+                    <span class="k">if</span> <span class="n">substance_cids</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">compounds</span> <span class="o">=</span> <span class="n">pubchempy</span><span class="o">.</span><span class="n">get_compounds</span><span class="p">(</span><span class="n">substance_cids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="n">compounds</span><span class="p">:</span>
+                                <span class="n">inchicpd</span> <span class="o">=</span> <span class="n">compounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">inchi</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="nb">print</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">Could not get substance for </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">cpd</span><span class="p">))</span>
+                    <span class="nb">print</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;CAS:&#39;</span> <span class="ow">in</span> <span class="n">array</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;CAS:&#39;</span><span class="p">)</span>
+                <span class="n">cas</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">inchicpd</span><span class="p">,</span> <span class="n">cas</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Translate"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.Translate">[docs]</a><span class="k">class</span> <span class="nc">Translate</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Translates metacyc compound and reaction IDs to Kbase compound and reaction IDs</span>
+<span class="sd">    if a kbase database is used (ONLY WORKS WITH KBASE, ModelSeed/patric)&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DBPath</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">inchidb</span><span class="p">,</span> <span class="n">rxntype</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># print (translation_file)</span>
+        <span class="c1"># print (file_name)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span> <span class="o">=</span> <span class="n">file_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span> <span class="o">=</span> <span class="n">inchidb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">DBPath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA synchronous = OFF&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA journal_mode = OFF&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">Connector</span><span class="p">(</span><span class="n">DBPath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rxntype</span> <span class="o">=</span> <span class="n">rxntype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;rxn&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;compound&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">PATH</span><span class="o">+</span><span class="s1">&#39;/data/MetaCyc.aliases&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_name</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">file_name</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file_name</span><span class="p">:</span>
+                <span class="n">larray</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">larray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\.\w+$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">larray</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">larray</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;rxn&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">larray</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">larray</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">larray</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;compound&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">larray</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">larray</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s2"> BIOCYC IDS&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;rxn&#39;</span><span class="p">])</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;compound&#39;</span><span class="p">])))</span>
+        <span class="k">if</span> <span class="n">add</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_metacyc_to_db</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Translate.add_metacyc_to_db"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.Translate.add_metacyc_to_db">[docs]</a>    <span class="k">def</span> <span class="nf">add_metacyc_to_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds metacyc information to the database</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">MC</span> <span class="o">=</span> <span class="n">MetaCyc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">MC</span><span class="o">.</span><span class="n">read_metacyc_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">add_new_cluster_info</span><span class="p">(</span><span class="n">MC_mi</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Adds updated metacyc cluster info to database</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;INSERT INTO model VALUES (?,?)&#39;&#39;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">MC_mi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">))</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;SELECT DISTINCT cluster_num FROM cluster&#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="n">hits</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="n">uniq_clusters</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO cluster VALUES (?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">uniq_clusters</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">MC_mi</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">add_new_cpd_rxn_gene_info</span><span class="p">(</span><span class="n">MC</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Adds metacyc compound, reaction, gene and protein info to database</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model_compound VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">MC</span><span class="o">.</span><span class="n">modelcompounds</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO model_reaction VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">MC</span><span class="o">.</span><span class="n">modelreactions</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_gene VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">MC</span><span class="o">.</span><span class="n">genelist</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_protein VALUES (?,?,?)&quot;</span><span class="p">,</span> <span class="n">MC</span><span class="o">.</span><span class="n">proteinlist</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">add_cpds_2_db</span><span class="p">(</span><span class="n">allcompounds</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;add compounds to database&#39;&#39;&#39;</span>
+            <span class="n">count_compound</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">allcompounds</span><span class="p">:</span>
+                <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM compound WHERE ID = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">cpd</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">count_compound</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;INSERT INTO compound VALUES (?,?,?,?,?,?)&quot;&quot;&quot;</span><span class="p">,</span>
+                                     <span class="p">(</span><span class="n">cpd</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cpd</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cpd</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">cpd</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">cpd</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">cpd</span><span class="p">[</span><span class="mi">5</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> added MetaCyc compounds&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count_compound</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">add_rxns_2_db</span><span class="p">(</span><span class="n">allreactions</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;add reaciton to database&#39;&#39;&#39;</span>
+            <span class="n">count_reactions</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">count_reactions_compounds</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">allreactions</span><span class="p">:</span>
+                <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT ID FROM reaction WHERE ID = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">count_reactions</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">count_reactions_compounds</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction VALUES (?,?,?,?)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rxn</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rxn</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">rxntype</span><span class="p">))</span>
+                    <span class="c1"># self.cnx.commit()</span>
+                    <span class="k">for</span> <span class="n">rxn_compound</span> <span class="ow">in</span> <span class="n">MC</span><span class="o">.</span><span class="n">all_reaction_compound</span><span class="p">[</span><span class="n">rxn</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_compound VALUES (?,?,?,?,?)&quot;</span><span class="p">,</span>
+                                         <span class="p">(</span><span class="n">rxn_compound</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rxn_compound</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                          <span class="n">rxn_compound</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">rxn_compound</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> added MetaCyc reactions&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count_reactions</span><span class="p">))</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> added MetaCyc reaction_compounds&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count_reactions_compounds</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">determine_rxn_reversibility</span><span class="p">(</span><span class="n">reactionreversibility</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;set reversibility&#39;&#39;&#39;</span>
+            <span class="n">count_reversibility</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">count_reversibility_add</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">rxn_revers</span> <span class="ow">in</span> <span class="n">reactionreversibility</span><span class="p">:</span>
+                <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;SELECT reaction_ID FROM reaction_reversibility </span><span class="se">\</span>
+<span class="s2">                                    WHERE reaction_ID=?&quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">rxn_revers</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">count_reversibility_add</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO reaction_reversibility VALUES (?,?)&quot;</span><span class="p">,</span>
+                                     <span class="p">(</span><span class="n">rxn_revers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rxn_revers</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="c1"># self.cnx.commit()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;SELECT is_reversible FROM reaction_reversibility </span><span class="se">\</span>
+<span class="s2">                                         WHERE reaction_ID = ?&quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">rxn_revers</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">Q</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">rxn_revers</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;false&#39;</span><span class="p">:</span>
+                        <span class="n">count_reversibility</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">command</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;UPDATE reaction_reversibility SET is_reversible = &#39;true&#39; </span><span class="se">\</span>
+<span class="s1">                                   WHERE reaction_ID = ?&#39;&#39;&#39;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">(</span><span class="n">rxn_revers</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> changed reversibility&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count_reversibility</span><span class="p">))</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> added MetaCyc reversibility&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count_reversibility_add</span><span class="p">))</span>
+   
+        <span class="k">def</span> <span class="nf">compile_all_cpd_rxn_info</span><span class="p">(</span><span class="n">MC</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Compiles and adds new compound and reaction information to tables in databases</span>
+<span class="sd">            that have all reactions and compounds, no repeats of information allowed in these</span>
+<span class="sd">            tables</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">allreactions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">allcompounds</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">reactionreversibility</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">MC</span><span class="o">.</span><span class="n">all_rxnreversibility</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">reactionreversibility</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">MC</span><span class="o">.</span><span class="n">all_rxns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">allreactions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">MC</span><span class="o">.</span><span class="n">all_cpds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">allcompounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span>
+
+            <span class="n">add_cpds_2_db</span><span class="p">(</span><span class="n">allcompounds</span><span class="p">)</span>
+            <span class="n">add_rxns_2_db</span><span class="p">(</span><span class="n">allreactions</span><span class="p">)</span>
+            <span class="n">determine_rxn_reversibility</span><span class="p">(</span><span class="n">reactionreversibility</span><span class="p">)</span>
+
+        <span class="n">add_new_cluster_info</span><span class="p">(</span><span class="n">MC</span><span class="o">.</span><span class="n">mi</span><span class="p">)</span>
+        <span class="n">add_new_cpd_rxn_gene_info</span><span class="p">(</span><span class="n">MC</span><span class="p">)</span>
+        <span class="n">compile_all_cpd_rxn_info</span><span class="p">(</span><span class="n">MC</span><span class="p">)</span></div></div>
+
+<span class="c1">#######################READ IN METACYC DATABASE######################</span>
+<div class="viewcode-block" id="MetaCyc"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc">[docs]</a><span class="k">class</span> <span class="nc">MetaCyc</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Opens and parses metacyc xml file&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DB</span><span class="p">,</span> <span class="n">inchidb</span><span class="p">,</span> <span class="n">cnx</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;initialize&#39;&#39;&#39;</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS loading in metacyc file&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DB</span> <span class="o">=</span> <span class="n">DB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span> <span class="o">=</span> <span class="n">inchidb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span> <span class="o">=</span> <span class="n">cnx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">IN</span> <span class="o">=</span> <span class="n">indigo</span><span class="o">.</span><span class="n">Indigo</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">INCHI</span> <span class="o">=</span> <span class="n">indigo_inchi</span><span class="o">.</span><span class="n">IndigoInchi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">IN</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prom_cpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_promiscuous_cpds</span><span class="p">(</span><span class="n">PATH</span><span class="o">+</span><span class="s1">&#39;/data/promiscuous_cpds_inchi.txt&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prom_cpds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_promiscuous_cpds</span><span class="p">(</span><span class="n">PATH</span><span class="o">+</span><span class="s1">&#39;/data/promiscuous_cpds_kegg.txt&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MetaCyc.get_promiscuous_cpds"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.get_promiscuous_cpds">[docs]</a>    <span class="k">def</span> <span class="nf">get_promiscuous_cpds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+        <span class="n">prom_cpds</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fin</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">prom_cpds</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">prom_cpds</span></div>
+
+<div class="viewcode-block" id="MetaCyc.compound_translator"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.compound_translator">[docs]</a>    <span class="k">def</span> <span class="nf">compound_translator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">,</span> <span class="n">biocyc_ID</span><span class="p">,</span> <span class="n">inchi_ID</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">compartment</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Checks if metacyc compound is in database, if it is not it adds it</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">KEGG_ID</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fill_compound_arrays</span><span class="p">(</span><span class="n">compound_ID</span><span class="p">,</span> <span class="n">inchi_ID</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">compartment</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">biocyc_ID</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\|&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">biocyc_ID</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cpdID_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;compound&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">cpdID</span> <span class="ow">in</span> <span class="n">cpdID_list</span><span class="p">:</span>
+                    <span class="n">cpdIDs</span> <span class="o">=</span> <span class="n">cpdID</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cpdIDs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">temp_cpdIDs</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cpdIDs</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">c</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_compounds</span><span class="p">:</span>
+                                <span class="n">temp_cpdIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_cpdIDs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">cpdID</span> <span class="o">=</span> <span class="n">temp_cpdIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_cpdIDs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">cpdIDs</span><span class="p">):</span>
+                            <span class="n">cpdID</span> <span class="o">=</span> <span class="n">temp_cpdIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_cpdIDs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">cpdID</span> <span class="o">=</span> <span class="n">cpdIDs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">compound ID </span><span class="si">{}</span><span class="s1"> issue&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cpdID</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fill_compound_arrays</span><span class="p">(</span><span class="n">compound_ID</span><span class="p">,</span> <span class="n">inchi_ID</span><span class="p">,</span> <span class="n">cpdID</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">),</span> <span class="n">name</span><span class="p">,</span> <span class="n">compartment</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fill_compound_arrays</span><span class="p">(</span><span class="n">compound_ID</span><span class="p">,</span> <span class="n">inchi_ID</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">),</span> <span class="n">name</span><span class="p">,</span> <span class="n">compartment</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fill_compound_arrays</span><span class="p">(</span><span class="n">compound_ID</span><span class="p">,</span> <span class="n">inchi_ID</span><span class="p">,</span> <span class="n">compound_ID</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">),</span> <span class="n">name</span><span class="p">,</span> <span class="n">compartment</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MetaCyc.get_fp_cf_info"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.get_fp_cf_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_fp_cf_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inchi</span><span class="p">):</span>
+        <span class="n">inchi</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="s1">&#39;c0&#39;</span><span class="o">+</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">inchi</span><span class="p">)</span>
+        <span class="n">inchi</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="s1">&#39;e0&#39;</span><span class="o">+</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">inchi</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INCHI</span><span class="o">.</span><span class="n">loadMolecule</span><span class="p">(</span><span class="n">inchi</span><span class="p">)</span>
+            <span class="c1"># fp = mol.fingerprint(&#39;full&#39;)</span>
+            <span class="c1"># buffer = fp.toBuffer()</span>
+            <span class="c1"># buffer_array = [str(i) for i in buffer]</span>
+            <span class="c1"># buffer_string = &#39;,&#39;.join(buffer_array)</span>
+            <span class="n">cf</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">grossFormula</span><span class="p">()</span>
+            <span class="n">cf</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cf</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">indigo</span><span class="o">.</span><span class="n">IndigoException</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Could not load inchi molecule </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inchi</span><span class="p">))</span>
+            <span class="n">cf</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">cf</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MetaCyc.fill_compound_arrays"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.fill_compound_arrays">[docs]</a>    <span class="k">def</span> <span class="nf">fill_compound_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">inchi</span><span class="p">,</span> <span class="n">cpdID</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">compartment</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Determines whether or not to add compound to compound arrays which will</span>
+<span class="sd">        later be added to the sqlite database</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">cpdID</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpdID</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">KEGG_ID</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">KEGG_ID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cpd_inchi</span><span class="p">,</span> <span class="n">cas</span> <span class="o">=</span> <span class="n">get_inchi_from_kegg_ID</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cas</span><span class="o">=</span><span class="kc">None</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">inchi</span><span class="p">:</span>
+                <span class="n">cpdID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_db</span><span class="p">(</span><span class="n">cpdID</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cpdID</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;InChI&#39;</span><span class="p">):</span>
+                    <span class="n">cpdID_temp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="o">+</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpdID</span><span class="p">)</span>
+                    <span class="n">cf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fp_cf_info</span><span class="p">(</span><span class="n">cpdID_temp</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">cpdID</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">cf</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpdID</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">KEGG_ID</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">KEGG_ID</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                            <span class="n">cpd</span><span class="p">,</span> <span class="n">cas</span> <span class="o">=</span> <span class="n">get_inchi_from_kegg_ID</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">cpd</span><span class="p">:</span>
+                                <span class="n">count</span> <span class="o">=</span> <span class="mi">4</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+                                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">No INCHI was found from </span><span class="si">{}</span><span class="s1"> will try again for </span><span class="si">{}</span><span class="s1"> time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>                        
+
+                        <span class="k">if</span> <span class="n">cpd</span><span class="p">:</span>
+                            <span class="n">cf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fp_cf_info</span><span class="p">(</span><span class="n">cpd</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">cpd</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">cf</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpd</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span>
+                        <span class="k">else</span><span class="p">:</span>    
+                            <span class="n">inchi2</span><span class="p">,</span> <span class="n">iupac_name</span><span class="p">,</span> <span class="n">cas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CT</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">inchi2</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">cpdID</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpdID</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">cf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fp_cf_info</span><span class="p">(</span><span class="n">inchi2</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">inchi2</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">cf</span><span class="p">,</span>  <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">inchi2</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">inchi2</span><span class="p">,</span> <span class="n">iupac_name</span><span class="p">,</span> <span class="n">cas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CT</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">inchi2</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">cpdID</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span>  <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpdID</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">cf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fp_cf_info</span><span class="p">(</span><span class="n">inchi2</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">inchi2</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">cf</span><span class="p">,</span>  <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">inchi2</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cpdID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_db</span><span class="p">(</span><span class="n">cpdID</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cpdID</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;InChI&#39;</span><span class="p">):</span>
+                    <span class="n">cpdID_temp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="o">+</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">cpdID</span><span class="p">)</span>
+                    <span class="n">cf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fp_cf_info</span><span class="p">(</span><span class="n">cpdID_temp</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">cpdID</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">cf</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpdID</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">QC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;SELECT * from compound where ID=?&#39;&#39;&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">cpdID</span><span class="p">,))</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">result</span> <span class="o">=</span> <span class="n">QC</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">cf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fp_cf_info</span><span class="p">(</span><span class="n">inchi</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">cpdID</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">cf</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpdID</span>
+                        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;INSERT INTO original_db_cpdIDs VALUES (?,?)&quot;</span><span class="p">,</span>
+                                             <span class="p">(</span><span class="n">cpdID</span><span class="p">,</span> <span class="n">inchi</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">))</span>
+                            <span class="n">cf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fp_cf_info</span><span class="p">(</span><span class="n">inchi</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">inchi</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">cf</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">inchi</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span>
+                    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
+                        <span class="c1"># self.cnx.execute(&quot;INSERT INTO original_db_cpdIDs VALUES (?,?)&quot;,</span>
+                        <span class="c1">#                  (cpdID+&#39;_&#39;+compartment, inchi+&#39;_&#39;+compartment))</span>
+                        <span class="n">cf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fp_cf_info</span><span class="p">(</span><span class="n">inchi</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">arrays</span><span class="p">(</span><span class="n">inchi</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">cf</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">cas</span><span class="p">))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">inchi</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">compartment</span></div>
+
+<div class="viewcode-block" id="MetaCyc.arrays"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.arrays">[docs]</a>    <span class="k">def</span> <span class="nf">arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpdID</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">chemicalformula</span><span class="p">,</span> <span class="n">cas</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds compound to compound arrays</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">cpdID</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_cpds</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_cpds</span><span class="p">[</span><span class="n">cpdID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">,</span> <span class="n">compartment</span><span class="p">,</span> <span class="n">KEGG_ID</span><span class="p">,</span> <span class="n">chemicalformula</span><span class="p">,</span> <span class="n">cas</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cpdID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelcompounds</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modelcompounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cpdID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="MetaCyc.rxn_translator"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.rxn_translator">[docs]</a>    <span class="k">def</span> <span class="nf">rxn_translator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction_ID</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">,</span> <span class="n">revers</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">genes</span><span class="p">,</span> <span class="n">proteins</span><span class="p">,</span> <span class="n">kegg</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Checks if metacyc reaction is in database, if it is not it adds it</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">rxn_t</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">reaction_ID</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_rxns</span><span class="p">[</span><span class="n">reaction_ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">kegg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound</span><span class="p">[</span><span class="n">reaction_ID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound_store</span><span class="p">[</span><span class="n">reaction_ID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="n">genes</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genelist</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">genelist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="n">genes</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="n">proteins</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proteinlist</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">proteinlist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="n">proteins</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="n">revers</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelreactions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modelreactions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reaction_ID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="n">revers</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">reaction_ID</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_rxnreversibility</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_rxnreversibility</span><span class="p">[</span><span class="n">reaction_ID</span><span class="p">]</span> <span class="o">!=</span> <span class="n">revers</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_rxnreversibility</span><span class="p">[</span><span class="n">reaction_ID</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_rxnreversibility</span><span class="p">[</span><span class="n">reaction_ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">revers</span>
+        <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">temp_all_rxn_compound</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">rxn_t</span><span class="o">+</span><span class="n">compound</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound</span><span class="p">[</span><span class="n">reaction_ID</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound_store</span><span class="p">[</span><span class="n">reaction_ID</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MetaCyc.read_metacyc_file"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.read_metacyc_file">[docs]</a>    <span class="k">def</span> <span class="nf">read_metacyc_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">BIOCYC_translator</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Reads and parses metacyc SBML file</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count_addedrxns</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span> <span class="o">=</span> <span class="n">BIOCYC_translator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_compounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DB</span><span class="o">.</span><span class="n">get_all_compounds</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modelreactions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modelcompounds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genelist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proteinlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_rxns</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_cpds</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_rxnreversibility</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">added_rxns</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound_store</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds_cpt</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inchidb</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CT</span> <span class="o">=</span> <span class="n">pit</span><span class="o">.</span><span class="n">CompoundTranslator</span><span class="p">()</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s2">&quot;ISO-8859-1&quot;</span><span class="p">)</span>
+        <span class="n">strainer</span> <span class="o">=</span> <span class="n">SoupStrainer</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">,</span> <span class="n">parse_only</span><span class="o">=</span><span class="n">strainer</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mi</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+        <span class="n">species_soup</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">listofspecies</span>
+        <span class="n">allspecies</span> <span class="o">=</span> <span class="n">species_soup</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">compiling metacyc compounds&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">allspecies</span><span class="p">):</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">)</span>
+            <span class="n">inchi_id</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">biocycID</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">kegg_id</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attr</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;BIOCYC&#39;</span><span class="p">):</span>
+                    <span class="n">biocyc</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                    <span class="n">biocycID</span> <span class="o">=</span> <span class="n">biocyc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;INCHI&#39;</span><span class="p">):</span>
+                    <span class="n">inchi</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                    <span class="n">inchi_id</span> <span class="o">=</span> <span class="n">inchi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;KEGG&#39;</span><span class="p">):</span>
+                    <span class="n">kegg</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                    <span class="n">kegg_id</span> <span class="o">=</span> <span class="n">kegg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds_cpt</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;compartment&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;0&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compound_translator</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span> <span class="n">biocycID</span><span class="p">,</span> <span class="n">inchi_id</span><span class="p">,</span> <span class="n">kegg_id</span><span class="p">,</span>
+                                     <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span> <span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;compartment&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>
+        <span class="n">reactions_soup</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">listofreactions</span>
+        <span class="n">allreactions</span> <span class="o">=</span> <span class="n">reactions_soup</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="s1">&#39;reaction&#39;</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">compiling metacyc reactions&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">allreactions</span><span class="p">):</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="n">rxn</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">)</span>
+            <span class="n">biocyc_rxn_ID</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gene_4_rxn</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">protein_4_rxn</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">kegg_4_rxn</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attr</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;BIOCYC&#39;</span><span class="p">):</span>
+                    <span class="n">biocyc</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                    <span class="n">biocyc_rxn_ID</span> <span class="o">=</span> <span class="n">biocyc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;GENE&#39;</span><span class="p">):</span>
+                    <span class="n">genes</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                    <span class="n">gene_4_rxn</span> <span class="o">=</span> <span class="n">genes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;EC Number&#39;</span><span class="p">):</span>
+                    <span class="n">proteins</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                    <span class="n">protein_4_rxn</span> <span class="o">=</span> <span class="n">proteins</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;KEGG&#39;</span><span class="p">):</span>
+                    <span class="n">kegg</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                    <span class="n">kegg_4_rxn</span> <span class="o">=</span> <span class="n">kegg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">gene_4_rxn</span> <span class="ow">or</span> <span class="n">protein_4_rxn</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">biocyc_rxn_ID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;rxn&#39;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">krxn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">BIOCYC_translator</span><span class="p">[</span><span class="s1">&#39;rxn&#39;</span><span class="p">][</span><span class="n">biocyc_rxn_ID</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">retrieve_rxn_info</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">krxn</span><span class="p">,</span> <span class="n">gene_4_rxn</span><span class="p">,</span> <span class="n">protein_4_rxn</span><span class="p">,</span> <span class="n">kegg_4_rxn</span><span class="p">,</span> <span class="n">biocycID</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">retrieve_rxn_info</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="n">rxn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">),</span> <span class="n">gene_4_rxn</span><span class="p">,</span> <span class="n">protein_4_rxn</span><span class="p">,</span> <span class="n">kegg_4_rxn</span><span class="p">,</span> <span class="n">biocycID</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> does not have gene or reaction therefore not adding to database&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="si">{}</span><span class="s1"> number of new metacyc reactions added&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count_addedrxns</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="MetaCyc.fill_temp_array"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.fill_temp_array">[docs]</a>    <span class="k">def</span> <span class="nf">fill_temp_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpdID</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">stoic</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Adds reaction information from metacyc xml file to temporary reaction</span>
+<span class="sd">        list which later gets inserted into database</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cpdID</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">stoic</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">temp_all_rxn_compound</span><span class="p">:</span>
+            <span class="n">temp_all_rxn_compound</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cpdID</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span> <span class="n">stoic</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">temp_all_rxn_compound</span></div>
+
+<div class="viewcode-block" id="MetaCyc.check_db"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.check_db">[docs]</a>    <span class="k">def</span> <span class="nf">check_db</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpdID</span><span class="p">,</span> <span class="n">kegg_id</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Checks database for table original_db_cpdIDs if table exists and cpd ID exists</span>
+<span class="sd">        the inchi value for that compound is retrieved</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">INCHI_CHECK</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">KEGG_CHECK</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">QC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;SELECT inchi_id from original_db_cpdIDs where ID=?&quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">cpdID</span><span class="p">,))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">QC</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">cpdID</span> <span class="o">=</span> <span class="n">result</span>
+                <span class="n">INCHI_CHECK</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">INCHI_CHECK</span> <span class="ow">and</span> <span class="n">kegg_id</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">QC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;SELECT ID from compound where kegg_id=?&quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">kegg_id</span><span class="p">,))</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">QC</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">cpdID</span> <span class="o">=</span> <span class="n">result</span>
+                    <span class="n">KEGG_CHECK</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">cpdID</span> </div>
+
+<div class="viewcode-block" id="MetaCyc.get_compounds_4_rxn"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.get_compounds_4_rxn">[docs]</a>    <span class="k">def</span> <span class="nf">get_compounds_4_rxn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;get reaction compounds&#39;&#39;&#39;</span>
+        <span class="n">temp_all_rxn_compound</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">temp_compartment</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+            <span class="n">compound_ID</span> <span class="o">=</span> <span class="n">comp</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">]</span>
+            <span class="n">temp_compartment</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">store_compounds_cpt</span><span class="p">[</span><span class="n">compound_ID</span><span class="p">])</span>
+            <span class="n">is_prod</span> <span class="o">=</span> <span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;listofproducts&quot;</span><span class="p">)</span>
+            <span class="n">stoic</span> <span class="o">=</span> <span class="n">comp</span><span class="p">[</span><span class="s1">&#39;stoichiometry&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">compound_ID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">:</span>
+                <span class="n">temp_all_rxn_compound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_temp_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">store_compounds</span><span class="p">[</span><span class="n">compound_ID</span><span class="p">],</span>
+                                                             <span class="n">is_prod</span><span class="p">,</span> <span class="n">stoic</span><span class="p">,</span>
+                                                             <span class="n">temp_all_rxn_compound</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;WARNING:</span><span class="se">\t</span><span class="s1">compound </span><span class="si">{}</span><span class="s1"> not in dictionary&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">compound_ID</span><span class="p">))</span>
+                <span class="n">temp_all_rxn_compound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_temp_array</span><span class="p">(</span><span class="n">compound_ID</span><span class="p">,</span> <span class="n">is_prod</span><span class="p">,</span>
+                                                             <span class="n">stoic</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">temp_compartment</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MetaCyc.retrieve_rxn_info"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.retrieve_rxn_info">[docs]</a>    <span class="k">def</span> <span class="nf">retrieve_rxn_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">,</span> <span class="n">rxnID</span><span class="p">,</span> <span class="n">genes</span><span class="p">,</span> <span class="n">proteins</span><span class="p">,</span> <span class="n">kegg_ID</span><span class="p">,</span> <span class="n">biocycID</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Parses reaction information from metacyc xml file</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">rxn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kegg_ID</span><span class="p">:</span>
+            <span class="n">QC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cnx</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;SELECT ID from reaction where kegg_id=?&quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">kegg_ID</span><span class="p">,))</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">QC</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reversible&#39;</span><span class="p">])</span>  <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelreactions</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">modelreactions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reversible&#39;</span><span class="p">]))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">proteinlist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">proteins</span><span class="p">)))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">genelist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">mi</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">genes</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">temp_compartment</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_compounds_4_rxn</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="s2">&quot;speciesreference&quot;</span><span class="p">))</span>
+                <span class="n">rxnID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retrieve_compartment_4_compartment</span><span class="p">(</span><span class="n">temp_compartment</span><span class="p">,</span> <span class="n">kegg_ID</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">multiple_copies_of_rxns</span><span class="p">(</span><span class="n">rxnID</span><span class="p">,</span> <span class="n">rxn</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">genes</span><span class="p">,</span> <span class="n">proteins</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">kegg_ID</span><span class="p">),</span> <span class="n">temp_all_rxn_compound</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">biocycID</span><span class="p">:</span>
+            <span class="n">temp_compartment</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_compounds_4_rxn</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="s2">&quot;speciesreference&quot;</span><span class="p">))</span>
+            <span class="n">rxnID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retrieve_compartment_4_compartment</span><span class="p">(</span><span class="n">temp_compartment</span><span class="p">,</span> <span class="n">rxnID</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">multiple_copies_of_rxns</span><span class="p">(</span><span class="n">rxnID</span><span class="p">,</span> <span class="n">rxn</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">genes</span><span class="p">,</span> <span class="n">proteins</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">kegg_ID</span><span class="p">),</span> <span class="n">temp_all_rxn_compound</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">temp_compartment</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_compounds_4_rxn</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="s2">&quot;speciesreference&quot;</span><span class="p">))</span>
+            <span class="n">rxnID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retrieve_compartment_4_compartment</span><span class="p">(</span><span class="n">temp_compartment</span><span class="p">,</span> <span class="n">rxnID</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rxn_translator</span><span class="p">(</span><span class="n">rxnID</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reversible&#39;</span><span class="p">],</span> <span class="n">name</span><span class="p">,</span>
+                                <span class="nb">str</span><span class="p">(</span><span class="n">genes</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">proteins</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">kegg_ID</span><span class="p">))</span>            </div>
+
+<div class="viewcode-block" id="MetaCyc.multiple_copies_of_rxns"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.multiple_copies_of_rxns">[docs]</a>    <span class="k">def</span> <span class="nf">multiple_copies_of_rxns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxnID</span><span class="p">,</span> <span class="n">rxn</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">genes</span><span class="p">,</span> <span class="n">proteins</span><span class="p">,</span> <span class="n">kegg</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Deals with rxns that have same catalytic enzyme but different substrates&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">rxnID</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">count_addedrxns</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">added_rxns</span><span class="p">[</span><span class="n">rxnID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">added_rxns</span><span class="p">[</span><span class="n">rxnID</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rxnID</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rxn_translator</span><span class="p">(</span><span class="n">rxnID</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reversible&#39;</span><span class="p">],</span> <span class="n">name</span><span class="p">,</span>
+                                <span class="nb">str</span><span class="p">(</span><span class="n">genes</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">proteins</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">kegg</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Already reaction present </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rxnID</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_reaction_difference</span><span class="p">(</span><span class="n">rxnID</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">count_addedrxns</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">versionrxn</span> <span class="o">=</span> <span class="s1">&#39;_v&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">added_rxns</span><span class="p">[</span><span class="n">rxnID</span><span class="p">]))</span>
+                <span class="n">count_numbofversions</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">kversion</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">added_rxns</span><span class="p">[</span><span class="n">rxnID</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound_store</span><span class="p">[</span><span class="n">kversion</span><span class="p">])</span> <span class="o">==</span>
+                            <span class="nb">sorted</span><span class="p">(</span><span class="n">temp_all_rxn_compound</span><span class="p">)):</span>
+                        <span class="n">count_numbofversions</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">count_numbofversions</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s2">&quot;STATUS:</span><span class="se">\t</span><span class="s2">The version of </span><span class="si">{}</span><span class="s2"> reaction added&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rxnID</span><span class="o">+</span><span class="n">versionrxn</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">added_rxns</span><span class="p">[</span><span class="n">rxnID</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rxnID</span><span class="o">+</span><span class="n">versionrxn</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">rxn_translator</span><span class="p">(</span><span class="n">rxnID</span><span class="o">+</span><span class="n">versionrxn</span><span class="p">,</span> <span class="n">temp_all_rxn_compound</span><span class="p">,</span> <span class="n">rxn</span><span class="p">[</span><span class="s1">&#39;reversible&#39;</span><span class="p">],</span>
+                                        <span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">genes</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">proteins</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">kegg</span><span class="p">))</span>        </div>
+
+<div class="viewcode-block" id="MetaCyc.check_reaction_difference"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.check_reaction_difference">[docs]</a>    <span class="k">def</span> <span class="nf">check_reaction_difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxnID</span><span class="p">,</span> <span class="n">rxn_compounds</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Checks to see if promiscus mets are only difference between reactions&#39;&#39;&#39;</span>
+        <span class="n">cpd_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rxn_compounds</span><span class="p">]</span>
+        <span class="n">cpd_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cpd_ids</span><span class="p">)</span>
+        
+        <span class="n">current_cpd_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_reaction_compound_store</span><span class="p">[</span><span class="n">rxnID</span><span class="p">]</span>
+        <span class="n">current_cpd_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">current_cpd_ids</span><span class="p">]</span>
+        <span class="n">current_cpd_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">current_cpd_ids</span><span class="p">)</span>
+        <span class="n">diff_set</span> <span class="o">=</span> <span class="n">current_cpd_ids</span> <span class="o">-</span> <span class="n">cpd_ids</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">diff_set</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prom_cpds</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Reaction only difference may be promiscuous metabolites so not adding </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rxnID</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">verbose_print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="s1">&#39;STATUS:</span><span class="se">\t</span><span class="s1">Reaction </span><span class="si">{}</span><span class="s1"> difference may include other metabolites than promiscuous metabolites so adding&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rxnID</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+<div class="viewcode-block" id="MetaCyc.retrieve_compartment_4_compartment"><a class="viewcode-back" href="../../Database.html#Database.build_metacyc_db.MetaCyc.retrieve_compartment_4_compartment">[docs]</a>    <span class="k">def</span> <span class="nf">retrieve_compartment_4_compartment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp_compartment</span><span class="p">,</span> <span class="n">rxnID</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">temp_compartment</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">rxnID</span> <span class="o">=</span> <span class="n">rxnID</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">temp_compartment</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rxnID</span> <span class="o">=</span> <span class="n">rxnID</span><span class="o">+</span><span class="s1">&#39;_t0&#39;</span>
+        <span class="k">return</span> <span class="n">rxnID</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+      <div class="relbar-bottom">
+            
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+      <li><a href="../../index.html">RetSynth 1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Database.build_metacyc_db</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Leanne Whitmore, Bernard Nguyen, Corey Hudson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.2.
+    </div>
+      <!-- PSphinxTheme -->
+  </body>
+</html>
