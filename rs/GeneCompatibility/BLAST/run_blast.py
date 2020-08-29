@@ -29,6 +29,7 @@ class ImplementBLAST(object):
         self.blastdb = blastdb
         self.chassis_org = chassis_org
         self.Seq16S_filename = Seq16S_filename
+
         if platform=="cygwin":
             self.Seq16S_filename = "C:/cygwin64/"+self.Seq16S_filename
 
