@@ -307,7 +307,9 @@ def parse_arguments():
     parser.add_argument('-cai_thresh', '--cai_optimal_threshold', help='Set the desired CAI for the \
                                                                         gene compatibility module',
                         required=False, type=float, default=0.5)
-
+    
+    parser.add_argument('--user_cai_table', help='Path to codon usage frequency table',
+                        required=False, type=str default=None)
 
     ###FIGURE OPTIONS###
     parser.add_argument('-iupac', '--use_iupac_names', help="Use IUPAC names for reaction solvents and catalysts", action="store_true")
@@ -681,7 +683,8 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                         for enzyme in enzymes:
                             verbose_print(args.verbose,'\nSTATUS:\tOptimizing gene compatibility for EC: %s' % enzyme)
                             gc(database,enzyme,target_org=target_info[2],output_directory=output.GC_output_path,
-                                cai_optimal_threshold=args.cai_optimal_threshold, default_db='%s.db' % DEFAULT_DB_NAME)
+                                cai_optimal_threshold=args.cai_optimal_threshold, default_db='%s.db' % DEFAULT_DB_NAME,
+                                user_cai_table=args.user_cai_table)
                     else:
                         verbose_print(args.verbose, 'STATUS:')
 
