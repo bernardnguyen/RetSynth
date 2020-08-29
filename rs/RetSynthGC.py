@@ -212,7 +212,7 @@ def run_flux_balance_analysis(target_info, ex_info, incpds_active,
 
     return opt_fba
  
-def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_imgs_PATH, CRV, timer_output, media_for_FBA, flux_balance_analysis, knockouts, images, figures_graphviz, figures_chemdraw, evaluate_reactions, rankpathways_logP_solvent, rankpathways_logP, rankpathways_boilingpoint, show_rxn_info, output_path, multiple_solutions, start_compounds, gene_compatibility, verbose):
+def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_imgs_PATH, CRV, timer_output, media_for_FBA, flux_balance_analysis, knockouts, images, figures_graphviz, figures_chemdraw, evaluate_reactions, rankpathways_logP_solvent, rankpathways_logP, rankpathways_boilingpoint, show_rxn_info, output_path, multiple_solutions, start_compounds, gene_compatibility, cai_optimal_threshold, user_cai_table, verbose):
     '''Retrieve the shortest path for target organism'''
 
     start = timer()
@@ -317,7 +317,8 @@ def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_im
                         for enzyme in enzymes:
                             verbose_print(args.verbose,'\nSTATUS:\tOptimizing gene compatibility for EC: %s' % enzyme)
                             gc(database,enzyme,target_org=target_info[2],output_directory=output.GC_output_path,
-                                cai_optimal_threshold=args.cai_optimal_threshold,default_db='%s.db' % DEFAULT_DB_NAME)
+                                cai_optimal_threshold=cai_optimal_threshold, default_db='%s.db' % DEFAULT_DB_NAME,
+                                user_cai_table=user_cai_table)
 
             else:
 
@@ -367,6 +368,8 @@ class RetSynthGC(object):
         spresi_dump_directory = directory wiht raw data from spresi (this has to be purchased not provided with RetSynth)
         user_rxns_2_database = database in a text file that user wants to add to the database
         gene_compatability = run gene compatabiity module (defualt is set to True)
+        cai_threshold = amount of codon similarity to be met for gene sequence for enzyme (default = 0.5)
+        user_cai_table = path to table of codon usage frequencies 
         flux_balance_analysis = specifies RetSynth to run flux balance analysis 
         media_for_FBA = specifies media to use for FBA, should be the same as patric_media for best results 
         knockouts = specifies RetSynth to perform knockout analysis (takes time, knockouts out each reaction in an organism to and examines if we get more target compound production)
@@ -388,8 +391,9 @@ class RetSynthGC(object):
      metacyc=False, metacyc_addition=None, metacyc_reaction_type="bio", kegg=False, kegg_reaction_type="bio", kegg_organism_type="bacteria",
      kegg_number_of_organisms="all", kegg_number_of_organism_pathway="all", atlas=False, atlas_dump_directory=None,
      atlas_reaction_type="bio", mine=False, mine_dump_directory=None, mine_reaction_type=True, SPRESI=False,
-     spresi_dump_directory=None, spresi_reaction_type="chem", user_rxns_2_database=False, gene_compatability=True,
-     user_rxns_2_database_type="bio", flux_balance_analysis=False, media_for_FBA="Complete", knockouts=False, limit_reactions=10, limit_cycles='None', solver_time_limit=30, evaluate_reactions="all", 
+     spresi_dump_directory=None, spresi_reaction_type="chem", user_rxns_2_database=False, gene_compatability=True, cai_threshold=0.5, user_cai_table=None,
+     user_rxns_2_database_type="bio", flux_balance_analysis=False, media_for_FBA="Complete", knockouts=False, limit_reactions=10,
+     limit_cycles='None', solver_time_limit=30, evaluate_reactions="all",
      k_number_of_paths=0, multiple_solutions=str(True), cycles=str(True), run_tanimoto_threshold=False, figures_chemdraw=False,
      show_rxn_info=False, figures_graphviz=False, images=True, timer_output=False, rankingpathways_seperation_file=None,
      rankpathways_boilingpoint=False, rankpathways_logP=False, rankpathways_logP_solvent="water"):
@@ -451,8 +455,9 @@ class RetSynthGC(object):
         self.rankpathways_boilingpoint = rankpathways_boilingpoint
         self.rankpathways_logP = rankpathways_logP
         self.rankpathways_logP_solvent = rankpathways_logP_solvent
-        self.gene_compatability  = gene_compatability
-
+        self.gene_compatability = gene_compatability
+        self.cai_threshold = cai_threshold
+        self.user_cai_table = user_cai_table
         #Generate new output path if need be 
         try:
             verbose_print(args.verbose, "STATUS: generating output folder "+args.output_path)
@@ -481,7 +486,7 @@ class RetSynthGC(object):
                                                             self.rankpathways_logP_solvent, self.rankpathways_logP,
                                                             self.rankpathways_boilingpoint, self.show_rxn_info,
                                                             self.output_path, self.multiple_solutions, self.start_compounds,
-                                                            self.gene_compatability, self.verbose)))
+                                                            self.gene_compatability, self.cai_threshold, self.user_cai_table, self.verbose)))
                                         
             for p in processes:        
                 p.start()
@@ -650,7 +655,6 @@ class RetSynthGC(object):
         elif self.evaluate_reactions == 'chem':
             allrxns = DB.get_reactions_based_on_type('chem')
         return(allcpds, allrxns, database)
-
 
     def read_in_and_generate_output_files(self, database):
         '''Read in target input file and generate output files'''
