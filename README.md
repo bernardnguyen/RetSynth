@@ -2,7 +2,7 @@
 
 # RetSynth
 
-The overaching goal of RetroSynth is to streamline the arduous and complex step of selecting enzyme/reactions pairs to produce a target compound for bioengineering microbial organisms. 
+The overaching goal of RetSynth is to streamline the arduous and complex step of selecting enzyme/reactions pairs to produce a target compound for bioengineering microbial organisms. Additionally, the Gene compatability component of this software identifies optimal gene sequences for added gene/enzymes based on the host organisms codon bias.
 
 ## Documentation
 
@@ -26,15 +26,26 @@ python setup.py install
 
 ### Dependencies
 -------------
-BioRetrosynth is currently only tested to work under Python 2.6 and 2.7.
+RetSynth is tested to work under Python 2.7 and 3
 
-* glpk==0.3 or pulp (glpk is faster however if on linux will not work with glpk-4.63 so pulp should be used instead.  If pulp is being used make sure to set _solver option in Specify user options cell to PULP)
-* cobra==0.6.2
-* beautifulsoup==4-4.4.1-3
+* glpk==0.4.6
+* pulp==1.6.8
+* cobra==0.14.1
+* bs4
 * pygraphviz==1.3.1
+* beautifulsoup4
 * python-libsbml-experimental==5.10.0
-
-## Publication (please cite)
+* pubchempy==1.0.4
+* openpyxl==3.0.4
+* tqdm==4.47.0
+* scipy==1.5.1
+* openbabel==2.4.0
+* soupsieve==2.0.1
+* filelock==3.0.12
+* distlib==0.3.1
+* jsonschema==3.2.0
+* matplotlib==3.2.2
+* graphviz==0.14
 
 ## License
 
