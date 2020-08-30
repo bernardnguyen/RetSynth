@@ -3,6 +3,7 @@
 **/blastdbs/*
 **/NCBI_SSU/ncbi_gn_data/* 
 **/GeneCompatibility/D_Tailor/tmp/transterm_files/*
+**/.ipynb_checkpoints/*
 
 #MAC Files#
 **/.DS_Store
