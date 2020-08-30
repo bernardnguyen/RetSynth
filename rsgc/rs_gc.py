@@ -309,7 +309,7 @@ def parse_arguments():
                         required=False, type=float, default=0.5)
     
     parser.add_argument('--user_cai_table', help='Path to codon usage frequency table',
-                        required=False, type=str default=None)
+                        required=False, type=str, default=None)
 
     ###FIGURE OPTIONS###
     parser.add_argument('-iupac', '--use_iupac_names', help="Use IUPAC names for reaction solvents and catalysts", action="store_true")
