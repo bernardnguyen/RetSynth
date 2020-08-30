@@ -388,10 +388,10 @@ class RetSynthGC(object):
         self.user_cai_table = user_cai_table
         #Generate new output path if need be 
         try:
-            verbose_print(args.verbose, "STATUS: generating output folder "+args.output_path)
+            verbose_print(self.verbose, "STATUS: generating output folder "+self.output_path)
             os.mkdir(self.output_path)
         except:
-            verbose_print(args.verbose, "STATUS: output folder already exists "+args.output_path)
+            verbose_print(self.verbose, "STATUS: output folder already exists "+self.output_path)
             pass
 
         #Main program
