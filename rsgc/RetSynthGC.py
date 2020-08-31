@@ -42,34 +42,33 @@ def unzip_necessary_files_and_libraries():
 unzip_necessary_files_and_libraries()
 
 from timeit import default_timer as timer
-from Parser import read_startcompounds as rtsc
-from Parser import read_targets as rt
-from Parser import generate_output as go
-from Parser import structure_similarity as ss
-from Parser import generate_html as gh
-from Visualization_chemdraw import reaction_files as rf
-from ShortestPath import extractinfo as ei
-from ShortestPath import constraints as co
-from ShortestPath import integerprogram_pulp as ip_pulp
-from ShortestPath.rankingpaths_seperation import ranking_pathways as rp
-from Database import initialize_database as init_db
-from Database import build_kbase_db as bkdb
-from Database import build_modelseed as bms
-from Database import build_metacyc_db as bmcdb
-from Database import build_user_rxns_db as burdb
-from Database import build_ATLAS_db as batlasdb
-from Database import build_MINE_db as bminedb
-from Database import build_KEGG_db as bkeggdb
-from Database import build_SPRESI_db as bspresidb
-from Database import query as Q
-from Database import remove_duplicate_cpds as rdc
-from FBA import build_model as bm
-from FBA import optimize_target as ot
-from FBA import compare_results as cr
-from FBA import retrieve_producable_mets as rpm
-from FBA import compareKO_results as crko
-from Visualization_graphviz import SP_Graph_dot as spgd
-from GeneCompatibility.gc import gc_main as gc
+from rsgc.Parser import read_startcompounds as rtsc
+from rsgc.Parser import read_targets as rt
+from rsgc.Parser import generate_output as go
+from rsgc.Parser import structure_similarity as ss
+from rsgc.Parser import generate_html as gh
+from rsgc.Visualization_chemdraw import reaction_files as rf
+from rsgc.ShortestPath import extractinfo as ei
+from rsgc.ShortestPath import constraints as co
+from rsgc.ShortestPath import integerprogram_pulp as ip_pulp
+from rsgc.Database import initialize_database as init_db
+from rsgc.Database import build_kbase_db as bkdb
+from rsgc.Database import build_modelseed as bms
+from rsgc.Database import build_metacyc_db as bmcdb
+from rsgc.Database import build_user_rxns_db as burdb
+from rsgc.Database import build_ATLAS_db as batlasdb
+from rsgc.Database import build_MINE_db as bminedb
+from rsgc.Database import build_KEGG_db as bkeggdb
+from rsgc.Database import build_SPRESI_db as bspresidb
+from rsgc.Database import query as Q
+from rsgc.Database import remove_duplicate_cpds as rdc
+from rsgc.FBA import build_model as bm
+from rsgc.FBA import optimize_target as ot
+from rsgc.FBA import compare_results as cr
+from rsgc.FBA import retrieve_producable_mets as rpm
+from rsgc.FBA import compareKO_results as crko
+from rsgc.Visualization_graphviz import SP_Graph_dot as spgd
+from rsgc.GeneCompatibility.gc import gc_main as gc
 
 
 
@@ -185,25 +184,6 @@ def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_im
                                     target_info[0], target_info[2], incpds_active,
                                     figures_chemdraw)
 
-                if rankpathways_boilingpoint:
-                    RP = rp.RankPath(ex_info, R.ordered_paths, incpds_active, target_info[0],
-                                    LPchem, evaluate_reactions, CRV, 'bp')
-                    ex_info = RP.BP.ex_info
-                    R = rf.ReactionFiles(output_path, DB, ex_info.temp_rxns,
-                                        target_info[0], target_info[2], incpds_active, figures_chemdraw)                    
-                    SP = RP.BP
-                    ranktype = 'bp'
-
-                if rankpathways_logP:
-                    RPL = rp.RankPath(ex_info, R.ordered_paths, incpds_active, target_info[0],
-                                    LPchem, evaluate_reactions, CRV, 'logP', solvent_pref=rankpathways_logP_solvent)
-
-                    ex_info = RPL.LOGP.ex_info
-                    R = rf.ReactionFiles(output_path, DB, ex_info.temp_rxns,
-                                        target_info[0], target_info[2], incpds_active, figures_chemdraw)
-                    SP = RPL.LOGP
-                    ranktype = 'logP'
-
                 output.output_shortest_paths(target_info, ex_info.temp_rxns)
                 output.output_raw_solutions(target_info[0], target_info[2], R.ordered_paths,
                                             ex_info.temp_rxns, ex_info.temp_external, incpds_active, SP)
@@ -224,7 +204,7 @@ def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_im
 
                     if figures_chemdraw:
 
-                        R.generate_cdxml_files(RP=SP, ranktype=ranktype, fba_fluxes=opt_fba.fbasol.fluxes, show_rxn_info=show_rxn_info)
+                        R.generate_cdxml_files(RP=None, ranktype=None, fba_fluxes=opt_fba.fbasol.fluxes, show_rxn_info=show_rxn_info)
 
                 elif (figures_graphviz or figures_chemdraw) and not flux_balance_analysis:
 
@@ -308,9 +288,6 @@ class RetSynthGC(object):
         figures_chemdraw = generate figures that can viewed in chemdraw only 
         figures_graphviz = generate pathway pngs with graphviz 
         show_rxn_info = shows all reaction information which can be alot if database includes information from SPRESI
-        rankingpathways_seperation_file = rank pathways based on separation characteristics, this file provides separation characteristics 
-        rankpathways_boilingpoint = rank pathways based on compounds boiling point 
-        rankpathways_logP = rank pathways based on logp value
     """
     def __init__(self, targets=None, output_path=".", output_html=True, output_xlsx_format=False, processors=4, start_compounds=None, verbose=False,
      generate_database=False, generate_database_constraints=False, database=False, database_constraints=False, inchidb=True, patric_models=False,
@@ -323,8 +300,7 @@ class RetSynthGC(object):
      user_rxns_2_database_type="bio", flux_balance_analysis=False, media_for_FBA="Complete", knockouts=False, limit_reactions=10,
      limit_cycles='None', solver_time_limit=30, evaluate_reactions="all",
      k_number_of_paths=0, multiple_solutions=str(True), cycles=str(True), run_tanimoto_threshold=False, figures_chemdraw=False,
-     show_rxn_info=False, figures_graphviz=False, images=True, timer_output=False, rankingpathways_seperation_file=None,
-     rankpathways_boilingpoint=False, rankpathways_logP=False, rankpathways_logP_solvent="water"):
+     show_rxn_info=False, figures_graphviz=False, images=True, timer_output=False):
         self.targets = targets
         self.output_path = output_path
         self.output_xlsx_format = output_xlsx_format

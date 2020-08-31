@@ -13,27 +13,27 @@ import glob
 import time
 import shutil
 from timeit import default_timer as timer
-from Parser import read_startcompounds as rtsc
-from Parser import read_targets as rt
-from Parser import generate_output as go
-from Parser import structure_similarity as ss
-from Parser import generate_html as gh
-from Visualization_chemdraw import reaction_files as rf
-from ShortestPath import extractinfo as ei
-from ShortestPath import constraints as co
-from ShortestPath import integerprogram_pulp as ip_pulp
-from Database import initialize_database as init_db
-from Database import build_modelseed as bms
-from Database import build_metacyc_db as bmcdb
-from Database import build_KEGG_db as bkeggdb
-from Database import remove_duplicate_cpds as rdc
-from Database import query as Q
-from FBA import build_model as bm
-from FBA import optimize_target as ot
-from FBA import compare_results as cr
-from FBA import retrieve_producable_mets as rpm
-from FBA import compareKO_results as crko
-from GeneCompatibility.gc import gc_main as gc
+from rsgc.Parser import read_targets as rt
+from rsgc.Parser import generate_output as go
+from rsgc.Parser import structure_similarity as ss
+from rsgc.Parser import generate_html as gh
+from rsgc.Visualization_chemdraw import reaction_files as rf
+from rsgc.Visualization_graphviz import SP_Graph_dot as spgd
+from rsgc.ShortestPath import extractinfo as ei
+from rsgc.ShortestPath import constraints as co
+from rsgc.ShortestPath import integerprogram_pulp as ip_pulp
+from rsgc.Database import initialize_database as init_db
+from rsgc.Database import build_modelseed as bms
+from rsgc.Database import build_metacyc_db as bmcdb
+from rsgc.Database import build_KEGG_db as bkeggdb
+from rsgc.Database import remove_duplicate_cpds as rdc
+from rsgc.Database import query as Q
+from rsgc.FBA import build_model as bm
+from rsgc.FBA import optimize_target as ot
+from rsgc.FBA import compare_results as cr
+from rsgc.FBA import retrieve_producable_mets as rpm
+from rsgc.FBA import compareKO_results as crko
+from rsgc.GeneCompatibility.gc import gc_main as gc
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_DB_NAME = 'DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x'
@@ -327,14 +327,6 @@ def parse_arguments():
                                                 the software (default False)', required=False,
                         action="store_true")    
 
-
-    ###RANKING PATHWAY OPTIONS BASED ON SEPERATION PROPERTIES 
-    parser.add_argument('-rank_bp', '--rankpathways_boilingpoint', help='Ranks identified pathways based on the \
-                                                                         seperation property boiling point', required=False,
-                        action="store_true")
-    parser.add_argument('-rank_bp_file', '--rankingpathways_boilingpoint_file', help='File of stored boiling points for database if it \
-                                                                                     has been generated already (ends with .sp)',
-                        required=False, type=str)
     return parser.parse_args()
 
 
@@ -658,11 +650,10 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                                                         args.media_for_FBA, args.knockouts,
                                                         output, DB, args.verbose)
 
-                    R.generate_cdxml_files(opt_fba.fbasol.fluxes)
+                    R.generate_cdxml_files(RP=None, ranktype=None, fba_fluxes=opt_fba.fbasol.fluxes, show_rxn_info=args.show_rxn_info)
                     
                     if args.figures_graphviz:
 
-                        from Visualization_graphviz import SP_Graph_dot as spgd
                         G = spgd.GraphDot(DB, args.output_path, incpds_active, inrxns_active,
                                           temp_imgs_PATH, opt_fba.fbasol.fluxes)
                         G.sc_graph(target_info[0], target_info[2], ex_info.temp_rxns, _images)
@@ -670,10 +661,9 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                 elif not args.flux_balance_analysis:
                     R.generate_cdxml_files()
 
-                elif args.figures_graphviz and not args.flux_balance_analysis:
-                    from Visualization_graphviz import SP_Graph_dot as spgd
-                    G = spgd.GraphDot(DB, args.output_path, incpds_active, inrxns_active, temp_imgs_PATH)
-                    G.sc_graph(target_info[0], target_info[2], ex_info.temp_rxns, _images)
+                    if args.figures_graphviz:
+                        G = spgd.GraphDot(DB, args.output_path, incpds_active, inrxns_active, temp_imgs_PATH)
+                        G.sc_graph(target_info[0], target_info[2], ex_info.temp_rxns, _images)
 
                 if args.gene_compatibility:
                     verbose_print(args.verbose, 'STATUS:\tOptimizing gene sequences for optimal pathway reaction enzymes...')
