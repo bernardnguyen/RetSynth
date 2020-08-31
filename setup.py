@@ -28,6 +28,7 @@ setup(name="RetSynth_gc",
 		   ],
       keywords='bioengineering, integer linear programming',
       test_suite="tests",
+      packages=find_packages(),
       install_requires=[
           'argparse',
           'openbabel==2.4.0',
@@ -48,7 +49,6 @@ setup(name="RetSynth_gc",
           'tqdm==4.47.0',
           'scipy==1.5.1'
       ],
-      packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
       scripts=[
