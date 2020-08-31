@@ -4,6 +4,7 @@ include rsgc/GeneCompatibility/D_Tailor/**/*
 include rsgc/GeneCompatibility/D_Tailor/3rdParty/transterm/*
 include rsgc/GeneCompatibility/D_Tailor/3rdParty/unafold/*
 include rsgc/GeneCompatibility/D_Tailor/3rdParty/vienna/*
+include rsgc/Database/*
 include rsgc/Database/data/*
 include rsgc/Database/mackinac/data/modelseed/bacteria/*
 include rsgc/Database/mackinac/data/modelseed/original/*
