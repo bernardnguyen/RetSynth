@@ -48,7 +48,7 @@ setup(name="RetSynth_gc",
           'openpyxl==3.0.4',
           'tqdm==4.47.0',
           'scipy==1.5.1',
-          "pillow", 
+          "pillow",
           "xml", "bio"
       ],
       include_package_data=True,
