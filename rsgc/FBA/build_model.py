@@ -5,7 +5,7 @@ __description__ = 'build flux balance analysis simulation using cobrapy'
 import os
 from cobra import Model
 #from cobra.flux_analysis.loopless import construct_loopless_model
-from FBA.generating_model import generate_model_components as gmc
+from rsgc.FBA.generating_model import generate_model_components as gmc
 PATH = os.path.dirname(os.path.abspath(__file__))
 
 def verbose_print(verbose, line):

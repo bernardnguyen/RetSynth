@@ -5,7 +5,7 @@ __description__ = 'get metabolites that can be produced'
 import os
 from cobra import Model, Reaction
 from tqdm import tqdm
-from FBA.generating_model import generate_model_components as gmc
+from rsgc.FBA.generating_model import generate_model_components as gmc
 PATH = os.path.dirname(os.path.abspath(__file__))
 
 def verbose_print(verbose, line):
