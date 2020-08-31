@@ -3,7 +3,7 @@ __email__ = 'lwhitmo@sandia.gov and cmhudso@sandia.gov'
 __description__ = 'combined overlapping IDs'
 import sqlite3
 from tqdm import tqdm
-from Database import query as Q
+from rsgc.Database import query as Q
 
 class OverlappingCpdIDs(object):
     def identify_overlapping_ids(self):
