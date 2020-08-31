@@ -25,7 +25,11 @@ from rsgc.ShortestPath import integerprogram_pulp as ip_pulp
 from rsgc.Database import initialize_database as init_db
 from rsgc.Database import build_modelseed as bms
 from rsgc.Database import build_metacyc_db as bmcdb
+from rsgc.Database import build_ATLAS_db as batlasdb
+from rsgc.Database import build_MINE_db as bminedb
 from rsgc.Database import build_KEGG_db as bkeggdb
+from rsgc.Database import build_SPRESI_db as bspresidb
+from rsgc.Database import build_user_rxns_db as burdb
 from rsgc.Database import remove_duplicate_cpds as rdc
 from rsgc.Database import query as Q
 from rsgc.FBA import build_model as bm
@@ -450,6 +454,32 @@ def retrieve_database_info(args):
                                             args.kegg_number_of_organism_pathways,
                                             args.kegg_reaction_type, True)
             DB = BKD.DB
+        if args.SPRESI:
+            #Translate synthetic rdf files from SPRESI into database
+            DB = Q.Connector(database)
+            cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')
+            bspresidb.RDF_Reader(args.spresi_dump_directory,
+                                database,
+                                args.spresi_reaction_type,
+                                cytosol_compartmentID, args.processors)
+
+        if args.user_rxns_2_database:
+            #Add user identified reactions
+            burdb.AddUserRxns2DB(database, args.user_rxns_2_database,
+                                model_id='UserAdded', rxntype=args.user_rxns_2_database_type)
+
+        if args.mine:
+            #Add MINE repository to database
+            bminedb.BuildMINEdb(args.mine_dump_directory, database,
+                                args.inchidb, args.mine_reaction_type)
+
+        if args.atlas:
+            #Add ATLAS repository to database
+            batlasdb.build_atlas(args.atlas_dump_directory, database, args.inchidb,
+                                    args.processors, args.atlas_reaction_type)
+        if args.inchidb and (args.patric_models or args.kbase or args.metacyc or args.kegg or args.SPRESI or args.mine or args.atlas):
+            #Remove duplicate compounds from database
+            rdc.OverlappingCpdIDs(database)
 
         database = args.generate_database
         rdc.OverlappingCpdIDs(database)
