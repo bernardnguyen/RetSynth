@@ -7,22 +7,22 @@ import re
 import pickle
 import glob
 from copy import deepcopy
-from GeneCompatibility.retrievegeneseqs import genbank_4_orgs as g4o
-from GeneCompatibility.retrievegeneseqs import geneSeqs_KEGG as gse
-from GeneCompatibility.BLAST import run_blast as rb
-from GeneCompatibility.NCBI_SSU import pull_16S_seq_NCBI as psN
-from GeneCompatibility.KEGG import kegg_functions as kf
+from rsgc.GeneCompatibility.retrievegeneseqs import genbank_4_orgs as g4o
+from rsgc.GeneCompatibility.retrievegeneseqs import geneSeqs_KEGG as gse
+from rsgc.GeneCompatibility.BLAST import run_blast as rb
+from rsgc.GeneCompatibility.NCBI_SSU import pull_16S_seq_NCBI as psN
+from rsgc.GeneCompatibility.KEGG import kegg_functions as kf
 try:
     from bio.Data import IUPACData
 except ImportError:
     from Bio.Data import IUPACData
-from GeneCompatibility.D_Tailor import SequenceAnalyzer as sa
-from GeneCompatibility.D_Tailor import Solution as so 
-from GeneCompatibility.D_Tailor.Features import CAI 
+from rsgc.GeneCompatibility.D_Tailor import SequenceAnalyzer as sa
+from rsgc.GeneCompatibility.D_Tailor import Solution as so 
+from rsgc.GeneCompatibility.D_Tailor.Features import CAI 
 # from GeneCompatibility.D_Tailor.runDTailor import CAIEcoliDesigner
-from GeneCompatibility.D_Tailor.runDTailor import CAIDesigner
-from GeneCompatibility.D_Tailor.DesignOfExperiments.Design import RandomSampling,Optimization,FullFactorial
-from GeneCompatibility.D_Tailor.RunningExamples.Designer.TranslationFeaturesEcoliDesigner import TranslationFeaturesEcoliDesigner
+from rsgc.GeneCompatibility.D_Tailor.runDTailor import CAIDesigner
+from rsgc.GeneCompatibility.D_Tailor.DesignOfExperiments.Design import RandomSampling,Optimization,FullFactorial
+from rsgc.GeneCompatibility.D_Tailor.RunningExamples.Designer.TranslationFeaturesEcoliDesigner import TranslationFeaturesEcoliDesigner
 
 ###LOAD IUPAC DICTIONARY### 
 iupacdict = IUPACData.ambiguous_dna_values

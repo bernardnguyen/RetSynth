@@ -4,12 +4,12 @@ Created on Dec 22, 2012
 @author: jcg
 '''
 
-from GeneCompatibility.D_Tailor import Functions
+from rsgc.GeneCompatibility.D_Tailor import Functions
 import sys
-from GeneCompatibility.D_Tailor.SequenceDesigner import SequenceDesigner
-from GeneCompatibility.D_Tailor.Features.Structure import Structure,StructureMFE
-from GeneCompatibility.D_Tailor.Features import CAI,RNADuplex
-from GeneCompatibility.D_Tailor.DesignOfExperiments.Design import RandomSampling,Optimization,FullFactorial
+from rsgc.GeneCompatibility.D_Tailor.SequenceDesigner import SequenceDesigner
+from rsgc.GeneCompatibility.D_Tailor.Features.Structure import Structure,StructureMFE
+from rsgc.GeneCompatibility.D_Tailor.Features import CAI,RNADuplex
+from rsgc.GeneCompatibility.D_Tailor.DesignOfExperiments.Design import RandomSampling,Optimization,FullFactorial
 
 
 class TranslationFeaturesEcoliDesigner(SequenceDesigner):

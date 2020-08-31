@@ -11,7 +11,7 @@ import shutil
 import zipfile
 import glob
 from tqdm import tqdm
-from GeneCompatibility.KEGG import kegg_functions as kf
+from rsgc.GeneCompatibility.KEGG import kegg_functions as kf
 PATH = os.path.dirname(os.path.abspath(__file__))
 
 def verbose_print(verbose, line):

@@ -6,9 +6,9 @@ import os
 import re
 import pickle
 from tqdm import tqdm
-from Database import query as Q
-from Database import mackinac
-from GeneCompatibility.KEGG import kegg_functions as kf
+from rsgc.Database import query as Q
+from rsgc.Database import mackinac
+from rsgc.GeneCompatibility.KEGG import kegg_functions as kf
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 

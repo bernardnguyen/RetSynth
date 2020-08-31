@@ -3,8 +3,8 @@ from tqdm import tqdm
 import re
 import os
 import pickle
-from GeneCompatibility.KEGG import kegg_functions as kf
-from GeneCompatibility.GenBank import genbank_functions as gbf
+from rsgc.GeneCompatibility.KEGG import kegg_functions as kf
+from rsgc.GeneCompatibility.GenBank import genbank_functions as gbf
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 codontable = {  
