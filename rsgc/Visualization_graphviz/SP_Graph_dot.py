@@ -25,16 +25,16 @@ from matplotlib import colors
 from PIL import Image
 import pylab as pl
 pl.switch_backend('agg')
-from Visualization_graphviz import chempyutilgraph_edit as cuge
+from rsgc.Visualization_graphviz import chempyutilgraph_edit as cuge
 if platform == 'darwin':
-    from indigopython130_mac import indigo
-    from indigopython130_mac import indigo_renderer
+    from rsgc.indigopython130_mac import indigo
+    from rsgc.indigopython130_mac import indigo_renderer
 elif platform == "linux" or platform == "linux2":
-    from indigopython130_linux import indigo
-    from indigopython130_linux import indigo_renderer
+    from rsgc.indigopython130_linux import indigo
+    from rsgc.indigopython130_linux import indigo_renderer
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
-    from indigopython130_win import indigo
-    from indigopython130_win import indigo_renderer
+    from rsgc.indigopython130_win import indigo
+    from rsgc.indigopython130_win import indigo_renderer
 
 
 warnings.filterwarnings("ignore")

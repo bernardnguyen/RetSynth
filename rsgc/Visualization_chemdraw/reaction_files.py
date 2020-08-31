@@ -6,16 +6,16 @@ import os
 from sys import platform
 import pubchempy as pcp
 if platform == 'darwin':
-    from indigopython130_mac import indigo
-    from indigopython130_mac import indigo_renderer
+    from rsgc.indigopython130_mac import indigo
+    from rsgc.indigopython130_mac import indigo_renderer
 elif platform == "linux" or platform == "linux2":
-    from indigopython130_linux import indigo
-    from indigopython130_linux import indigo_renderer
+    from rsgc.indigopython130_linux import indigo
+    from rsgc.indigopython130_linux import indigo_renderer
 elif platform == "win32" or platform == 'win64' or platform=="cygwin":
-    from indigopython130_win import indigo
-    from indigopython130_win import indigo_renderer
-from Visualization_chemdraw.exclude_cpds import retrieve_promiscuous_mets
-from Visualization_chemdraw.cdxml_editor import CDXML_Editor
+    from rsgc.indigopython130_win import indigo
+    from rsgc.indigopython130_win import indigo_renderer
+from rsgc.Visualization_chemdraw.exclude_cpds import retrieve_promiscuous_mets
+from rsgc.Visualization_chemdraw.cdxml_editor import CDXML_Editor
 
 
 ''' Tree Structure for Ordered Path '''
