@@ -7,14 +7,14 @@ from tqdm import tqdm
 from copy import deepcopy
 from sys import platform
 if platform == 'darwin':
-    from indigopython130_mac import indigo
-    from indigopython130_mac import indigo_inchi
+    from rsgc.indigopython130_mac import indigo
+    from rsgc.indigopython130_mac import indigo_inchi
 elif platform == "linux" or platform == "linux2":
-    from indigopython130_linux import indigo
-    from indigopython130_linux import indigo_inchi
+    from rsgc.indigopython130_linux import indigo
+    from rsgc.indigopython130_linux import indigo_inchi
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
-    from indigopython130_win import indigo
-    from indigopython130_win import indigo_inchi
+    from rsgc.indigopython130_win import indigo
+    from rsgc.indigopython130_win import indigo_inchi
 
 def verbose_print(verbose, line):
     if verbose:

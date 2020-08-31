@@ -3,7 +3,7 @@ __email__ = 'lwhitmo@sandia.gov'
 __description__ = 'Gets IDs from compound chemical formulas or names'
 
 import re
-from Pubchem import pubchem_compounds as pc
+from rsgc.Pubchem import pubchem_compounds as pc
 from copy import deepcopy
 class Readfile(object):
     """Reads the input file containing target compounds"""
