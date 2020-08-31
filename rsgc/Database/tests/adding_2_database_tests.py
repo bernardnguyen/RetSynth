@@ -6,7 +6,7 @@ __description__ = 'Runs tests on codes add reactions and compounds to existing d
 import os
 import unittest
 import sqlite3
-from Database import build_kbase_db as bkdb
+from rsgc.Database import build_kbase_db as bkdb
 PATH = os.path.dirname(os.path.abspath(__file__))
 
 if os.path.isfile(PATH+'/test.db') is True:

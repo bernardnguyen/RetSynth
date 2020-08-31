@@ -8,10 +8,10 @@ import re
 import sqlite3
 import unittest
 from copy import deepcopy
-from Database import query as Q
-from Database import initialize_database as init_db
-from Database import build_kbase_db as bkdb
-from Database import build_MINE_db as bminedb
+from rsgc.Database import query as Q
+from rsgc.Database import initialize_database as init_db
+from rsgc.Database import build_kbase_db as bkdb
+from rsgc.Database import build_MINE_db as bminedb
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 PPATH = re.sub('/tests', '', PATH)

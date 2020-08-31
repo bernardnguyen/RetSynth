@@ -11,14 +11,14 @@ import glob
 import shutil
 from sys import platform
 if platform == 'darwin':
-    from rs.indigopython130_mac import indigo
-    from rs.indigopython130_mac import indigo_inchi
+    from rsgc.indigopython130_mac import indigo
+    from rsgc.indigopython130_mac import indigo_inchi
 elif platform == "linux" or platform == "linux2":
-    from rs.indigopython130_linux import indigo
-    from rs.indigopython130_linux import indigo_inchi
+    from rsgc.indigopython130_linux import indigo
+    from rsgc.indigopython130_linux import indigo_inchi
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
-    from rs.indigopython130_win import indigo
-    from rs.indigopython130_win import indigo_inchi
+    from rsgc.indigopython130_win import indigo
+    from rsgc.indigopython130_win import indigo_inchi
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 

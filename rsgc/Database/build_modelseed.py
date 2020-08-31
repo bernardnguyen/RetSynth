@@ -14,19 +14,19 @@ from requests.exceptions import ConnectionError
 from cobra import io
 from copy import deepcopy
 import pubchempy
-import rs.Database
-from rs.Database import mackinac
-from rs.Pubchem import pubchem_inchi_translator as pit
+import rsgc.Database
+from rsgc.Database import mackinac
+from rsgc.Pubchem import pubchem_inchi_translator as pit
 from sys import platform
 if platform == 'darwin':
-    from rs.indigopython130_mac import indigo
-    from rs.indigopython130_mac import indigo_inchi
+    from rsgc.indigopython130_mac import indigo
+    from rsgc.indigopython130_mac import indigo_inchi
 elif platform == "linux" or platform == "linux2":
-    from rs.indigopython130_linux import indigo
-    from rs.indigopython130_linux import indigo_inchi
+    from rsgc.indigopython130_linux import indigo
+    from rsgc.indigopython130_linux import indigo_inchi
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
-    from rs.indigopython130_win import indigo
-    from rs.indigopython130_win import indigo_inchi
+    from rsgc.indigopython130_win import indigo
+    from rsgc.indigopython130_win import indigo_inchi
 
 KEGG = 'http://rest.kegg.jp/'
 PATH = os.path.dirname(os.path.abspath(__file__))

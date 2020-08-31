@@ -7,11 +7,11 @@ import os
 import re
 import sqlite3
 import unittest
-from Database import query as Q
-from Database import initialize_database as init_db
-from Database.build_metacyc_db import MetaCyc
-from Database import build_metacyc_db as bmcdb
-from Database import build_kbase_db as bkdb
+from rsgc.Database import query as Q
+from rsgc.Database import initialize_database as init_db
+from rsgc.Database.build_metacyc_db import MetaCyc
+from rsgc.Database import build_metacyc_db as bmcdb
+from rsgc.Database import build_kbase_db as bkdb
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 PPATH = re.sub('/tests', '', PATH)

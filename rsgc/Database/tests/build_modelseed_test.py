@@ -8,10 +8,10 @@ import re
 import sqlite3
 import unittest
 from copy import deepcopy
-from Database import query as Q
-from Database import initialize_database as init_db
-from Database import build_modelseed as bms
-from Database import mackinac
+from rsgc.Database import query as Q
+from rsgc.Database import initialize_database as init_db
+from rsgc.Database import build_modelseed as bms
+from rsgc.Database import mackinac
 username = raw_input("Please input patric username...")
 password = raw_input("Please input patric password...")
 

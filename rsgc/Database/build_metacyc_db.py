@@ -14,20 +14,20 @@ except:
     import httplib
 import pubchempy
 from tqdm import tqdm
-from rs.Database import query as Q
+from rsgc.Database import query as Q
 from bs4 import BeautifulSoup, SoupStrainer
 import lxml
-from rs.Pubchem import pubchem_inchi_translator as pit
+from rsgc.Pubchem import pubchem_inchi_translator as pit
 from sys import platform
 if platform == 'darwin':
-    from rs.indigopython130_mac import indigo
-    from rs.indigopython130_mac import indigo_inchi
+    from rsgc.indigopython130_mac import indigo
+    from rsgc.indigopython130_mac import indigo_inchi
 elif platform == "linux" or platform == "linux2":
-    from rs.indigopython130_linux import indigo
-    from rs.indigopython130_linux import indigo_inchi
+    from rsgc.indigopython130_linux import indigo
+    from rsgc.indigopython130_linux import indigo_inchi
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
-    from rs.indigopython130_win import indigo
-    from rs.indigopython130_win import indigo_inchi
+    from rsgc.indigopython130_win import indigo
+    from rsgc.indigopython130_win import indigo_inchi
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 KEGG = 'http://rest.kegg.jp/'

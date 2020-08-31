@@ -14,17 +14,17 @@ except:
     import httplib
 import pubchempy
 from tqdm import tqdm
-from rs.Database import query as Q
+from rsgc.Database import query as Q
 from sys import platform
 if platform == 'darwin':
-    from rs.indigopython130_mac import indigo
-    from rs.indigopython130_mac import indigo_inchi
+    from rsgc.indigopython130_mac import indigo
+    from rsgc.indigopython130_mac import indigo_inchi
 elif platform == "linux" or platform == "linux2":
-    from rs.indigopython130_linux import indigo
-    from rs.indigopython130_linux import indigo_inchi
+    from rsgc.indigopython130_linux import indigo
+    from rsgc.indigopython130_linux import indigo_inchi
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
-    from rs.indigopython130_win import indigo
-    from rs.indigopython130_win import indigo_inchi
+    from rsgc.indigopython130_win import indigo
+    from rsgc.indigopython130_win import indigo_inchi
 
 KEGG = 'http://rest.kegg.jp/'
 
@@ -72,10 +72,10 @@ def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
                     break
             if check is False:
                 cluster_count += 1
-                metabolic_clusters.setdefault(cluster_count, []).append(orgID)
+                metabolic_clustersgc.setdefault(cluster_count, []).append(orgID)
         else:
             cluster_count += 1
-            metabolic_clusters.setdefault(cluster_count, []).append(orgID)
+            metabolic_clustersgc.setdefault(cluster_count, []).append(orgID)
 
     print ('STATUS: get KEGG reaction IDs')
     output_queue = Queue()
@@ -490,7 +490,7 @@ class CompileKEGGIntoDB(object):
         Q = self.cnx.execute('''SELECT DISTINCT cluster_num FROM cluster''')
         hits = Q.fetchall()
         uniq_clusters = [i[0] for i in hits]
-        for key, orgIDs in self.metabolic_clusters.iteritems():
+        for key, orgIDs in self.metabolic_clustersgc.iteritems():
             for orgID in orgIDs:
                 self.cnx.execute("INSERT INTO cluster VALUES (?,?)", (len(uniq_clusters)+key, orgID))
         self.conn.commit()
@@ -627,7 +627,7 @@ class CompileKEGGIntoDB(object):
             self.cnx.execute("INSERT INTO model VALUES (?,?)", (orgID, self.orgIDs[orgID]+'_KEGG'))
         self.cnx.commit()
 
-        for key, orgIDs in self.metabolic_clusters.iteritems():
+        for key, orgIDs in self.metabolic_clustersgc.iteritems():
             for orgID in orgIDs:
                 self.cnx.execute("INSERT INTO cluster VALUES (?,?)", (key, orgID))
         self.cnx.commit()
