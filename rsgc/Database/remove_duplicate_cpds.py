@@ -1,9 +1,11 @@
+from __future__ import print_function
+
 __author__ = 'Leanne Whitmore and Corey Hudson'
 __email__ = 'lwhitmo@sandia.gov and cmhudso@sandia.gov'
 __description__ = 'combined overlapping IDs'
 import sqlite3
 from tqdm import tqdm
-from rsgc.Database import query as Q
+from rs.Database import query as Q
 
 class OverlappingCpdIDs(object):
     def identify_overlapping_ids(self):
@@ -14,13 +16,13 @@ class OverlappingCpdIDs(object):
         self.keggidol = {}
         self.cpds = self.DB.get_all_compounds()
         
-        print ('STATUS:\tget inchi compounds')
+        print ('STATUS: get inchi compounds')
         for cpd in self.cpds:
             if cpd.startswith('InChI'):
                 self.inchicpds2keggids[cpd] = {}
                 self.inchicpds2keggids[cpd]['compartment'] = self.DB.get_compound_compartment(cpd)
                 self.inchicpds2keggids[cpd]['keggid'] = self.DB.get_kegg_cpd_ID(cpd)
-        print ('STATUS:\tget overlapping compounds')
+        print ('STATUS: get overlapping compounds')
         query_search = 'InChI'+str('%')
         query = "select ID from compound where ID not like '%s'" % query_search
         conn, cnx = self.DB.connect_to_database()
@@ -35,7 +37,7 @@ class OverlappingCpdIDs(object):
             if self.inchicpds2keggids[cpd]['keggid']+'_'+self.inchicpds2keggids[cpd]['compartment'] in self.keggidsonly:
                 self.keggidol[self.inchicpds2keggids[cpd]['keggid']+'_'+self.inchicpds2keggids[cpd]['compartment']] = cpd
 
-        print ('STATUS:\tremoving duplicate kegg ids from compound table')
+        print ('STATUS: removing duplicate kegg ids from compound table')
         for cpdkeggid in tqdm(self.keggidol):
             cnx.execute("DELETE FROM compound where ID = ?", (cpdkeggid,))
             cnx.execute("UPDATE model_compound SET cpd_ID=? WHERE cpd_ID=?", (self.keggidol[cpdkeggid], cpdkeggid))

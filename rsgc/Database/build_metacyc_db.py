@@ -1,3 +1,4 @@
+from __future__ import print_function
 __author__ = 'Leanne Whitmore'
 __email__ = 'lwhitmo@sandia.gov'
 __description__ = 'Translates metacyc into database'
@@ -5,24 +6,28 @@ __description__ = 'Translates metacyc into database'
 import os
 import re
 import sqlite3
-import urllib.request, urllib.error, urllib.parse
-import http.client
+try:
+    import urllib as urllib2
+    import http.client as httplib
+except:
+    import urllib2
+    import httplib
 import pubchempy
 from tqdm import tqdm
-from rsgc.Database import query as Q
+from rs.Database import query as Q
 from bs4 import BeautifulSoup, SoupStrainer
 import lxml
-from rsgc.Pubchem import pubchem_inchi_translator as pit
+from rs.Pubchem import pubchem_inchi_translator as pit
 from sys import platform
 if platform == 'darwin':
-    from rsgc.indigopython130_mac import indigo
-    from rsgc.indigopython130_mac import indigo_inchi
+    from rs.indigopython130_mac import indigo
+    from rs.indigopython130_mac import indigo_inchi
 elif platform == "linux" or platform == "linux2":
-    from rsgc.indigopython130_linux import indigo
-    from rsgc.indigopython130_linux import indigo_inchi
+    from rs.indigopython130_linux import indigo
+    from rs.indigopython130_linux import indigo_inchi
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
-    from rsgc.indigopython130_win import indigo
-    from rsgc.indigopython130_win import indigo_inchi
+    from rs.indigopython130_win import indigo
+    from rs.indigopython130_win import indigo_inchi
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 KEGG = 'http://rest.kegg.jp/'
@@ -35,10 +40,10 @@ def extract_KEGG_data(url):
     '''Extract Kegg db info'''
     print (url)
     try:
-        data = urllib.request.urlopen(url).read().decode('utf-8')
+        data = urllib2.urlopen(url).read()
         darray = data.split('\n')
         return darray
-    except (http.client.BadStatusLine, urllib.error.URLError):
+    except:
         return None
 
 def get_inchi_from_kegg_ID(cpd):
@@ -62,7 +67,7 @@ def get_inchi_from_kegg_ID(cpd):
                         except Exception as e:
                             print (e)
                 except Exception as e:
-                    print ('WARNING:\tCould not get substance for {} {}'.format(sid, cpd))
+                    print ('WARNING: Could not get substance for {} {}'.format(sid, cpd))
                     print (e)
             if 'CAS:' in array:
                 index = array.index('CAS:')
@@ -99,7 +104,7 @@ class Translate(object):
                 elif larray[2]:
                     self.BIOCYC_translator['compound'].setdefault(larray[0], []).append(larray[2])
 
-        verbose_print(self, "STATUS:\t{} BIOCYC IDS".format(len(self.BIOCYC_translator['rxn'])+len(self.BIOCYC_translator['compound'])))
+        verbose_print(self, "STATUS: {} BIOCYC IDS".format(len(self.BIOCYC_translator['rxn'])+len(self.BIOCYC_translator['compound'])))
         if add:
             self.add_metacyc_to_db()
 
@@ -142,7 +147,7 @@ class Translate(object):
                     self.cnx.execute("""INSERT INTO compound VALUES (?,?,?,?,?,?)""",
                                      (cpd[0], cpd[1], cpd[2], cpd[3], cpd[4], cpd[5]))
             self.cnx.commit()
-            print ('STATUS:\t{} added MetaCyc compounds'.format(count_compound))
+            print ('STATUS: {} added MetaCyc compounds'.format(count_compound))
 
         def add_rxns_2_db(allreactions):
             '''add reaciton to database'''
@@ -162,8 +167,8 @@ class Translate(object):
                                          (rxn_compound[0], rxn_compound[1],
                                           rxn_compound[2], rxn_compound[3], 0))
             self.cnx.commit()
-            print ('STATUS:\t{} added MetaCyc reactions'.format(count_reactions))
-            print ('STATUS:\t{} added MetaCyc reaction_compounds'.format(count_reactions_compounds))
+            print ('STATUS: {} added MetaCyc reactions'.format(count_reactions))
+            print ('STATUS: {} added MetaCyc reaction_compounds'.format(count_reactions_compounds))
 
         def determine_rxn_reversibility(reactionreversibility):
             '''set reversibility'''
@@ -188,8 +193,8 @@ class Translate(object):
                                    WHERE reaction_ID = ?'''
                         self.cnx.execute(command, (rxn_revers[0],))
             self.cnx.commit()
-            print ('STATUS:\t{} changed reversibility'.format(count_reversibility))
-            print ('STATUS:\t{} added MetaCyc reversibility'.format(count_reversibility_add))
+            print ('STATUS: {} changed reversibility'.format(count_reversibility))
+            print ('STATUS: {} added MetaCyc reversibility'.format(count_reversibility_add))
    
         def compile_all_cpd_rxn_info(MC):
             '''
@@ -265,7 +270,7 @@ class MetaCyc(object):
                         elif len(temp_cpdIDs) == 0:
                             cpdID = cpdIDs[0]
                         else:
-                            print ('WARNING:\tcompound ID {} issue'.format(cpdID))
+                            print ('WARNING: compound ID {} issue'.format(cpdID))
                     self.fill_compound_arrays(compound_ID, inchi_ID, cpdID, str(KEGG_ID), name, compartment)
             except KeyError:
                 self.fill_compound_arrays(compound_ID, inchi_ID, compound_ID, str(KEGG_ID), name, compartment)
@@ -284,7 +289,7 @@ class MetaCyc(object):
             cf = mol.grossFormula()
             cf = re.sub(' ', '', cf)
         except indigo.IndigoException:
-            print ('STATUS:\tCould not load inchi molecule {}'.format(inchi))
+            print ('STATUS: Could not load inchi molecule {}'.format(inchi))
             cf = 'None'
         return (cf)
 
@@ -317,7 +322,7 @@ class MetaCyc(object):
                                 count = 4
                             else:
                                 count+=1
-                                print ('WARNING:\tNo INCHI was found from {} will try again for {} time'.format(KEGG_ID, count))                        
+                                print ('WARNING: No INCHI was found from {} will try again for {} time'.format(KEGG_ID, count))                        
 
                         if cpd:
                             cf = self.get_fp_cf_info(cpd)
@@ -393,7 +398,7 @@ class MetaCyc(object):
             self.proteinlist.append((reaction_ID, self.mi, proteins))
         if (reaction_ID, self.mi, revers) not in self.modelreactions:
             self.modelreactions.append((reaction_ID, self.mi, revers))
-        if (reaction_ID in list(self.all_rxnreversibility.keys())
+        if (reaction_ID in self.all_rxnreversibility.keys()
                 and self.all_rxnreversibility[reaction_ID] != revers):
             self.all_rxnreversibility[reaction_ID] = 'true'
         else:
@@ -433,7 +438,7 @@ class MetaCyc(object):
         species_soup = soup.listofspecies
         allspecies = species_soup.findAll('species')
         count = 0
-        print ('STATUS:\tcompiling metacyc compounds')
+        print ('STATUS: compiling metacyc compounds')
         for c in tqdm(allspecies):
             count += 1
             attr = c.findAll('p')
@@ -455,7 +460,7 @@ class MetaCyc(object):
                                      c.get('name'), c.get('compartment')+'0')
         reactions_soup = soup.listofreactions
         allreactions = reactions_soup.findAll('reaction')
-        print ('STATUS:\tcompiling metacyc reactions')
+        print ('STATUS: compiling metacyc reactions')
         for rxn in tqdm(allreactions):
             attr = rxn.findAll('p')
             biocyc_rxn_ID = None
@@ -482,8 +487,8 @@ class MetaCyc(object):
                 else:
                     self.retrieve_rxn_info(rxn, rxn.get('id'), gene_4_rxn, protein_4_rxn, kegg_4_rxn, biocycID=False)
             else:
-                verbose_print(self.verbose, 'STATUS:\t{} does not have gene or reaction therefore not adding to database'.format(rxn.get('id')))
-        print('STATUS:\t{} number of new metacyc reactions added'.format(self.count_addedrxns))
+                verbose_print(self.verbose, 'STATUS {} does not have gene or reaction therefore not adding to database'.format(rxn.get('id')))
+        print('STATUS: {} number of new metacyc reactions added'.format(self.count_addedrxns))
 
     def fill_temp_array(self, cpdID, is_prod, stoic, temp_all_rxn_compound):
         '''
@@ -538,7 +543,7 @@ class MetaCyc(object):
                                                              is_prod, stoic,
                                                              temp_all_rxn_compound)
             else:
-                print ('WARNING:\tcompound {} not in dictionary'.format(compound_ID))
+                print ('WARNING: compound {} not in dictionary'.format(compound_ID))
                 temp_all_rxn_compound = self.fill_temp_array(compound_ID, is_prod,
                                                              stoic, temp_all_rxn_compound)
         return(temp_compartment, temp_all_rxn_compound)
@@ -581,7 +586,7 @@ class MetaCyc(object):
             self.rxn_translator(rxnID, temp_all_rxn_compound, rxn['reversible'], name,
                                 str(genes), str(proteins), str(kegg))
         else:
-            verbose_print(self.verbose, 'STATUS:\tAlready reaction present {}'.format(rxnID))
+            verbose_print(self.verbose, 'STATUS: Already reaction present {}'.format(rxnID))
             if self.check_reaction_difference(rxnID, temp_all_rxn_compound):
                 self.count_addedrxns += 1
                 versionrxn = '_v'+str(len(self.added_rxns[rxnID]))
@@ -591,7 +596,7 @@ class MetaCyc(object):
                             sorted(temp_all_rxn_compound)):
                         count_numbofversions += 1
                 if count_numbofversions == 0:
-                    verbose_print(self.verbose, "STATUS:\tThe version of {} reaction added".format(rxnID+versionrxn))
+                    verbose_print(self.verbose, "STATUS: The version of {} reaction added".format(rxnID+versionrxn))
                     self.added_rxns[rxnID].append(rxnID+versionrxn)
                     self.rxn_translator(rxnID+versionrxn, temp_all_rxn_compound, rxn['reversible'],
                                         name, str(genes), str(proteins), str(kegg))        
@@ -607,10 +612,10 @@ class MetaCyc(object):
         diff_set = current_cpd_ids - cpd_ids
         result = diff_set.difference(self.prom_cpds)
         if not result:
-            verbose_print(self.verbose, 'STATUS:\tReaction only difference may be promiscuous metabolites so not adding {}'.format(rxnID))
+            verbose_print(self.verbose, 'STATUS: Reaction only difference may be promiscuous metabolites so not adding {}'.format(rxnID))
             return (False)
         else:
-            verbose_print(self.verbose, 'STATUS:\tReaction {} difference may include other metabolites than promiscuous metabolites so adding'.format(rxnID))
+            verbose_print(self.verbose, 'STATUS: Reaction {} difference may include other metabolites than promiscuous metabolites so adding'.format(rxnID))
             return (True)
     def retrieve_compartment_4_compartment(self, temp_compartment, rxnID):
         if len(set(temp_compartment)) == 1:

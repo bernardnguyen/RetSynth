@@ -1,3 +1,4 @@
+from __future__ import print_function
 __author__ = 'Leanne Whitmore'
 __email__ = 'lwhitmo@sandia.gov'
 __description__ = 'Build metabolic db using KEGG db'
@@ -5,21 +6,25 @@ __description__ = 'Build metabolic db using KEGG db'
 from multiprocessing import Process, Queue
 import re
 import sqlite3
-import urllib.request, urllib.error, urllib.parse
-import http.client
+try:
+    import urllib as urllib2
+    import http.client as httplib
+except:
+    import urllib2
+    import httplib
 import pubchempy
 from tqdm import tqdm
-from rsgc.Database import query as Q
+from rs.Database import query as Q
 from sys import platform
 if platform == 'darwin':
-    from rsgc.indigopython130_mac import indigo
-    from rsgc.indigopython130_mac import indigo_inchi
+    from rs.indigopython130_mac import indigo
+    from rs.indigopython130_mac import indigo_inchi
 elif platform == "linux" or platform == "linux2":
-    from rsgc.indigopython130_linux import indigo
-    from rsgc.indigopython130_linux import indigo_inchi
+    from rs.indigopython130_linux import indigo
+    from rs.indigopython130_linux import indigo_inchi
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
-    from rsgc.indigopython130_win import indigo
-    from rsgc.indigopython130_win import indigo_inchi
+    from rs.indigopython130_win import indigo
+    from rs.indigopython130_win import indigo_inchi
 
 KEGG = 'http://rest.kegg.jp/'
 
@@ -34,10 +39,10 @@ def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
     pathwayIDs_set = set()
     removeorg = []
     output_queue = Queue()
-    args_organism = [list(orgIDs.keys())[i:i+processors]
-                     for i in range(0, len(list(orgIDs.keys())), processors)]
+    args_organism = [orgIDs.keys()[i:i+processors]
+                     for i in range(0, len(orgIDs.keys()), processors)]
 
-    print ('STATUS:\tget KEGG pathway IDs')
+    print ('STATUS: get KEGG pathway IDs')
     for orgs in tqdm(args_organism):
         processes = []
         for org in orgs:
@@ -54,7 +59,7 @@ def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
         del orgIDs[orgID]
 
     cluster_count = 0
-    for orgID, pathways in pathwayIDs.items():
+    for orgID, pathways in pathwayIDs.iteritems():
         for pathway in pathways:
             pathwayIDs_set.add(pathway)
 
@@ -72,7 +77,7 @@ def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
             cluster_count += 1
             metabolic_clusters.setdefault(cluster_count, []).append(orgID)
 
-    print ('STATUS:\tget KEGG reaction IDs')
+    print ('STATUS: get KEGG reaction IDs')
     output_queue = Queue()
     pathwayIDs_set_list = list(pathwayIDs_set)
     args_pathways = [pathwayIDs_set_list[i:i+processors]
@@ -92,7 +97,7 @@ def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
 
     reactionIDs = {}
     reactions_set = set()
-    for orgID, pathways in pathwayIDs.items():
+    for orgID, pathways in pathwayIDs.iteritems():
         reactionIDs[orgID] = []
         for pathway in pathways:
             try:
@@ -100,7 +105,7 @@ def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
                     reactionIDs[orgID].append(reaction)
                     reactions_set.add(reaction)
             except KeyError:
-                print ('WARNING:\tNo reactions for '+str(pathway))
+                print ('WARNING: No reactions for '+str(pathway))
 
     reactions_set_list = list(reactions_set)
     reactioninfo_final = {}
@@ -112,7 +117,7 @@ def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
     args_reactions = [reactions_set_list[i:i+processors]
                       for i in range(0, len(reactions_set_list), processors)]
 
-    print ('STATUS:\tget KEGG reaction detailed information')
+    print ('STATUS: get KEGG reaction detailed information')
     for reactions in tqdm(args_reactions):
         processes = []
         for reaction in reactions:
@@ -136,7 +141,7 @@ def BuildKEGG(types_orgs, inchidb, processors, currentcpds,
 
 def extract_KEGG_orgIDs(types_orgs, num_organisms):
     """Retrieve organism IDs in KEGG"""
-    print ('STATUS:\tget KEGG '+types_orgs+' organism IDs')
+    print ('STATUS: get KEGG '+types_orgs+' organism IDs')
     orgIDs = {}
     darray = extract_KEGG_data(KEGG+'list/organism')
     if types_orgs == 'all':
@@ -171,7 +176,7 @@ def extract_KEGG_orgIDs(types_orgs, num_organisms):
             if num_organisms != 'all':
                 if len(orgIDs) == int(num_organisms):
                      break
-    print ('STATUS:\t{} organisms from KEGG'.format(len(orgIDs)))
+    print ('STATUS: {} organisms from KEGG'.format(len(orgIDs)))
     return orgIDs
 
 def extract_pathwayIDs(orgID, num_pathways, output_queue):
@@ -188,7 +193,7 @@ def extract_pathwayIDs(orgID, num_pathways, output_queue):
                 if count1 == int(num_pathways):
                     break
     else:
-        print ('WARNING:\tCould not get pathways for '+orgID+' so removing it from organisms')
+        print ('WARNING: Could not get pathways for '+orgID+' so removing it from organisms')
         removeorg.append(orgID)
     output_queue.put((pathwayIDs, removeorg))
 
@@ -206,7 +211,7 @@ def extract_reactionIDs(pathway, output_queue):
             except IndexError:
                 pass
     else:
-        print ('WARNING:\tNo reactions linked to pathway '+str(pathway))
+        print ('WARNING: No reactions linked to pathway '+str(pathway))
         temp_noreactions.append(pathway)
     output_queue.put((temp_reactionIDs, temp_noreactions))
 
@@ -293,9 +298,9 @@ def process_reaction(reactionID, inchidb, compoundinfo, cpd2inchi, inchi_cf, inc
                         inchi_cf.update(inchi_cf_individual)
                         inchi_cas.update(inchi_cas_individual)
                         compoundinfo.update(compoundinfo_individual)
-        if 'enzyme' not in list(reactioninfo[reactionID].keys()):
+        if 'enzyme' not in reactioninfo[reactionID].keys():
             reactioninfo[reactionID]['enzyme'] = 'None'
-        if 'name' not in list(reactioninfo[reactionID].keys()):
+        if 'name' not in reactioninfo[reactionID].keys():
             reactioninfo[reactionID]['name'] = 'None'
 
     output_queue.put((reactioninfo, cpd2inchi, inchi_cf, inchi_cas, compoundinfo))
@@ -303,6 +308,7 @@ def process_reaction(reactionID, inchidb, compoundinfo, cpd2inchi, inchi_cf, inc
 def process_compound(cpd, reactionID, reactioninfo, is_prod,
                      inchidb, compoundinfo, cpd2inchi, inchi_cf,
                      inchi_cas, currentcpds):
+
     IN = indigo.Indigo()
     INCHI = indigo_inchi.IndigoInchi(IN)
 
@@ -337,8 +343,8 @@ def process_compound(cpd, reactionID, reactioninfo, is_prod,
         else:
             compoundinfo[cpd] = 'None'
 
-    elif inchidb and cpd in list(cpd2inchi.values()):
-        reactioninfo = add_metabolite(reactionID, list(cpd2inchi.keys())[list(cpd2inchi.values()).index(cpd)],
+    elif inchidb and cpd in cpd2inchi.values():
+        reactioninfo = add_metabolite(reactionID, cpd2inchi.keys()[cpd2inchi.values().index(cpd)],
                                       stoichiometry, is_prod, reactioninfo)
     else:
         if cpd in currentcpds and 'c0' in currentcpds[cpd]:
@@ -374,14 +380,12 @@ def process_compound(cpd, reactionID, reactioninfo, is_prod,
                                             inchi_cf[inchicpd] = cf
                                         else:
                                             inchicpd = cpd
-                                    except (pubchempy.PubChemHTTPError, http.client.BadStatusLine,
-                                            urllib.error.URLError):
+                                    except:
                                         inchicpd = cpd
                                 else:
                                     inchicpd = cpd
-                            except (pubchempy.PubChemHTTPError, http.client.BadStatusLine,
-                                    urllib.error.URLError):
-                                print ('WARNING:\tCould not get substance for '+ sid)
+                            except:
+                                print ('WARNING: Could not get substance for '+ sid)
                                 inchicpd = cpd
                     if not inchicpd:
                         inchicpd = cpd
@@ -393,22 +397,21 @@ def process_compound(cpd, reactionID, reactioninfo, is_prod,
                 reactioninfo = add_metabolite(reactionID, cpd,
                                               stoichiometry, is_prod, reactioninfo)
             count_name = 0
-            if darray:
-                for value in darray:
-                    array = value.split()
-                    if 'NAME' in array:
-                        count_name += 1
-                        if inchidb:
-                            compoundinfo[inchicpd] = array[1]
-                        else:
-                            compoundinfo[cpd] = array[1]
-                    if 'CAS:' in array:
-                        index = array.index('CAS:')
-                        cas = array[index+1]
-                        if inchidb:
-                            inchi_cas[inchicpd] = cas
-                        else:
-                            inchi_cas[cpd] = cas
+            for value in darray:
+                array = value.split()
+                if 'NAME' in array:
+                    count_name += 1
+                    if inchidb:
+                        compoundinfo[inchicpd] = array[1]
+                    else:
+                        compoundinfo[cpd] = array[1]
+                if 'CAS:' in array:
+                    index = array.index('CAS:')
+                    cas = array[index+1]
+                    if inchidb:
+                        inchi_cas[inchicpd] = cas
+                    else:
+                        inchi_cas[cpd] = cas
             if count_name == 0:
                 if inchidb:
                     compoundinfo[inchicpd] = 'None'
@@ -424,17 +427,14 @@ def add_metabolite(reactionID, cpd, stoichiometry, is_prod, reactioninfo):
         reactioninfo[reactionID]['reactants'][cpd] = stoichiometry
     return reactioninfo
 
-def extract_KEGG_data(url, trycount=0):
+def extract_KEGG_data(url):
     '''Extract Kegg db info'''
     try:
-        data = urllib.request.urlopen(url).read().decode('utf-8')
+        data = urllib2.urlopen(url).read()
         darray = data.split('\n')
         return darray
-    except (http.client.BadStatusLine, urllib.error.URLError):
-        if trycount == 3:
-            return None
-        else:
-            return extract_KEGG_data(url, trycount+1)
+    except:
+        return None
 
 class CompileKEGGIntoDB(object):
     """Add KEGG info to sqlite database"""
@@ -464,7 +464,7 @@ class CompileKEGGIntoDB(object):
          self.inchi_cas,
          self.compoundinfo) = BuildKEGG(type_org, self.inchidb, processors,
                                         self.currentcpds, num_organisms, num_pathways)
-        print ('STATUS:\tAdding kegg info to database')
+        print ('STATUS: Adding kegg info to database')
         if add:
             self.add_to_preexisting_db()
         else:
@@ -482,15 +482,15 @@ class CompileKEGGIntoDB(object):
             if (re.search('c0', result[0]) is not None) and result[2] != 'None':
                 all_cytosol_rxn[result[2]] = result[0]
 
-        print ('STATUS:\tKEGG ..ENTERING MODELS')
+        print ('STATUS: KEGG ..ENTERING MODELS')
         for orgID in self.orgIDs:
             self.cnx.execute("INSERT INTO model VALUES (?,?)", (orgID, self.orgIDs[orgID]+'_KEGG'))
         self.conn.commit()
-        print ('STATUS:\tKEGG ..ENTERING CLUSTERS')
+        print ('STATUS: KEGG ..ENTERING CLUSTERS')
         Q = self.cnx.execute('''SELECT DISTINCT cluster_num FROM cluster''')
         hits = Q.fetchall()
         uniq_clusters = [i[0] for i in hits]
-        for key, orgIDs in self.metabolic_clusters.items():
+        for key, orgIDs in self.metabolic_clusters.iteritems():
             for orgID in orgIDs:
                 self.cnx.execute("INSERT INTO cluster VALUES (?,?)", (len(uniq_clusters)+key, orgID))
         self.conn.commit()
@@ -506,8 +506,8 @@ class CompileKEGGIntoDB(object):
         model_reactions = []
         model_compounds = []
 
-        print ('STATUS:\tKEGG ..ENTERING MODEL REACTIONS, GENES, PROTEINS')
-        for orgID, reactions in tqdm(iter(self.reactionIDs.items())):
+        print ('STATUS: KEGG ..ENTERING MODEL REACTIONS, GENES, PROTEINS')
+        for orgID, reactions in tqdm(self.reactionIDs.iteritems()):
             cpds_all = set()
             for reaction in reactions:
                 if reaction in all_cytosol_rxn:
@@ -522,7 +522,7 @@ class CompileKEGGIntoDB(object):
                         cpds_all.update(rxn['reactants'])
                         cpds_all.update(rxn['products'])
                     except KeyError:
-                        print ('WARNING:\tNo reaction info for {}'.format(reaction))
+                        print ('WARNING: No reaction info for {}'.format(reaction))
                 else:
                     try:
                         rxn = self.reactioninfo[reaction]
@@ -535,7 +535,7 @@ class CompileKEGGIntoDB(object):
                         cpds_all.update(rxn['reactants'])
                         cpds_all.update(rxn['products'])
                     except KeyError:
-                        print ('WARNING:\tNo reaction info for {}'.format(reaction))                    
+                        print ('WARNING: No reaction info for {}'.format(reaction))                    
             for cpd in cpds_all:
                 if cpd.endswith('c0'):
                     model_compounds.append((cpd, orgID))
@@ -547,7 +547,7 @@ class CompileKEGGIntoDB(object):
         self.cnx.executemany("INSERT INTO reaction_gene VALUES (?,?,?)", reaction_gene)
         self.conn.commit()
 
-        print ('STATUS:\tKEGG ..ENTERING REACTIONS')
+        print ('STATUS: KEGG ..ENTERING REACTIONS')
         all_cpds_to_add = set()
         reaction_reversibility = []
         reactions = []
@@ -584,7 +584,7 @@ class CompileKEGGIntoDB(object):
                                 reaction_compounds)
         self.conn.commit()
         compounds = []
-        print ('STATUS:\tKEGG ..ENTERING COMPOUNDS')
+        print ('STATUS: KEGG ..ENTERING COMPOUNDS')
         for cpd in all_cpds_to_add:
             if cpd.endswith('_c0') or cpd+'_c0' in dbcpds:
                 pass
@@ -627,12 +627,12 @@ class CompileKEGGIntoDB(object):
             self.cnx.execute("INSERT INTO model VALUES (?,?)", (orgID, self.orgIDs[orgID]+'_KEGG'))
         self.cnx.commit()
 
-        for key, orgIDs in self.metabolic_clusters.items():
+        for key, orgIDs in self.metabolic_clusters.iteritems():
             for orgID in orgIDs:
                 self.cnx.execute("INSERT INTO cluster VALUES (?,?)", (key, orgID))
         self.cnx.commit()
 
-        for orgID, reactions in self.reactionIDs.items():
+        for orgID, reactions in self.reactionIDs.iteritems():
             cpds_all = set()
             for reaction in reactions:
                 reaction_cm = reaction+cytosol

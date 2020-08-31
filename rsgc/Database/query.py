@@ -1,3 +1,4 @@
+from __future__ import print_function
 __author__ = 'Leanne Whitmore and Lucy Chian'
 __email__ = 'lwhitmo@sandia.gov'
 __description__ = 'Interface for database of FBA models and compounds within SBML files'
@@ -12,7 +13,7 @@ def test_db_4_error(conn, cnx, query, db, count):
             Q = cnx.execute(query)
             return(Q, cnx)
         except sqlite3.DatabaseError:
-            print ('WARNING:\tDatabase Error with ('+str(query)+') ...reconnect to the database for {} time'.format(count))
+            print ('WARNING: Database Error with ('+str(query)+') ...reconnect to the database for {} time'.format(count))
             conn.close()
             conn = sqlite3.connect(db, check_same_thread=False)
             conn.text_factory = str
@@ -23,7 +24,7 @@ def test_db_4_error(conn, cnx, query, db, count):
             Q, cnx = test_db_4_error(conn, cnx, query, db, count)
             return(Q, cnx)
     if count >= 15:
-        print ('WARNING:\tDatabase could not get query {} therefore returning None at {} time'.format(query, count))
+        print ('WARNING: Database could not get query {} therefore returning None at {} time'.format(query, count))
         return ('Errored', cnx)
 
 def fetching_all_query_results(Q, conn, cnx, db, query, count):
@@ -34,7 +35,7 @@ def fetching_all_query_results(Q, conn, cnx, db, query, count):
                 hits = Q.fetchall()
                 return hits
             except sqlite3.DatabaseError:
-                print ('WARNING:\tDatabase Error with fetching all for query {} results...reconnect to the database for {} time'.format(count, query))
+                print ('WARNING: Database Error with fetching all for query {} results...reconnect to the database for {} time'.format(count, query))
                 time.sleep(5)
                 Q, cnx = test_db_4_error(conn, cnx, query, db, count)
                 hits = fetching_all_query_results(Q, conn, cnx, db, query, count)
@@ -44,7 +45,7 @@ def fetching_all_query_results(Q, conn, cnx, db, query, count):
             hits = fetching_all_query_results(Q, conn, cnx, db, query, count)
             return hits       
     if count >= 15:
-        print ('WARNING:\tcould not fetch results for query {}'.format(query))
+        print ('WARNING: could not fetch results for query {}'.format(query))
         return 'Errored'
 
 def fetching_one_query_results(Q, conn, cnx, db, query, count):
@@ -55,7 +56,7 @@ def fetching_one_query_results(Q, conn, cnx, db, query, count):
                 hits = Q.fetchone()
                 return hits
             except sqlite3.DatabaseError:
-                print ('WARNING:\tDatabase Error with fetching one query results...reconnect to the database for {} time'.format(count))
+                print ('WARNING: Database Error with fetching one query results...reconnect to the database for {} time'.format(count))
                 time.sleep(5)
                 Q, cnx = test_db_4_error(conn, cnx, query, db, count)
                 hits = fetching_one_query_results(Q, conn, cnx, db, query, count)
@@ -65,7 +66,7 @@ def fetching_one_query_results(Q, conn, cnx, db, query, count):
             hits = fetching_one_query_results(Q, conn, cnx, db, query, count)
             return hits
     if count >= 15:
-        print ('WARNING:\tcould not fetch results for query {} is the {} time therefore returning None'.format(query, count))
+        print ('WARNING: could not fetch results for query {} is the {} time therefore returning None'.format(query, count))
         return 'Errored'
 
 class Connector(object):

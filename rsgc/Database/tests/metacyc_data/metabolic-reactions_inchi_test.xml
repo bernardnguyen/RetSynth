@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level2" version="1" level="2">
+<model id="META" name="Generated from BioCyc Pathway/Genome Database">
+<listOfUnitDefinitions>
+	<unitDefinition id="mmol_per_gDW_per_hr">
+		<listOfUnits>
+			<unit kind="mole" scale="-3"/>
+			<unit kind="gram" exponent="-1"/>
+			<unit kind="second" multiplier=".00027777" exponent="-1"/>
+		</listOfUnits>
+	</unitDefinition>
+</listOfUnitDefinitions>
+<listOfCompartments>
+  <compartment id="CCO__45__UNKNOWN__45__SPACE" name="CCO-UNKNOWN-SPACE"/>
+  <compartment id="CCO__45__PEROX__45__MEM" name="CCO-PEROX-MEM"/>
+  <compartment id="CCO__45__VESICLE" name="CCO-VESICLE"/>
+  <compartment id="CCO__45__PLAST__45__IM__45__SPC" name="CCO-PLAST-IM-SPC"/>
+  <compartment id="CCO__45__PLASTID__45__STR" name="CCO-PLASTID-STR"/>
+  <compartment id="x" name="CCO-PEROX-LUM"/>
+  <compartment id="CCO__45__MIT__45__IM__45__SPC__45__CCO__45__MIT__45__LUM" name="CCO-MIT-IM-SPC-CCO-MIT-LUM"/>
+  <compartment id="l" name="CCO-LYS-LUM"/>
+  <compartment id="CCO__45__CW__45__BAC__45__POS" name="CCO-CW-BAC-POS"/>
+  <compartment id="CCI__45__PERI__45__BAC__45__GN" name="CCI-PERI-BAC-GN"/>
+  <compartment id="CCO__45__MIT__45__IMEM" name="CCO-MIT-IMEM"/>
+  <compartment id="h" name="CCO-CHLOR-STR"/>
+  <compartment id="v" name="CCO-VAC-LUM"/>
+  <compartment id="m" name="CCO-MIT-LUM"/>
+  <compartment id="CCO__45__CHROM__45__STR" name="CCO-CHROM-STR"/>
+  <compartment id="CCO__45__RGH__45__ER__45__LUM" name="CCO-RGH-ER-LUM"/>
+  <compartment id="CCO__45__GOLGI__45__LUM" name="CCO-GOLGI-LUM"/>
+  <compartment id="CCO__45__OUT" name="CCO-OUT"/>
+  <compartment id="CCO__45__PM__45__BAC__45__NEG" name="CCO-PM-BAC-NEG"/>
+  <compartment id="CCO__45__IN" name="CCO-IN"/>
+  <compartment id="CCO__45__OUT__45__CCO__45__IN" name="CCO-OUT-CCO-IN"/>
+  <compartment id="CCO__45__CYTOSOL__45__CCO__45__CHLOR__45__STR" name="CCO-CYTOSOL-CCO-CHLOR-STR"/>
+  <compartment id="e" name="CCO-EXTRACELLULAR"/>
+  <compartment id="p" name="CCO-PERI-BAC"/>
+  <compartment id="c" name="CCO-CYTOSOL"/>
+</listOfCompartments>
+<listOfSpecies>
+  <species id="NADP_c" name="NADP+" initialAmount="1000" compartment="c" boundaryCondition="false" charge="-3">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: NADP</p>
+          <p>INCHI: InChI=1S/C21H28N7O17P3/c22-17-12-19(25-7-24-17)28(8-26-12)21-16(44-46(33,34)35)14(30)11(43-21)6-41-48(38,39)45-47(36,37)40-5-10-13(29)15(31)20(42-10)27-3-1-2-9(4-27)18(23)32/h1-4,7-8,10-11,13-16,20-21,29-31H,5-6H2,(H7-,22,23,24,25,32,33,34,35,36,37,38,39)/p-3/t10-,11-,13-,14-,15-,16-,20-,21-/m1/s1</p>
+          <p>CHEBI: 58349</p>
+          <p>HMDB: HMDB00217</p>
+          <p>CHEMSPIDER: 10239198</p>
+          <p>PUBCHEM: 15938972</p>
+          <p>CAS: 53-59-8</p>
+          <p>METABOLIGHTS: MTBLC58349</p>
+          <p>KEGG: C00006</p>
+          <p>FORMULA: C21H25N7O17P3</p>
+          <p>CHARGE: -3</p>
+        </body>
+      </notes>
+  </species>
+  <species id="NADPH_c" name="NADPH" initialAmount="1000" compartment="c" boundaryCondition="false" charge="-4">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: NADPH</p>
+          <p>INCHI: InChI=1S/C21H30N7O17P3/c22-17-12-19(25-7-24-17)28(8-26-12)21-16(44-46(33,34)35)14(30)11(43-21)6-41-48(38,39)45-47(36,37)40-5-10-13(29)15(31)20(42-10)27-3-1-2-9(4-27)18(23)32/h1,3-4,7-8,10-11,13-16,20-21,29-31H,2,5-6H2,(H2,23,32)(H,36,37)(H,38,39)(H2,22,24,25)(H2,33,34,35)/p-4/t10-,11-,13-,14-,15-,16-,20-,21-/m1/s1</p>
+          <p>CHEBI: 57783</p>
+          <p>HMDB: HMDB00221</p>
+          <p>CHEMSPIDER: 10239199</p>
+          <p>PUBCHEM: 15983949</p>
+          <p>CAS: 2646-71-1</p>
+          <p>METABOLIGHTS: MTBLC57783</p>
+          <p>KEGG: C00005</p>
+          <p>FORMULA: C21H26N7O17P3</p>
+          <p>CHARGE: -4</p>
+        </body>
+      </notes>
+  </species>
+  <species id="DL__45__12__45__Propanediol_c" name="propane-1,2-diol" initialAmount="1000" compartment="c" boundaryCondition="false" charge="0">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: |DL-12-Propanediol|</p>
+          <p>INCHI: InChI=1S/C3H8O2/c1-3(5)2-4/h3-5H,2H2,1H3</p>
+          <p>FORMULA: C3H8O2</p>
+          <p>CHARGE: 0</p>
+        </body>
+      </notes>
+  </species>
+  <species id="OXYGEN__45__MOLECULE_m" name="oxygen" initialAmount="1000" compartment="m" boundaryCondition="false" charge="0">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: OXYGEN-MOLECULE</p>
+          <p>INCHI: InChI=1S/O2/c1-2</p>
+          <p>CHEBI: 15379</p>
+          <p>HMDB: HMDB01377</p>
+          <p>CHEMSPIDER: 952</p>
+          <p>PUBCHEM: 977</p>
+          <p>CAS: 7782-44-7</p>
+          <p>METABOLIGHTS: MTBLC15379</p>
+          <p>KEGG: C00007</p>
+          <p>FORMULA: O2</p>
+          <p>CHARGE: 0</p>
+        </body>
+      </notes>
+  </species>
+  <species id="OXYGEN__45__MOLECULE_c" name="oxygen" initialAmount="1000" compartment="m" boundaryCondition="false" charge="0">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: OXYGEN-MOLECULE</p>
+          <p>INCHI: InChI=1S/O2/c1-2</p>
+          <p>CHEBI: 15379</p>
+          <p>HMDB: HMDB01377</p>
+          <p>CHEMSPIDER: 952</p>
+          <p>PUBCHEM: 977</p>
+          <p>CAS: 7782-44-7</p>
+          <p>METABOLIGHTS: MTBLC15379</p>
+          <p>KEGG: C00007</p>
+          <p>FORMULA: O2</p>
+          <p>CHARGE: 0</p>
+        </body>
+      </notes>
+  </species>
+  <species id="NADH_c" name="NADH" initialAmount="1000" compartment="c" boundaryCondition="false" charge="-2">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: NADH</p>
+          <p>INCHI: InChI=1S/C21H29N7O14P2/c22-17-12-19(25-7-24-17)28(8-26-12)21-16(32)14(30)11(41-21)6-39-44(36,37)42-43(34,35)38-5-10-13(29)15(31)20(40-10)27-3-1-2-9(4-27)18(23)33/h1,3-4,7-8,10-11,13-16,20-21,29-32H,2,5-6H2,(H2,23,33)(H,34,35)(H,36,37)(H2,22,24,25)/p-2/t10-,11-,13-,14-,15-,16-,20-,21-/m1/s1</p>
+          <p>CHEBI: 57945</p>
+          <p>HMDB: HMDB01487</p>
+          <p>CHEMSPIDER: 10239197</p>
+          <p>PUBCHEM: 21604869</p>
+          <p>CAS: 58-68-4</p>
+          <p>METABOLIGHTS: MTBLC57945</p>
+          <p>KEGG: C00004</p>
+          <p>FORMULA: C21H27N7O14P2</p>
+          <p>CHARGE: -2</p>
+        </body>
+      </notes>
+  </species>
+  <species id="NAD_c" name="NAD+" initialAmount="1000" compartment="c" boundaryCondition="false" charge="-1">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: NAD</p>
+          <p>INCHI: InChI=1S/C21H27N7O14P2/c22-17-12-19(25-7-24-17)28(8-26-12)21-16(32)14(30)11(41-21)6-39-44(36,37)42-43(34,35)38-5-10-13(29)15(31)20(40-10)27-3-1-2-9(4-27)18(23)33/h1-4,7-8,10-11,13-16,20-21,29-32H,5-6H2,(H5-,22,23,24,25,33,34,35,36,37)/p-1/t10-,11-,13-,14-,15-,16-,20-,21-/m1/s1</p>
+          <p>CHEBI: 57540</p>
+          <p>HMDB: HMDB00902</p>
+          <p>CHEMSPIDER: 10239196</p>
+          <p>PUBCHEM: 15938971</p>
+          <p>CAS: 53-84-9</p>
+          <p>METABOLIGHTS: MTBLC57540</p>
+          <p>KEGG: C00003</p>
+          <p>FORMULA: C21H26N7O14P2</p>
+          <p>CHARGE: -1</p>
+        </body>
+      </notes>
+  </species>
+  <species id="CPD__45__18984_c" name="propane" initialAmount="1000" compartment="c" boundaryCondition="false" charge="0">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: CPD-18984</p>
+          <p>INCHI: InChI=1S/C3H8/c1-3-2/h3H2,1-2H3</p>
+          <p>CHEBI: 32879</p>
+          <p>FORMULA: C3H8</p>
+          <p>CHARGE: 0</p>
+        </body>
+      </notes>
+  </species>
+  <species id="ATROPINE_c" name="atropine" initialAmount="1000" compartment="c" boundaryCondition="false" charge="1">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: ATROPINE</p>
+          <p>INCHI: InChI=1S/C17H23NO3/c1-18-13-7-8-14(18)10-15(9-13)21-17(20)16(11-19)12-5-3-2-4-6-12/h2-6,13-16,19H,7-11H2,1H3/p+1/t13-,14+,15+,16?</p>
+          <p>CHEBI: 57858</p>
+          <p>HMDB: HMDB00779</p>
+          <p>CHEMSPIDER: 10246419</p>
+          <p>PUBCHEM: 21608699</p>
+          <p>CAS: 51-55-8</p>
+          <p>KEGG: C01479</p>
+          <p>FORMULA: C17H24NO3</p>
+          <p>CHARGE: 1</p>
+        </body>
+      </notes>
+  </species>
+  <species id="TROPATE_c" name="tropate" initialAmount="1000" compartment="c" boundaryCondition="false" charge="-1">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: TROPATE</p>
+          <p>INCHI: InChI=1S/C9H10O3/c10-6-8(9(11)12)7-4-2-1-3-5-7/h1-5,8,10H,6H2,(H,11,12)/p-1</p>
+          <p>CHEBI: 17000</p>
+          <p>CHEMSPIDER: 4573754</p>
+          <p>PUBCHEM: 5460086</p>
+          <p>NCI: 20990</p>
+          <p>CAS: 529-64-6</p>
+          <p>KEGG: C01456</p>
+          <p>FORMULA: C9H9O3</p>
+          <p>CHARGE: -1</p>
+        </body>
+      </notes>
+  </species>
+  <species id="TROPINE_c" name="tropine" initialAmount="1000" compartment="c" boundaryCondition="false" charge="1">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: TROPINE</p>
+          <p>INCHI: InChI=1S/C8H15NO/c1-9-6-2-3-7(9)5-8(10)4-6/h6-8,10H,2-5H2,1H3/p+1/t6-,7+,8+</p>
+          <p>CHEBI: 57554</p>
+          <p>NCI: 43870</p>
+          <p>CAS: 120-29-6</p>
+          <p>KEGG: C00729</p>
+          <p>FORMULA: C8H16NO</p>
+          <p>CHARGE: 1</p>
+        </body>
+      </notes>
+  </species>
+  <species id="WATER_c" name="H2O" initialAmount="1000" compartment="c" boundaryCondition="false" charge="0">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: WATER</p>
+          <p>INCHI: InChI=1S/H2O/h1H2</p>
+          <p>CHEBI: 15377</p>
+          <p>HMDB: HMDB02111</p>
+          <p>CHEMSPIDER: 937</p>
+          <p>PUBCHEM: 962</p>
+          <p>CAS: 7732-18-5</p>
+          <p>METABOLIGHTS: MTBLC15377</p>
+          <p>KEGG: C00001</p>
+          <p>FORMULA: H2O</p>
+          <p>CHARGE: 0</p>
+        </body>
+      </notes>
+  </species>
+  <species id="ISO__45__PROPANOL_c" name="propan-2-ol" initialAmount="1000" compartment="c" boundaryCondition="false" charge="0">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: ISO-PROPANOL</p>
+          <p>INCHI: InChI=1S/C3H8O/c1-3(2)4/h3-4H,1-2H3</p>
+          <p>CHEBI: 17824</p>
+          <p>HMDB: HMDB00863</p>
+          <p>CHEMSPIDER: 3644</p>
+          <p>PUBCHEM: 3776</p>
+          <p>DRUGBANK: DB04402</p>
+          <p>CAS: 67-63-0</p>
+          <p>KEGG: C01845</p>
+          <p>FORMULA: C3H8O</p>
+          <p>CHARGE: 0</p>
+        </body>
+      </notes>
+  </species>
+  <species id="PROTON_c" name="H+" initialAmount="1000" compartment="c" boundaryCondition="false" charge="1">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: PROTON</p>
+          <p>INCHI: InChI=1S/p+1</p>
+          <p>CHEBI: 15378</p>
+          <p>HMDB: HMDB59597</p>
+          <p>CHEMSPIDER: 1010</p>
+          <p>PUBCHEM: 1038</p>
+          <p>CAS: 12408-02-5</p>
+          <p>KEGG: C00080</p>
+          <p>FORMULA: H</p>
+          <p>CHARGE: 1</p>
+        </body>
+      </notes>
+  </species>  
+</listOfSpecies>
+<listOfReactions>
+<reaction id="TROPINESTERASE__45__RXN" name="TROPINESTERASE-RXN" reversible="false">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: TROPINESTERASE-RXN</p>
+          <p>EC Number: 3.1.1.10</p>
+          <p>RHEA: 23304</p>
+          <p>KEGG: R03563</p>
+          <p>Confidence level: 0</p>
+        </body>
+      </notes>
+   <listOfReactants>
+      <speciesReference species="WATER_c" stoichiometry="1"/>
+      <speciesReference species="ATROPINE_c" stoichiometry="1"/>
+   </listOfReactants>
+   <listOfProducts>
+      <speciesReference species="PROTON_c" stoichiometry="1"/>
+      <speciesReference species="TROPATE_c" stoichiometry="1"/>
+      <speciesReference species="TROPINE_c" stoichiometry="1"/>
+   </listOfProducts>
+		<kineticLaw>
+			<math xmlns="http://www.w3.org/1998/Math/MathML">
+				<ci> FLUX_VALUE </ci>
+			</math>
+			<listOfParameters>
+				<parameter id="LOWER_BOUND" value="0" units="mmol_per_gDW_per_hr"/>
+				<parameter id="UPPER_BOUND" value="1000" units="mmol_per_gDW_per_hr"/>
+				<parameter id="OBJECTIVE_COEFFICIENT" value="0"/>
+				<parameter id="FLUX_VALUE" value="0" units="mmol_per_gDW_per_hr"/>
+				<parameter id="REDUCED_COST" value="0.000000"/>
+			</listOfParameters>
+		</kineticLaw>
+</reaction>
+<reaction id="RXN__45__17568" name="RXN-17568" reversible="false">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: RXN-17568</p>
+          <p>EC Number: 1.14.13.dn</p>
+          <p>SUBSYSTEM: PWY-7775, PWY-7774</p>
+          <p>GENE_ASSOCIATION: (G-44516 and G-44515 and G-44517 and G-44518) or (G-44510 and G-44509 and G-44507 and G-44508)</p>
+          <p>Confidence level: 2</p>
+        </body>
+      </notes>
+   <listOfReactants>
+      <speciesReference species="CPD__45__18984_c" stoichiometry="1"/>
+      <speciesReference species="OXYGEN__45__MOLECULE_c" stoichiometry="1"/>
+      <speciesReference species="NADH_c" stoichiometry="1"/>
+      <speciesReference species="PROTON_c" stoichiometry="1"/>
+   </listOfReactants>
+   <listOfProducts>
+      <speciesReference species="ISO__45__PROPANOL_c" stoichiometry="1"/>
+      <speciesReference species="NAD_c" stoichiometry="1"/>
+      <speciesReference species="WATER_c" stoichiometry="1"/>
+   </listOfProducts>
+    <kineticLaw>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> FLUX_VALUE </ci>
+      </math>
+      <listOfParameters>
+        <parameter id="LOWER_BOUND" value="0" units="mmol_per_gDW_per_hr"/>
+        <parameter id="UPPER_BOUND" value="1000" units="mmol_per_gDW_per_hr"/>
+        <parameter id="OBJECTIVE_COEFFICIENT" value="0"/>
+        <parameter id="FLUX_VALUE" value="0" units="mmol_per_gDW_per_hr"/>
+        <parameter id="REDUCED_COST" value="0.000000"/>
+      </listOfParameters>
+    </kineticLaw>
+</reaction>
+<reaction id="RXN__45__17620_c" name="RXN-17620" reversible="true">
+      <notes>
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <p>BIOCYC: RXN-17620</p>
+          <p>EC Number: 1.14.13.dp</p>
+          <p>Confidence level: 0</p>
+        </body>
+      </notes>
+   <listOfReactants>
+      <speciesReference species="ISO__45__PROPANOL_c" stoichiometry="1"/>
+      <speciesReference species="OXYGEN__45__MOLECULE_c" stoichiometry="1"/>
+      <speciesReference species="NADPH_c" stoichiometry="1"/>
+      <speciesReference species="PROTON_c" stoichiometry="1"/>
+   </listOfReactants>
+   <listOfProducts>
+      <speciesReference species="DL__45__12__45__Propanediol_c" stoichiometry="1"/>
+      <speciesReference species="NADP_c" stoichiometry="1"/>
+      <speciesReference species="WATER_c" stoichiometry="1"/>
+   </listOfProducts>
+    <kineticLaw>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> FLUX_VALUE </ci>
+      </math>
+      <listOfParameters>
+        <parameter id="LOWER_BOUND" value="-1000" units="mmol_per_gDW_per_hr"/>
+        <parameter id="UPPER_BOUND" value="1000" units="mmol_per_gDW_per_hr"/>
+        <parameter id="OBJECTIVE_COEFFICIENT" value="0"/>
+        <parameter id="FLUX_VALUE" value="0" units="mmol_per_gDW_per_hr"/>
+        <parameter id="REDUCED_COST" value="0.000000"/>
+      </listOfParameters>
+    </kineticLaw>
+</reaction>
+</listOfReactions>
+</model>
+</sbml>

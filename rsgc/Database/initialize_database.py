@@ -1,3 +1,4 @@
+from __future__ import print_function
 __author__ = 'Leanne Whitmore'
 __email__ = 'lwhitmo@sandia.gov'
 __description__ = 'Generates Sqlite database'
@@ -40,9 +41,9 @@ class Createdb(object):
             if self.inchidb is True:
                 self.database.execute('''CREATE table original_db_cpdIDs
                                                 (ID text, inchi_id text)''')
-            print ('STATUS:\tGenerating new database ...')
+            print ('STATUS: Generating new database ...')
         except sqlite3.OperationalError:
-            print ('WARNING:\tDatabase already exists, adding new xml files to existing database ...')
+            print ('WARNING: Database already exists, adding new xml files to existing database ...')
         try:
             self.database.execute('''CREATE INDEX reactioncompound_ind1 ON
                                             reaction_compound(reaction_ID,cpd_ID,is_prod)''')
@@ -73,7 +74,7 @@ class Createdb(object):
                 self.database.execute('''CREATE INDEX original_db_cpdIDs_ind ON
                                                 original_db_cpdIDs(ID, inchi_id)''')
         except sqlite3.OperationalError:
-            print ('WARNING:\tDatabase already exists, reindex indicies')
+            print ('WARNING: Database already exists, reindex indicies')
             self.database.execute('''REINDEX reactioncompound_ind1''')
             self.database.execute('''REINDEX reactioncompound_ind2''')
             self.database.execute('''REINDEX modelreaction_ind1''')
