@@ -23,7 +23,7 @@ optlang==1.4.4
 pandas==0.25.1
 pipdeptree==0.13.2
 PubChemPy==1.0.4
-PuLP==1.6.10
+PuLP==2.3
 PyInstaller==3.5
 pyparsing==2.4.2
 pyrsistent==0.15.4
@@ -40,3 +40,4 @@ sympy==1.4
 tqdm==4.36.1
 urllib3==1.25.6
 zipp==0.6.0
+pillow
