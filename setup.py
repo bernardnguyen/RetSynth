@@ -31,7 +31,6 @@ setup(name="RetSynth_gc",
       packages=find_packages(),
       install_requires=[
           'argparse',
-          'openbabel==2.4.0',
           'soupsieve==2.0.1',
           'filelock==3.0.12',
           'distlib==0.3.1',
