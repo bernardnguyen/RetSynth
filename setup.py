@@ -48,7 +48,7 @@ setup(name="RetSynth_gc",
           'tqdm==4.47.0',
           'scipy==1.5.1',
           "pillow",
-          "xml", "bio"
+          "lxml", "bio"
       ],
       include_package_data=True,
       zip_safe=False,
