@@ -37,9 +37,7 @@ RetSynth is a tool, developed with python, which identfies enzyme/reaction pairs
       `openpyxl <https://pypi.org/project/openpyxl/>`_
 
       `scipy <https://pypi.org/project/scipy/>`_
-      
-      `openbabel <https://pypi.org/project/openbabel/>`_
-
+   
       `tqdm <https://pypi.org/project/tqdm/>`_
 
       `soupsieve <https://pypi.org/project/soupsieve/>`_

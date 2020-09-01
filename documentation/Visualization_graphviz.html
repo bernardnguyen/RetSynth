@@ -30,9 +30,6 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> &nbsp; &nbsp;</li>
       <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
 
         <li class="nav-item nav-item-this"><a href="">Visualization_graphviz package</a></li> 
@@ -50,165 +47,14 @@
 <h1>Visualization_graphviz package<a class="headerlink" href="#visualization-graphviz-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="module-Visualization_graphviz.SP_Graph_dot">
-<span id="visualization-graphviz-sp-graph-dot"></span><h3>Visualization_graphviz.SP_Graph_dot<a class="headerlink" href="#module-Visualization_graphviz.SP_Graph_dot" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot">
-<em class="property">class </em><code class="sig-prename descclassname">Visualization_graphviz.SP_Graph_dot.</code><code class="sig-name descname">GraphDot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">output_path</span></em>, <em class="sig-param"><span class="n">incpds</span></em>, <em class="sig-param"><span class="n">inrxns</span></em>, <em class="sig-param"><span class="n">temp_img_path</span></em>, <em class="sig-param"><span class="n">FBA</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Generates figure of Shortest Path (external reactions and compounds needed to produce
-target compound)</p>
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.FBA_weights">
-<code class="sig-name descname">FBA_weights</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.FBA_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.FBA_weights" title="Permalink to this definition">¶</a></dt>
-<dd><p>If FBA was run alter the thickness of the edges between
-reactions and compounds to represent the reaction activityhttp://localhost:8888/notebooks/software/retrosynth/rs/rsjuypter.ipynb#</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.add_products">
-<code class="sig-name descname">add_products</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">products</span></em>, <em class="sig-param"><span class="n">rxn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.add_products"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.add_products" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add nodes to graph for the products of reactions</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.add_reactants">
-<code class="sig-name descname">add_reactants</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reactants</span></em>, <em class="sig-param"><span class="n">rxn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.add_reactants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.add_reactants" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add nodes to graph for the reactants of reactions</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.alter_name_length">
-<code class="sig-name descname">alter_name_length</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path_to_figure</span></em>, <em class="sig-param"><span class="n">cpdname</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.alter_name_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.alter_name_length" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shorten compound name if it is too long</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.crop_figure">
-<code class="sig-name descname">crop_figure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path_to_image</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.crop_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.crop_figure" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.generate_flux_legend">
-<code class="sig-name descname">generate_flux_legend</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.generate_flux_legend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.generate_flux_legend" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate legend for flux figures</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.get_figure">
-<code class="sig-name descname">get_figure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpdID</span></em>, <em class="sig-param"><span class="n">cpdname</span></em>, <em class="sig-param"><span class="n">rxn</span></em>, <em class="sig-param"><span class="n">type_node</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.get_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.get_figure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get smiles for a compounds</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.get_mol_from_name">
-<code class="sig-name descname">get_mol_from_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpd_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.get_mol_from_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.get_mol_from_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get molecule for a compound from its’ name</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.internal_compound_attr">
-<code class="sig-name descname">internal_compound_attr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpdID</span></em>, <em class="sig-param"><span class="n">origname</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">rxn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.internal_compound_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.internal_compound_attr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Specifies attributes for nodes representing internal (native) compounds</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.reformat_inchi">
-<code class="sig-name descname">reformat_inchi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inchi</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.reformat_inchi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.reformat_inchi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reformates inchi string</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.sc_graph">
-<code class="sig-name descname">sc_graph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_compound_ID</span></em>, <em class="sig-param"><span class="n">target_organism_ID</span></em>, <em class="sig-param"><span class="n">paths</span></em>, <em class="sig-param"><span class="n">images</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">RP</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.sc_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.sc_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build and output graph to a file, reaction nodes added in this function</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.SP_Graph_dot.GraphDot.synthetic_compound_attr">
-<code class="sig-name descname">synthetic_compound_attr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpdID</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">rxn</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/SP_Graph_dot.html#GraphDot.synthetic_compound_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.SP_Graph_dot.GraphDot.synthetic_compound_attr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Specifies attributes for nodes representing external compounds</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="visualization-graphviz-sp-graph-dot">
+<h3>Visualization_graphviz.SP_Graph_dot<a class="headerlink" href="#visualization-graphviz-sp-graph-dot" title="Permalink to this headline">¶</a></h3>
 </div>
-<div class="section" id="module-Visualization_graphviz.reaction_files">
-<span id="visualization-graphviz-reaction-files"></span><h3>Visualization_graphviz.reaction_files<a class="headerlink" href="#module-Visualization_graphviz.reaction_files" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt id="Visualization_graphviz.reaction_files.ReactionFiles">
-<em class="property">class </em><code class="sig-prename descclassname">Visualization_graphviz.reaction_files.</code><code class="sig-name descname">ReactionFiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_path</span></em>, <em class="sig-param"><span class="n">DB</span></em>, <em class="sig-param"><span class="n">reactions</span></em>, <em class="sig-param"><span class="n">target</span></em>, <em class="sig-param"><span class="n">target_organism</span></em>, <em class="sig-param"><span class="n">incpds</span></em>, <em class="sig-param"><span class="n">figures</span></em>, <em class="sig-param"><span class="n">cdxmlfiles</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/reaction_files.html#ReactionFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.reaction_files.ReactionFiles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt id="Visualization_graphviz.reaction_files.ReactionFiles.alter_name_length">
-<code class="sig-name descname">alter_name_length</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path_to_figure</span></em>, <em class="sig-param"><span class="n">cpdname</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/reaction_files.html#ReactionFiles.alter_name_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.reaction_files.ReactionFiles.alter_name_length" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shorten compound name if it is too long</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.reaction_files.ReactionFiles.generate_output_folders">
-<code class="sig-name descname">generate_output_folders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/reaction_files.html#ReactionFiles.generate_output_folders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.reaction_files.ReactionFiles.generate_output_folders" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check to see if output folders are present
-if not set up new output folder</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.reaction_files.ReactionFiles.generate_reaction_SMILES">
-<code class="sig-name descname">generate_reaction_SMILES</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/reaction_files.html#ReactionFiles.generate_reaction_SMILES"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.reaction_files.ReactionFiles.generate_reaction_SMILES" title="Permalink to this definition">¶</a></dt>
-<dd><p>Produce files that have reaction smiles for each reaction in a pathway</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.reaction_files.ReactionFiles.get_SMILES">
-<code class="sig-name descname">get_SMILES</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compounds</span></em>, <em class="sig-param"><span class="n">smiles_cpds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/reaction_files.html#ReactionFiles.get_SMILES"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.reaction_files.ReactionFiles.get_SMILES" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get smiles for a compounds</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.reaction_files.ReactionFiles.get_smiles_from_name">
-<code class="sig-name descname">get_smiles_from_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpd_name</span></em>, <em class="sig-param"><span class="n">smiles_cpds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/reaction_files.html#ReactionFiles.get_smiles_from_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.reaction_files.ReactionFiles.get_smiles_from_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get smiles for a compound from its’ name</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Visualization_graphviz.reaction_files.ReactionFiles.order_of_paths">
-<code class="sig-name descname">order_of_paths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/reaction_files.html#ReactionFiles.order_of_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.reaction_files.ReactionFiles.order_of_paths" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="visualization-graphviz-reaction-files">
+<h3>Visualization_graphviz.reaction_files<a class="headerlink" href="#visualization-graphviz-reaction-files" title="Permalink to this headline">¶</a></h3>
 </div>
-<div class="section" id="module-Visualization_graphviz.chempyutilgraph_edit">
-<span id="visualization-graphviz-chempyutilgraph-edit"></span><h3>Visualization_graphviz.chempyutilgraph_edit<a class="headerlink" href="#module-Visualization_graphviz.chempyutilgraph_edit" title="Permalink to this headline">¶</a></h3>
-<p>Convenince functions for representing reaction systems as graphs.</p>
-<dl class="py function">
-<dt id="Visualization_graphviz.chempyutilgraph_edit.dot2graph">
-<code class="sig-prename descclassname">Visualization_graphviz.chempyutilgraph_edit.</code><code class="sig-name descname">dot2graph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dot_file</span></em>, <em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">output_dir</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">prog</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">save</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Visualization_graphviz/chempyutilgraph_edit.html#dot2graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Visualization_graphviz.chempyutilgraph_edit.dot2graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience function to render graph</p>
-<p>dot_file: dot file for graph
-fname: str</p>
-<blockquote>
-<div><p>filename</p>
-</div></blockquote>
-<dl class="simple">
-<dt>output_dir: str (optional)</dt><dd><p>path to directory (default: temporary directory)</p>
-</dd>
-<dt>prog: str (optional)</dt><dd><p>default: ‘dot’</p>
-</dd>
-<dt>save: bool</dt><dd><p>removes temporary directory if False, default: False</p>
-</dd>
-<dt>**kwargs:</dt><dd><p>parameters to pass along to <cite>rsys2dot</cite></p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>str</dt><dd><p>Outpath</p>
-</dd>
-</dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rsys2graph</span><span class="p">(</span><span class="n">rsys</span><span class="p">,</span> <span class="n">sbstncs</span><span class="p">,</span> <span class="s1">&#39;/tmp/out.png&#39;</span><span class="p">)</span>  
-</pre></div>
-</div>
-</dd></dl>
-
+<div class="section" id="visualization-graphviz-chempyutilgraph-edit">
+<h3>Visualization_graphviz.chempyutilgraph_edit<a class="headerlink" href="#visualization-graphviz-chempyutilgraph-edit" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 </div>
@@ -224,9 +70,9 @@ fname: str</p>
     <ul>
 <li><a class="reference internal" href="#">Visualization_graphviz package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a><ul>
-<li><a class="reference internal" href="#module-Visualization_graphviz.SP_Graph_dot">Visualization_graphviz.SP_Graph_dot</a></li>
-<li><a class="reference internal" href="#module-Visualization_graphviz.reaction_files">Visualization_graphviz.reaction_files</a></li>
-<li><a class="reference internal" href="#module-Visualization_graphviz.chempyutilgraph_edit">Visualization_graphviz.chempyutilgraph_edit</a></li>
+<li><a class="reference internal" href="#visualization-graphviz-sp-graph-dot">Visualization_graphviz.SP_Graph_dot</a></li>
+<li><a class="reference internal" href="#visualization-graphviz-reaction-files">Visualization_graphviz.reaction_files</a></li>
+<li><a class="reference internal" href="#visualization-graphviz-chempyutilgraph-edit">Visualization_graphviz.chempyutilgraph_edit</a></li>
 </ul>
 </li>
 </ul>
@@ -265,9 +111,6 @@ fname: str</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> &nbsp; &nbsp;</li>
       <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
 
         <li class="nav-item nav-item-this"><a href="">Visualization_graphviz package</a></li> 

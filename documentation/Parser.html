@@ -30,9 +30,6 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> &nbsp; &nbsp;</li>
       <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
 
         <li class="nav-item nav-item-this"><a href="">Parser module</a></li> 
@@ -50,211 +47,17 @@
 <h1>Parser module<a class="headerlink" href="#parser-module" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="module-Parser.compute_tanimoto">
-<span id="parser-compute-tanimoto"></span><h3>Parser.compute_tanimoto<a class="headerlink" href="#module-Parser.compute_tanimoto" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt id="Parser.compute_tanimoto.tanimoto">
-<code class="sig-prename descclassname">Parser.compute_tanimoto.</code><code class="sig-name descname">tanimoto</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span></em>, <em class="sig-param"><span class="n">target</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/compute_tanimoto.html#tanimoto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.compute_tanimoto.tanimoto" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="parser-compute-tanimoto">
+<h3>Parser.compute_tanimoto<a class="headerlink" href="#parser-compute-tanimoto" title="Permalink to this headline">¶</a></h3>
 </div>
-<div class="section" id="module-Parser.generate_output">
-<span id="parser-generate-output"></span><h3>Parser.generate_output<a class="headerlink" href="#module-Parser.generate_output" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt id="Parser.generate_output.Output">
-<em class="property">class </em><code class="sig-prename descclassname">Parser.generate_output.</code><code class="sig-name descname">Output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">output_path</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">FBA</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">KO</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">timer_output</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">raw_solutions</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">GC</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Opens and fills output files produced by software</p>
-<dl class="py method">
-<dt id="Parser.generate_output.Output.convert_output_2_xlsx">
-<code class="sig-name descname">convert_output_2_xlsx</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.convert_output_2_xlsx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.convert_output_2_xlsx" title="Permalink to this definition">¶</a></dt>
-<dd><p>converts txt files to output files</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.generate_gc_directory">
-<code class="sig-name descname">generate_gc_directory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.generate_gc_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.generate_gc_directory" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_FBA">
-<code class="sig-name descname">output_FBA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_info</span></em>, <em class="sig-param"><span class="n">org_fbasolution</span></em>, <em class="sig-param"><span class="n">optimized_fba</span></em>, <em class="sig-param"><span class="n">comparisonresults</span></em>, <em class="sig-param"><span class="n">temp</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_FBA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_FBA" title="Permalink to this definition">¶</a></dt>
-<dd><p>Outputs reactions and corresponding fluxes for fluxes that change significantly
-between wild-type FBA simulation (simulation without added reactions) and
-FBA simulation with added reactions to produce target compound</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_FBA_KOs">
-<code class="sig-name descname">output_FBA_KOs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_info</span></em>, <em class="sig-param"><span class="n">fbasolution</span></em>, <em class="sig-param"><span class="n">compound_dict</span></em>, <em class="sig-param"><span class="n">comparisonKOresults</span></em>, <em class="sig-param"><span class="n">temp</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_FBA_KOs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_FBA_KOs" title="Permalink to this definition">¶</a></dt>
-<dd><p>When reaction knockouts are performed list all reaction that have a significant
-flux difference from the orignal FBA simulation</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_compound_natively_present_in_target_organism">
-<code class="sig-name descname">output_compound_natively_present_in_target_organism</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_info</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_compound_natively_present_in_target_organism"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_compound_natively_present_in_target_organism" title="Permalink to this definition">¶</a></dt>
-<dd><p>Outputs information if a target compound is already present in an organism</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_essential_reactions">
-<code class="sig-name descname">output_essential_reactions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_compound_ID</span></em>, <em class="sig-param"><span class="n">target_organism_ID</span></em>, <em class="sig-param"><span class="n">er</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_essential_reactions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_essential_reactions" title="Permalink to this definition">¶</a></dt>
-<dd><p>When reaction knockouts are performed, outputs all reactions that when removed
-cause decrease in target production</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_final_targets">
-<code class="sig-name descname">output_final_targets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">tan_threshold</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_final_targets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_final_targets" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_open_paths_all_organism_file">
-<code class="sig-name descname">output_open_paths_all_organism_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_compound_ID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_open_paths_all_organism_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_open_paths_all_organism_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Open file to generate file that summarizes how many reactions would
-need to be added to every organism in the daabase to produce a target organism</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_paths_all_organisms">
-<code class="sig-name descname">output_paths_all_organisms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_compound_ID</span></em>, <em class="sig-param"><span class="n">pathlength</span></em>, <em class="sig-param"><span class="n">orgs</span></em>, <em class="sig-param"><span class="n">org_names</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_paths_all_organisms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_paths_all_organisms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Outputs information on the number of reactions that need to be added to an
-organism to get a target compound, this file is only generated all organisms
-are being examined to see if they can produce target compound</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_raw_solutions">
-<code class="sig-name descname">output_raw_solutions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">compound</span></em>, <em class="sig-param"><span class="n">org_ID</span></em>, <em class="sig-param"><span class="n">ordered_paths</span></em>, <em class="sig-param"><span class="n">reactions</span></em>, <em class="sig-param"><span class="n">externalrxnscount</span></em>, <em class="sig-param"><span class="n">incpds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_raw_solutions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_raw_solutions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_shortest_paths">
-<code class="sig-name descname">output_shortest_paths</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_info</span></em>, <em class="sig-param"><span class="n">temp_rxns</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_shortest_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_shortest_paths" title="Permalink to this definition">¶</a></dt>
-<dd><p>Outputs reactions and compounds that need to be
-added to an organism to get target compound</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_theoretical_yield">
-<code class="sig-name descname">output_theoretical_yield</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_compound_ID</span></em>, <em class="sig-param"><span class="n">target_organism_ID</span></em>, <em class="sig-param"><span class="n">fbasolution</span></em>, <em class="sig-param"><span class="n">compounds_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_theoretical_yield"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_theoretical_yield" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates output file with theoretical yields</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.generate_output.Output.output_timer">
-<code class="sig-name descname">output_timer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">print_statement</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#Output.output_timer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.Output.output_timer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="Parser.generate_output.verbose_print">
-<code class="sig-prename descclassname">Parser.generate_output.</code><code class="sig-name descname">verbose_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/generate_output.html#verbose_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.generate_output.verbose_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="parser-generate-output">
+<h3>Parser.generate_output<a class="headerlink" href="#parser-generate-output" title="Permalink to this headline">¶</a></h3>
 </div>
-<div class="section" id="module-Parser.read_targets">
-<span id="parser-read-targets"></span><h3>Parser.read_targets<a class="headerlink" href="#module-Parser.read_targets" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt id="Parser.read_targets.Readfile">
-<em class="property">class </em><code class="sig-prename descclassname">Parser.read_targets.</code><code class="sig-name descname">Readfile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">db</span></em>, <em class="sig-param"><span class="n">inchidb</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">compartment</span><span class="o">=</span><span class="default_value">'cytosol'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/read_targets.html#Readfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.read_targets.Readfile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Reads the input file containing target compounds</p>
-<dl class="py method">
-<dt id="Parser.read_targets.Readfile.file_opener">
-<code class="sig-name descname">file_opener</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/read_targets.html#Readfile.file_opener"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.read_targets.Readfile.file_opener" title="Permalink to this definition">¶</a></dt>
-<dd><p>Opens target file and extracts information</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.read_targets.Readfile.get_db_info">
-<code class="sig-name descname">get_db_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/read_targets.html#Readfile.get_db_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.read_targets.Readfile.get_db_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve database information for the values in the inputfile</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.read_targets.Readfile.modelinfo_opener">
-<code class="sig-name descname">modelinfo_opener</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/read_targets.html#Readfile.modelinfo_opener"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.read_targets.Readfile.modelinfo_opener" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get all model information out of the database</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.read_targets.Readfile.strain_check">
-<code class="sig-name descname">strain_check</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_org_format</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/read_targets.html#Readfile.strain_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.read_targets.Readfile.strain_check" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract all strains for a specified organism</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="parser-read-targets">
+<h3>Parser.read_targets<a class="headerlink" href="#parser-read-targets" title="Permalink to this headline">¶</a></h3>
 </div>
-<div class="section" id="module-Parser.structure_similarity">
-<span id="parser-structure-similarity"></span><h3>Parser.structure_similarity<a class="headerlink" href="#module-Parser.structure_similarity" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity">
-<em class="property">class </em><code class="sig-prename descclassname">Parser.structure_similarity.</code><code class="sig-name descname">TanimotoStructureSimilarity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">all_compounds</span></em>, <em class="sig-param"><span class="n">cytosol</span></em>, <em class="sig-param"><span class="n">extracellular</span></em>, <em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">threshold_score</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Identifies if compounds are in the database but under a different ID
-based on structure similarity</p>
-<dl class="py method">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.calculate_tanimoto_score">
-<code class="sig-name descname">calculate_tanimoto_score</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity.calculate_tanimoto_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.calculate_tanimoto_score" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate similarity for compounds that are not in the database</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.extract_db_cpd_ID">
-<code class="sig-name descname">extract_db_cpd_ID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpdID</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity.extract_db_cpd_ID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.extract_db_cpd_ID" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract correct database ID for a compound</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.fill_final_targets">
-<code class="sig-name descname">fill_final_targets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_target</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity.fill_final_targets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.fill_final_targets" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.get_original_target">
-<code class="sig-name descname">get_original_target</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity.get_original_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.get_original_target" title="Permalink to this definition">¶</a></dt>
-<dd><p>Obtain original target</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.get_tanimoto_score">
-<code class="sig-name descname">get_tanimoto_score</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tmol</span></em>, <em class="sig-param"><span class="n">threshold</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity.get_tanimoto_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.get_tanimoto_score" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.process_targets">
-<code class="sig-name descname">process_targets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">targets</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity.process_targets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.process_targets" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reformat targets to remove compartment information</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.remove_compartment_info_from_cpdID">
-<code class="sig-name descname">remove_compartment_info_from_cpdID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cpd</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity.remove_compartment_info_from_cpdID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.remove_compartment_info_from_cpdID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.retrieve_fingerprints">
-<code class="sig-name descname">retrieve_fingerprints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#TanimotoStructureSimilarity.retrieve_fingerprints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.retrieve_fingerprints" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve fingerprints for database compounds and targets</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="Parser.structure_similarity.TanimotoStructureSimilarity.track_final_cpd">
-<code class="sig-name descname">track_final_cpd</code><a class="headerlink" href="#Parser.structure_similarity.TanimotoStructureSimilarity.track_final_cpd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove duplicated targets</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="Parser.structure_similarity.verbose_print">
-<code class="sig-prename descclassname">Parser.structure_similarity.</code><code class="sig-name descname">verbose_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Parser/structure_similarity.html#verbose_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Parser.structure_similarity.verbose_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="parser-structure-similarity">
+<h3>Parser.structure_similarity<a class="headerlink" href="#parser-structure-similarity" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 </div>
@@ -270,10 +73,10 @@ based on structure similarity</p>
     <ul>
 <li><a class="reference internal" href="#">Parser module</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a><ul>
-<li><a class="reference internal" href="#module-Parser.compute_tanimoto">Parser.compute_tanimoto</a></li>
-<li><a class="reference internal" href="#module-Parser.generate_output">Parser.generate_output</a></li>
-<li><a class="reference internal" href="#module-Parser.read_targets">Parser.read_targets</a></li>
-<li><a class="reference internal" href="#module-Parser.structure_similarity">Parser.structure_similarity</a></li>
+<li><a class="reference internal" href="#parser-compute-tanimoto">Parser.compute_tanimoto</a></li>
+<li><a class="reference internal" href="#parser-generate-output">Parser.generate_output</a></li>
+<li><a class="reference internal" href="#parser-read-targets">Parser.read_targets</a></li>
+<li><a class="reference internal" href="#parser-structure-similarity">Parser.structure_similarity</a></li>
 </ul>
 </li>
 </ul>
@@ -312,9 +115,6 @@ based on structure similarity</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> &nbsp; &nbsp;</li>
       <li><a href="index.html">RetSynth 1 documentation</a> &#187;</li>
 
         <li class="nav-item nav-item-this"><a href="">Parser module</a></li> 
