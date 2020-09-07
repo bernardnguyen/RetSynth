@@ -16,8 +16,6 @@ The difficult part of ensuring that BioRetroSynth can run is installing the non-
 	    
     GraphViz     Download from the website http://graphviz.org/ or using MacPorts
 
-Additionally you will need the python packages glpk, cobra, pygraphviz, beautifulsoup and python-libsmbl.
-
 ```bash
 git clone https://github.com/sandialabs/RetSynth.git
 pip install -r requirements.txt
@@ -46,6 +44,8 @@ RetSynth is tested to work under Python 2.7 and 3
 * jsonschema==3.2.0
 * matplotlib==3.2.2
 * graphviz==0.14
+* lxml
+* bio
 
 ## License
 
