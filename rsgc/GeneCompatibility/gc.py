@@ -91,7 +91,13 @@ def reverse_org_gbs_dict(orgs_gbs):
 def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_directory='', default_db='', user_cai_table=None):
     ###GETS GENEBANK IDS FOR ORGANISMS IN OUR DATABASE COLLECTED FROM REPOSITORIES PATRIC AND KEGG###
 
-    db_org_gbs = g4o.get_database_organism_genbank_ids(database)
+    try:
+        output_genecompdb = os.path.abspath(os.path.join(output_directory,'genecomp_databases'))
+        os.mkdir(output_genecompdb)
+    except:
+        output_genecompdb = os.path.abspath(os.path.join(output_directory,'genecomp_databases'))
+        pass
+    db_org_gbs = g4o.get_database_organism_genbank_ids(database,  output_directory=output_genecompdb)
 
     DB_NAME = database.split('/')[-1]
     if default_db and DB_NAME == default_db:
@@ -102,12 +108,12 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
         
 
     ###GETS ADDITIONAL ORGANISMS (PLANT AND FUNGI) NOT IN OUR DATABASE###
-    if not USING_DEFAULTS and os.path.isfile(PATH+'/retrievegeneseqs/data/kegg_bac_plant_fungi_%s.list' % DB_NAME) is False:
+    if not USING_DEFAULTS and os.path.isfile(os.path.join(output_genecompdb,'kegg_bac_plant_fungi_%s.list' % DB_NAME)) is False:
         print ('STATUS:\tDo not have pre-saved list of kegg bacteria, plant and fungi species therefore generating new file...')
         
         orgs_gbs, keggorganisms = kf.extract_KEGG_orgIDs(db_org_gbs, taxid_info=True, kegg_id=True)
         
-        with open(PATH+'/retrievegeneseqs/data/kegg_bac_plant_fungi_%s.list' % DB_NAME, 'wb') as fout:
+        with open(os.path.join(output_genecompdb, 'kegg_bac_plant_fungi_%s.list' % DB_NAME), 'wb') as fout:
              pickle.dump(keggorganisms, fout)
 
         ##GET REVERSE DICTIONARY OF orgs_gbs###        
@@ -117,8 +123,8 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
         print ('STATUS:\tHave pre-saved list of kegg bacteria, plant and fungi species therefore opening file...')
 
         orgs_gbs = db_org_gbs
-
-        with open(PATH+'/retrievegeneseqs/data/kegg_bac_plant_fungi_%s.list' % DB_NAME, 'rb') as fin:
+        print(output_genecompdb)
+        with open(os.path.join(output_genecompdb, 'kegg_bac_plant_fungi_%s.list' % DB_NAME), 'rb') as fin:
              keggorganisms = pickle.load(fin)
 
     ###ADDING KEGG ORGANISMS TO LIST OF ORGANISMS IN OUR DATABASE###
@@ -145,13 +151,22 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
     ###NOTE: GENOME RNA SEQUENCES ARE STORED IN THE FOLDER NCBI_SSU/ncbi_gn_data/ WHEN
     ###COMPLETE THIS FOLDER IS ABOUT 5GBS IN SIZE FOR DEFAULT DB, THE wipe_folder OPTION IF SET TO 
     ###True WILL REMOVE ALL SEQUENCES WHEN DONE.
-    psN.NCBI_SSU(orgs_gbs_bac, 'kegg_bac_16S_%s.fa' % DB_NAME, wipe_folder=False)
+    psN.NCBI_SSU(orgs_gbs_bac, os.path.join(output_genecompdb, 'kegg_bac_16S_%s.fa' % DB_NAME), output_genecompdb, wipe_folder=False)
  
     ###CALCULATE EVOLUTIONARY DISTANCES AND PULL DISTANCES FOR CHASSIS ORGANISM, NOTE DISTANCES ARE SAVED IN A DISTMAT FILE IN phylo/data FOLDER 
     ###IF THIS FILE IS NOT ALREADY GENERATED THIS WILL TAKE SOME TIME TO BUILD###
-
-    R = rb.ImplementBLAST('kegg_bac_16S_%s' % DB_NAME, orgs_gbs[target_org][0],
-                          PATH + '/NCBI_SSU/data/kegg_bac_16S_%s.fa' % DB_NAME)
+    try: 
+        blast_path = os.path.join(output_genecompdb, 'BLAST')
+        os.mkdir(blast_path)
+    except:
+        pass
+    try:
+        blastdb_path = os.path.join(blast_path, 'blastdbs')
+        os.mkdir(blastdb_path)
+    except:
+        pass
+    R = rb.ImplementBLAST(os.path.abspath(os.path.join(blastdb_path,'kegg_bac_16S_%s' % DB_NAME)), orgs_gbs[target_org][0],
+                          os.path.abspath(os.path.join(output_genecompdb, 'kegg_bac_16S_%s.fa' % DB_NAME)), os.path.abspath(blast_path))
     # print (R.blast_results)
     
     ###COLLECT TYPE OF ORGANISMS (BACTERIA, PLANT OR FUNGI) THAT HAVE THE GENE###
@@ -227,7 +242,11 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
         GE.get_geneseq_for(enzyme)
 
     if enzyme in GE.genesequences and len(GE.genesequences[enzyme]) > 0:
-        with open(PATH+'/.temp_fasta_files/tempseqfile._{}.fa'.format(enzyme), 'w') as fout:
+        try:
+            os.mkdir(os.path.join(output_genecompdb,'.temp_fasta_files'))
+        except:
+            pass
+        with open(os.path.join(output_genecompdb,'.temp_fasta_files/tempseqfile._{}.fa'.format(enzyme)), 'w') as fout:
             for key, value_dict in GE.genesequences.items():
                 for key2, value_dict2 in value_dict.items():
                     for key3 in value_dict2:
@@ -247,7 +266,7 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
                         fout.write(tempdnastring+'\n')
 
         #D_Tailor
-        SA = sa.SequenceAnalyzer(PATH+'/.temp_fasta_files/tempseqfile._{}.fa'.format(enzyme), 'FASTA')
+        SA = sa.SequenceAnalyzer(os.path.join(output_genecompdb,'.temp_fasta_files/tempseqfile._{}.fa'.format(enzyme)), 'FASTA')
         seqs = SA.list_of_input_sequences
         cai_scores = []
         design_param = {"cdsCAI" : { 'type' : 'REAL' , 
@@ -263,10 +282,8 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
         org_cai_table = get_cai_table(target_org, user_cai_table)
         max_cai_index, max_cai, cai_scores = get_max_cai(seqs, value, cai_scores, design, org_cai_table, initial=True)
 
-        if output_directory:
-            outputfile = open('%s/geneseqs_%s_%s.txt' % (output_directory,enzyme,target_org), 'w')
-        else:
-            outputfile = open(PATH+'/geneseqs_{}.txt'.format(enzyme), 'w')
+        outputfile = open('%s/geneseqs_%s_%s.txt' % (output_directory,enzyme,target_org), 'w')
+
 
         if max_cai < cai_optimal_threshold:
             dtailorbool = run_DTailor(seqs, max_cai_index, max_cai, cai_scores, design, org_cai_table, outputfile)
@@ -351,18 +368,13 @@ def read_cai_table(cai_table_path):
                 it = iter(line)
                 for x in it: 
                     codon_table.setdefault(x.lower(), round(float(next(it))*0.01, 2))
-    print(codon_table)
     return codon_table
-
 
 def get_cai_table(organism, user_cai_table):
 
     try:
-        print("try")
-        print(PATH+'/D_Tailor/CAI_Tables/%s_cai.txt' % organism)
         cai_table = read_cai_table(PATH+'/D_Tailor/CAI_Tables/%s_cai.txt' % organism)
     except:
-        print("except")
         try:
             cai_table = read_cai_table(user_cai_table)
         except:
@@ -376,8 +388,8 @@ if __name__ == '__main__':
     database = '/home/leann/sandia_work/DevelopedDatabases/PATRICrhodoONLY_mc_inchi.db'
     # database = '/Users/bernguy/Documents/RetSynth_lt/rs/ConstructedDatabases/DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x.db'
     # default_db = 'DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x.db'
-    # target_org = '269796.9'
+    target_org = '269796.9'
     # target_org = '953739.5'
-    target_org = '536056.3'
+    # target_org = '536056.3'
     # target_org = '1348662.3'
-    gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50)
+    gc_main(database, enzyme, target_org, cai_optimal_threshold=0.30, output_directory="./testgc/")

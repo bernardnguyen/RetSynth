@@ -19,19 +19,24 @@ def verbose_print(verbose, line):
         print(line)
 
 class NCBI_SSU(object):
-    def __init__(self, orgs_gb, outputfile_name, wipe_folder=True, verbose=False, run=True):
+    def __init__(self, orgs_gb, outputfile_name, output_dir, wipe_folder=True, verbose=False, run=True):
         '''initialize'''
 
         self.verbose = verbose
         self.orgs_gb = orgs_gb
+        self.output_dir = output_dir
+        try:
+            os.mkdir(self.output_dir)
+        except:
+            pass
 
         ##CHECK TO SEE IF NECESSARY .fa FILE HAS BEEN GENERATED###
         if run:
-            if os.path.isfile(PATH+'/data/'+outputfile_name) is False:
+            if os.path.isfile(outputfile_name) is False:
     
                 print ('STATUS:\tretrieving 16S data for orgs in database and KEGG ...')
     
-                self.outputfile = open(PATH+'/data/'+outputfile_name, 'w')
+                self.outputfile = open(outputfile_name, 'w')
 
                 self.ASSEM_SUM = {}
                 self.ASSEM_SUM.setdefault('GCA', {})
@@ -130,8 +135,9 @@ class NCBI_SSU(object):
             url = ftp_url+'/'+filename
 
             ###PATHWAYS TO .gz and .fna FILES###
-            source_filepath = PATH+'/ncbi_gn_data/'+filename
-            dest_filepath = PATH+'/ncbi_gn_data/'+filename
+            ncbi_gn_path = os.path.join(self.output_dir, 'ncbi_gn_data')
+            source_filepath = os.path.join(ncbi_gn_path, filename)
+            dest_filepath = os.path.join(ncbi_gn_path, filename)
             dest_filepath = re.sub('.gz', '', dest_filepath)
 
             ###CHECKS TO SEE IF FNA FILE FOR GENOME IS PRESENT IN FOLDER###

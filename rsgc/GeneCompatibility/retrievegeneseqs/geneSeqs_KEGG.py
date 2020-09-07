@@ -6,7 +6,6 @@ import pickle
 from rsgc.GeneCompatibility.KEGG import kegg_functions as kf
 from rsgc.GeneCompatibility.GenBank import genbank_functions as gbf
 
-PATH = os.path.dirname(os.path.abspath(__file__))
 codontable = {  
          'ATA':'I', 'ATC':'I', 'ATT':'I', 'ATG':'M',  
          'ACA':'T', 'ACC':'T', 'ACG':'T', 'ACT':'T',  

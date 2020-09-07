@@ -12,7 +12,7 @@ from rsgc.GeneCompatibility.KEGG import kegg_functions as kf
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
-def get_database_organism_genbank_ids(database=False, listoforganisms=False, outputfile=''):
+def get_database_organism_genbank_ids(database=False, listoforganisms=False, output_directory='', outputfile=''):
     '''get genbank accessions for organisms in database 
     so phylogenetic analysis can be done'''
 
@@ -46,14 +46,14 @@ def get_database_organism_genbank_ids(database=False, listoforganisms=False, out
                 gb = kf.get_taxid_gb_info(darray)
                 db_org_gbs[org[0]] = gb
         
-        with open(genbank_file, 'wb') as fout:
+        with open(os.path.join(output_directory, genbank_file, 'wb')) as fout:
             pickle.dump(db_org_gbs, fout)
         
         return(db_org_gbs)
 
     else:
 
-        with open(genbank_file, 'rb') as fin:
+        with open(os.path.join(output_directory, genbank_file), 'rb') as fin:
             db_org_gbs = pickle.load(fin)
 
         return(db_org_gbs)
