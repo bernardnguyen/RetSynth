@@ -27,7 +27,7 @@ python setup.py install
 RetSynth is tested to work under Python 2.7 and 3
 
 * glpk==0.4.6
-* pulp==1.6.8
+* pulp==2.3
 * cobra==0.14.1
 * bs4
 * pygraphviz==1.3.1
