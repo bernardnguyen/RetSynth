@@ -97,7 +97,7 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
     except:
         output_genecompdb = os.path.abspath(os.path.join(output_directory,'genecomp_databases'))
         pass
-    db_org_gbs = g4o.get_database_organism_genbank_ids(database,  output_directory=output_genecompdb)
+    db_org_gbs = g4o.get_database_organism_genbank_ids(database)
 
     DB_NAME = database.split('/')[-1]
     if default_db and DB_NAME == default_db:
