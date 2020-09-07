@@ -7,6 +7,12 @@ import os
 import re
 import glob
 import base64
+from sys import platform
+if platform == "cygwin":
+    header_path = 'C:\cygwin64'
+else:
+    header_path = ''
+
 PATH = os.path.dirname(os.path.abspath(__file__))
 legend=[]
 with open(PATH+"/_static/legend.txt") as fin:
@@ -103,7 +109,11 @@ class HtmlOutput(object):
                             self.output.write("<td style=\"text-align: center; vertical-align: middle; font-size: 13px;\">%s</td>\n" % s)
                             self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % r)
                             self.output.write("<td style=\"text-align: center; vertical-align: middle; font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["name"])
-                            self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"])
+                            if os.path.exits(self.output_path+"geneseqs/geneseqs_{}.txt".format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"])):
+                                file_path=header_path+os.path.abspath(self.output_path+"geneseqs/geneseqs_{}.txt".format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"]))
+                                self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\"><a href=file:///{} target=\"popup\"\"></a>{}</td>\n".format(file_path, self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"]))
+                            else: 
+                                self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"])                               
                             self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % ",".join(self.opt_path[i][o]['sol'][s]['rxn'][r]["react"]))
                             self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % ",".join(self.opt_path[i][o]['sol'][s]['rxn'][r]["prod"]))
                             self.output.write("</tr>\n")
