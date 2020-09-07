@@ -24,43 +24,43 @@ class Output(object):
         self.KO = KO
         self.timer_output = timer_output
         self.output_path = output_path
-        self.optimal_paths = open(output_path+'/optimal_pathways.txt', 'w')
+        self.optimal_paths = open(os.path.join(output_path, '/optimal_pathways.txt'), 'w')
         self.optimal_paths.close()
         if self.FBA:
-            self.flux_ouptput = open(output_path+'/flux_output.txt', 'w')
-            self.flux_individual_output = open(output_path+'/flux_individualfluxes_output.txt', 'w')
-            self.theoyield = open(output_path+'/theoretical_yield.txt', 'w')
+            self.flux_ouptput = open(os.path.join(output_path, 'flux_output.txt'), 'w')
+            self.flux_individual_output = open(os.path.join(output_path, 'flux_individualfluxes_output.txt'), 'w')
+            self.theoyield = open(os.path.join(output_path, 'theoretical_yield.txt'), 'w')
 
             self.flux_ouptput.close()
             self.flux_individual_output.close()
             self.theoyield.close()
 
         if self.KO:
-            self.essentialrxns = open(output_path+'/essentialrxns_output.txt', 'w')
-            self.fluxKO_ouptput = open(output_path+'/fluxKO_output.txt', 'w')
-            self.fluxKO_ty_output = open(output_path+'/fluxKO_theoreticalyields_output.txt', 'w')
-            self.fluxKO_in_ty_output = open(output_path+'/fluxKO_increased_theoreticalyields_output.txt', 'w')
+            self.essentialrxns = open(os.path.join(output_path,'essentialrxns_output.txt'), 'w')
+            self.fluxKO_ouptput = open(os.path.join(output_path, 'fluxKO_output.txt'), 'w')
+            self.fluxKO_ty_output = open(os.path.join(output_path, 'fluxKO_theoreticalyields_output.txt'), 'w')
+            self.fluxKO_in_ty_output = open(os.path.join(output_path, 'fluxKO_increased_theoreticalyields_output.txt'), 'w')
             self.fluxKO_in_ty_output.close()
             self.essentialrxns.close()
             self.fluxKO_ty_output.close()
             self.fluxKO_ouptput.close()
 
         if self.timer_output:
-            self.timer_output_file = open(output_path+'/timer_output.txt', 'w')
+            self.timer_output_file = open(os.path.join(output_path, 'timer_output.txt'), 'w')
             self.timer_output_file.write('#Functions\tseconds\tminutes\n')
             self.timer_output_file.close()
 
         if raw_solutions:
             try:
-                os.mkdir(output_path+'/raw_compound_solutions')
+                os.mkdir(os.path.join(output_path, 'raw_compound_solutions'))
             except OSError:
-                shutil.rmtree(output_path+'/raw_compound_solutions')
-                os.mkdir(output_path+'/raw_compound_solutions')
+                shutil.rmtree(os.path.join(output_path, 'raw_compound_solutions'))
+                os.mkdir(os.path.join(output_path, 'raw_compound_solutions'))
 
         self.GC = GC
             
     def generate_gc_directory(self):
-        self.GC_output_path = self.output_path+'/gene_compatibility'
+        self.GC_output_path = os.path.join(self.output_path, 'gene_compatibility')
         try:
             os.mkdir(self.GC_output_path)
         except OSError:
@@ -68,11 +68,11 @@ class Output(object):
             os.mkdir(self.GC_output_path)
 
     def output_timer(self, print_statement):
-        with open(self.output_path+'/timer_output.txt', 'a') as fout:
+        with open(os.path.join(self.output_path,'timer_output.txt'), 'a') as fout:
             fout.write(print_statement)
 
     def output_final_targets(self, targets, tan_threshold):
-        with open(self.output_path+'/finallist_targets_{}_threshold.txt'.format(tan_threshold), 'w') as fout:
+        with open(os.path.join(self.output_path, 'finallist_targets_{}_threshold.txt'.format(tan_threshold)), 'w') as fout:
             for target in targets:
                 fout.write(target[0]+'\n')
  
@@ -82,7 +82,7 @@ class Output(object):
         need to be added to every organism in the daabase to produce a target organism
         '''
         file_name = 'path_length_all_organism_'+target_compound_ID+'.txt'
-        self.all_organisms = open(self.output_path+'/'+file_name, 'w')
+        self.all_organisms = open(os.path.join(self.output_path, file_name), 'w')
         self.all_organisms.close()
 
     def output_raw_solutions(self, compound, org_ID, ordered_paths, reactions, externalrxnscount, incpds):
