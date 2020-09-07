@@ -26,7 +26,7 @@ class NCBI_SSU(object):
         self.orgs_gb = orgs_gb
         self.output_dir = output_dir
         try:
-            os.mkdir(self.output_dir)
+            os.mkdir(os.path.join(self.output_dir, 'ncbi_gn_data'))
         except:
             pass
 
