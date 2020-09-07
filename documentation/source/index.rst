@@ -15,6 +15,9 @@ RetSynth is a tool, developed with python, which identfies enzyme/reaction pairs
       Mac
 
       Linux
+
+      Cygwin
+
    Required Non-python Dependencies:
       `GLPK <http://ftp.gnu.org/gnu/glpk/>`_ (v4.64 preferred)
       
