@@ -24,7 +24,7 @@ class Output(object):
         self.KO = KO
         self.timer_output = timer_output
         self.output_path = output_path
-        self.optimal_paths = open(os.path.join(output_path, '/optimal_pathways.txt'), 'w')
+        self.optimal_paths = open(os.path.join(output_path, 'optimal_pathways.txt'), 'w')
         self.optimal_paths.close()
         if self.FBA:
             self.flux_ouptput = open(os.path.join(output_path, 'flux_output.txt'), 'w')
@@ -63,9 +63,10 @@ class Output(object):
         self.GC_output_path = os.path.join(self.output_path, 'gene_compatibility')
         try:
             os.mkdir(self.GC_output_path)
-        except OSError:
-            shutil.rmtree(self.GC_output_path)
-            os.mkdir(self.GC_output_path)
+        except:
+            # shutil.rmtree(self.GC_output_path)
+            # os.mkdir(self.GC_output_path)
+            pass
 
     def output_timer(self, print_statement):
         with open(os.path.join(self.output_path,'timer_output.txt'), 'a') as fout:
