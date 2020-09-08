@@ -7,6 +7,7 @@ import os
 import re
 import glob
 import base64
+from rsgc.Database import query as Q
 from sys import platform
 if platform == "cygwin":
     header_path = 'C:\cygwin64'
@@ -23,11 +24,12 @@ legend = "".join(legend)
 
 
 class HtmlOutput(object):
-    def __init__(self, eval_targets, output_path, fba, figures, outputfile):
+    def __init__(self, eval_targets, output_path, fba, figures, database, outputfile):
         self.eval_targets = eval_targets
         self.output_path = output_path
         self.fba = fba
         self.figures = figures
+        self.DB = Q.Connector(database)
         self.compoundpaths = glob.glob(self.output_path+"/raw_compound_solutions/*.txt")
         self.output = open(outputfile, 'w')
         self.output.write("<!DOCTYPE html>\n\n")
@@ -109,11 +111,11 @@ class HtmlOutput(object):
                             self.output.write("<td style=\"text-align: center; vertical-align: middle; font-size: 13px;\">%s</td>\n" % s)
                             self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % r)
                             self.output.write("<td style=\"text-align: center; vertical-align: middle; font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["name"])
-                            if os.path.exits(self.output_path+"geneseqs/geneseqs_{}.txt".format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"])):
-                                file_path=header_path+os.path.abspath(self.output_path+"geneseqs/geneseqs_{}.txt".format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"]))
-                                self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\"><a href=file:///{} target=\"popup\"\"></a>{}</td>\n".format(file_path, self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"]))
-                            else: 
-                                self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"])                               
+                            if os.path.exists(self.output_path+'/gene_compatibility/geneseqs_{}_{}.txt'.format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"],  self.DB.get_model_ID(o))):
+                                file_path=header_path+os.path.abspath(self.output_path+"gene_compatibility/geneseqs_{}_{}.txt".format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"], self.DB.get_model_ID(o)))
+                                self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\"><a href=file:///{} target=\"popup\"\">{}</a></td>\n".format(file_path, self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"]))
+                            else:
+                                self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"])
                             self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % ",".join(self.opt_path[i][o]['sol'][s]['rxn'][r]["react"]))
                             self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % ",".join(self.opt_path[i][o]['sol'][s]['rxn'][r]["prod"]))
                             self.output.write("</tr>\n")
@@ -180,7 +182,6 @@ class HtmlOutput(object):
                     self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("enz", str(rxnarray[3]))
                     self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("name", str(rxnarray[1]))
 
-                
     def load_pathways(self):
         self.output.write("<div class=\"section\" id=\"retSynth-results\">\n")
         self.output.write("<h1>Pathways</h1>\n")
