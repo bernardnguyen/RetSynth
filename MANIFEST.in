@@ -5,6 +5,9 @@ include rsgc/GeneCompatibility/D_Tailor/3rdParty/transterm/*
 include rsgc/GeneCompatibility/D_Tailor/3rdParty/unafold/*
 include rsgc/GeneCompatibility/D_Tailor/3rdParty/vienna/*
 include rsgc/GeneCompatibility/D_Tailor/CAI_Tables/*
+include rsgc/GeneCompatibility/BLAST/*
+include rsgc/GeneCompatibility/BLAST/ncbi-blast-2.9.0+_win/bin/*
+include rsgc/GeneCompatibility/BLAST/ncbi-blast-2.9.0+_mac/bin/*
 include rsgc/GeneCompatibility/D_Tailor/DBOperation/*
 include rsgc/GeneCompatibility/D_Tailor/DesignOfExperiments/*
 include rsgc/GeneCompatibility/D_Tailor/Features/*
