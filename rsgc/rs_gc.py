@@ -5,8 +5,10 @@ __description__ = 'Main code to RetSynth (RS)'
 from multiprocessing import Process
 import argparse
 from copy import deepcopy
-
-import pickle
+try:
+    import pickle
+except:
+    import cPickle as pickle
 import os
 import re
 import glob
