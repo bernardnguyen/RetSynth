@@ -69,6 +69,7 @@ from rsgc.FBA import retrieve_producable_mets as rpm
 from rsgc.FBA import compareKO_results as crko
 from rsgc.Visualization_graphviz import SP_Graph_dot as spgd
 from rsgc.GeneCompatibility.gc import gc_main as gc
+from rsgc.GeneCompatibility.gc import gc_enzyme as gce
 
 
 
@@ -139,7 +140,12 @@ def run_flux_balance_analysis(target_info, ex_info, incpds_active,
 
     return opt_fba
  
-def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_imgs_PATH, CRV, timer_output, media_for_FBA, flux_balance_analysis, knockouts, images, figures_graphviz, figures_chemdraw, evaluate_reactions, rankpathways_logP_solvent, rankpathways_logP, rankpathways_boilingpoint, show_rxn_info, output_path, multiple_solutions, start_compounds, gene_compatibility, cai_optimal_threshold, user_cai_table, verbose):
+def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_imgs_PATH, CRV, timer_output,
+                    media_for_FBA, flux_balance_analysis, knockouts, images, figures_graphviz, figures_chemdraw,
+                    evaluate_reactions, rankpathways_logP_solvent, rankpathways_logP, rankpathways_boilingpoint,
+                    show_rxn_info, output_path, multiple_solutions, start_compounds, gene_compatibility,
+                    cai_optimal_threshold, user_cai_table,orgs_gbs, gbs_orgs, RGC, keggorganisms_ids,
+                    output_genecompdb, verbose):
     '''Retrieve the shortest path for target organism'''
 
     start = timer()
@@ -224,9 +230,12 @@ def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_im
                         output.generate_gc_directory()
                         for enzyme in enzymes:
                             verbose_print(args.verbose,'\nSTATUS:\tOptimizing gene compatibility for EC: %s' % enzyme)
-                            gc(database,enzyme,target_org=target_info[2],output_directory=output.GC_output_path,
-                                cai_optimal_threshold=cai_optimal_threshold, default_db='%s.db' % DEFAULT_DB_NAME,
-                                user_cai_table=user_cai_table)
+                            if os.path.isfile(os.path.join(args.output_path, "geneseqs_{}_{}.txt".format(enzyme, target_info[2]))):
+                                print ("STATUS: already have sequence information for {} in {}".format(enzyme, target_info[2]))
+                            else:
+                                gce(enzyme, orgs_gbs, gbs_orgs, target_info[2], RGC, keggorganisms_ids, output_genecompdb,
+                                    output_directory=output.GC_output_path, user_cai_table=user_cai_table,
+                                    cai_optimal_threshold=cai_optimal_threshold)
 
             else:
 
@@ -377,6 +386,16 @@ class RetSynthGC(object):
 
         LP, LPchem = self.retrieve_constraints(all_db_reactions, all_db_compounds, ignore_reactions, include_rxns, database)
         IP, CRV = self.construct_and_run_integerprogram(targets, output, database, rankingfile=self.rankingpathways_seperation_file)
+        if gene_compatibility:
+            orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb = gc(database, 
+                                                                            output_directory=output.GC_output_path,
+                                                                            default_db='%s.db' % DEFAULT_DB_NAME)
+        else:
+            orgs_gbs=False
+            gbs_orgs=False
+            R=False
+            keggorganisms_ids=False
+            output_genecompdb=False
 
         args_targets = [targets[i:i+self.processors]
                       for i in range(0, len(targets), self.processors)]
@@ -390,7 +409,9 @@ class RetSynthGC(object):
                                                             self.rankpathways_logP_solvent, self.rankpathways_logP,
                                                             self.rankpathways_boilingpoint, self.show_rxn_info,
                                                             self.output_path, self.multiple_solutions, self.start_compounds,
-                                                            self.gene_compatability, self.cai_threshold, self.user_cai_table, self.verbose)))
+                                                            self.gene_compatability, self.cai_threshold, self.user_cai_table,
+                                                            orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb,
+                                                            self.verbose)))
                                         
             for p in processes:        
                 p.start()
