@@ -289,7 +289,7 @@ def gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, outp
         design = Optimization(["cdsCAI"],design_param, '5')  
 
         org_cai_table = get_cai_table(target_org, user_cai_table)
-        max_cai_index, max_cai, cai_scores = get_max_cai(seqs, value, cai_scores, design, org_cai_table, initial=True)
+        max_cai_index, max_cai, cai_scores = get_max_cai(seqs, cai_scores, design, org_cai_table, initial=True)
 
         outputfile = open('%s/geneseqs_%s_%s.txt' % (output_directory,enzyme,target_org), 'w')
 
@@ -309,7 +309,7 @@ def gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, outp
         print('STATUS:\tFailed to retrieve gene sequences for EC:%s' % enzyme)
     empty_tmp_folders()
 
-def get_max_cai(seqs, value, cai_scores, design, cai_table, initial=True):
+def get_max_cai(seqs, cai_scores, design, cai_table, initial=True):
     '''get max cai from list of sequences'''
 
     if initial:
