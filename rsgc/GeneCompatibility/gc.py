@@ -151,7 +151,6 @@ def gc_main(database,  output_directory='', default_db=''):
     ###NOTE: GENOME RNA SEQUENCES ARE STORED IN THE FOLDER NCBI_SSU/ncbi_gn_data/ WHEN
     ###COMPLETE THIS FOLDER IS ABOUT 5GBS IN SIZE FOR DEFAULT DB, THE wipe_folder OPTION IF SET TO 
     ###True WILL REMOVE ALL SEQUENCES WHEN DONE.
-    print('NCBI')
     psN.NCBI_SSU(orgs_gbs_bac, os.path.join(output_genecompdb, 'kegg_bac_16S_%s.fa' % DB_NAME), output_genecompdb, wipe_folder=False)
  
     ###CALCULATE EVOLUTIONARY DISTANCES AND PULL DISTANCES FOR CHASSIS ORGANISM, NOTE DISTANCES ARE SAVED IN A DISTMAT FILE IN phylo/data FOLDER 
