@@ -710,7 +710,7 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                                 print ("STATUS: already have sequence information for {} in {}".format(enzyme, target_info[2]))
                             else:
                                 gce(enzyme, orgs_gbs, gbs_orgs, target_info[2], RGC, keggorganisms_ids, output_genecompdb,
-                                    output_directory=args.output_path, user_cai_table=args.user_cai_table,
+                                    output_directory=output.GC_output_path, user_cai_table=args.user_cai_table,
                                     cai_optimal_threshold=args.cai_optimal_threshold)
                     else:
                         verbose_print(args.verbose, 'STATUS:')
@@ -759,8 +759,8 @@ def main():
     targets, ignore_reactions, output, temp_imgs_PATH = read_in_and_generate_output_files(args, database)
     if args.gene_compatibility:
         orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb = gc(database, 
-                                                                         output_directory=args.output_path,
-                                                                         default_db='%s.db' % DEFAULT_DB_NAME,)
+                                                                         output_directory=output.GC_output_path,
+                                                                         default_db='%s.db' % DEFAULT_DB_NAME)
     else:
         orgs_gbs=False
         gbs_orgs=False
