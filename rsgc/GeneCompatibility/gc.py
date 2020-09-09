@@ -88,7 +88,7 @@ def reverse_org_gbs_dict(orgs_gbs):
     return gbs_orgs
 
 
-def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_directory='', default_db='', user_cai_table=None):
+def gc_main(database,  output_directory='', default_db='', user_cai_table=None):
     ###GETS GENEBANK IDS FOR ORGANISMS IN OUR DATABASE COLLECTED FROM REPOSITORIES PATRIC AND KEGG###
 
     try:
@@ -151,6 +151,7 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
     ###NOTE: GENOME RNA SEQUENCES ARE STORED IN THE FOLDER NCBI_SSU/ncbi_gn_data/ WHEN
     ###COMPLETE THIS FOLDER IS ABOUT 5GBS IN SIZE FOR DEFAULT DB, THE wipe_folder OPTION IF SET TO 
     ###True WILL REMOVE ALL SEQUENCES WHEN DONE.
+    print('NCBI')
     psN.NCBI_SSU(orgs_gbs_bac, os.path.join(output_genecompdb, 'kegg_bac_16S_%s.fa' % DB_NAME), output_genecompdb, wipe_folder=False)
  
     ###CALCULATE EVOLUTIONARY DISTANCES AND PULL DISTANCES FOR CHASSIS ORGANISM, NOTE DISTANCES ARE SAVED IN A DISTMAT FILE IN phylo/data FOLDER 
@@ -165,11 +166,19 @@ def gc_main(database, enzyme, target_org, cai_optimal_threshold=0.50, output_dir
         os.mkdir(blastdb_path)
     except:
         pass
-    R = rb.ImplementBLAST(os.path.abspath(os.path.join(blastdb_path,'kegg_bac_16S_%s' % DB_NAME)), orgs_gbs[target_org][0],
+
+    R = rb.ImplementBLAST(os.path.abspath(os.path.join(blastdb_path,'kegg_bac_16S_%s' % DB_NAME)),
                           os.path.abspath(os.path.join(output_genecompdb, 'kegg_bac_16S_%s.fa' % DB_NAME)), os.path.abspath(blast_path))
-    # print (R.blast_results)
-    
+    R.generate_blast_dbs()
+    return (orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb)
+
+def gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, output_genecompdb, user_cai_table=None, cai_optimal_threshold=0.50):
     ###COLLECT TYPE OF ORGANISMS (BACTERIA, PLANT OR FUNGI) THAT HAVE THE GENE###
+    R.read_16S_fasta_file()
+    R.generate_temp_query_file(orgs_gbs[target_org][0])
+    R.blastn_sequences(orgs_gbs[target_org][0])
+    R.process_blast_output(orgs_gbs[target_org][0])
+
     GE = gse.GeneSeqKEGG(orgs2pullgene=False, get_orgs=True)
     GE.get_geneseq_for(enzyme)
 
@@ -392,4 +401,6 @@ if __name__ == '__main__':
     # target_org = '953739.5'
     # target_org = '536056.3'
     # target_org = '1348662.3'
-    gc_main(database, enzyme, target_org, cai_optimal_threshold=0.30, output_directory="./testgc/")
+
+    orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb = gc_main(database, output_directory="../../../testgc/")
+    gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, output_genecompdb, user_cai_table=None, cai_optimal_threshold=0.50)
