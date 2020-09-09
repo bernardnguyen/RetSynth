@@ -88,7 +88,7 @@ def reverse_org_gbs_dict(orgs_gbs):
     return gbs_orgs
 
 
-def gc_main(database,  output_directory='', default_db='', user_cai_table=None):
+def gc_main(database,  output_directory='', default_db=''):
     ###GETS GENEBANK IDS FOR ORGANISMS IN OUR DATABASE COLLECTED FROM REPOSITORIES PATRIC AND KEGG###
 
     try:
@@ -172,7 +172,7 @@ def gc_main(database,  output_directory='', default_db='', user_cai_table=None):
     R.generate_blast_dbs()
     return (orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb)
 
-def gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, output_genecompdb, user_cai_table=None, cai_optimal_threshold=0.50):
+def gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, output_genecompdb, output_directory, user_cai_table=None, cai_optimal_threshold=0.50):
     ###COLLECT TYPE OF ORGANISMS (BACTERIA, PLANT OR FUNGI) THAT HAVE THE GENE###
     R.read_16S_fasta_file()
     R.generate_temp_query_file(orgs_gbs[target_org][0])
@@ -403,4 +403,4 @@ if __name__ == '__main__':
     # target_org = '1348662.3'
 
     orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb = gc_main(database, output_directory="../../../testgc/")
-    gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, output_genecompdb, user_cai_table=None, cai_optimal_threshold=0.50)
+    gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, output_genecompdb, output_directory="../../../testgc/", user_cai_table=None, cai_optimal_threshold=0.30)

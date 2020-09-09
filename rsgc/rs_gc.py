@@ -40,6 +40,7 @@ from rsgc.FBA import compare_results as cr
 from rsgc.FBA import retrieve_producable_mets as rpm
 from rsgc.FBA import compareKO_results as crko
 from rsgc.GeneCompatibility.gc import gc_main as gc
+from rsgc.GeneCompatibility.gc import gc_enzyme as gce
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_DB_NAME = 'DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x'
@@ -633,7 +634,8 @@ def _specific_target(target_id):
     else:
         return True
 
-def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs_PATH):
+def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs_PATH, orgs_gbs=False,
+                          gbs_orgs=False, RGC=False, keggorganisms_ids=False, output_genecompdb=False):
     '''Retrieve the shortest path for target organism'''
     start = timer()
     DB = Q.Connector(database)
@@ -704,9 +706,12 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                         output.generate_gc_directory()
                         for enzyme in enzymes:
                             verbose_print(args.verbose,'\nSTATUS:\tOptimizing gene compatibility for EC: %s' % enzyme)
-                            gc(database,enzyme,target_org=target_info[2],output_directory=output.GC_output_path,
-                                cai_optimal_threshold=args.cai_optimal_threshold, default_db='%s.db' % DEFAULT_DB_NAME,
-                                user_cai_table=args.user_cai_table)
+                            if os.path.isfile(os.path.join(args.output_path, "geneseqs_{}_{}.txt".format(enzyme, target_info[2]))):
+                                print ("STATUS: already have sequence information for {} in {}".format(enzyme, target_info[2]))
+                            else:
+                                gce(enzyme, orgs_gbs, gbs_orgs, target_info[2], RGC, keggorganisms_ids, output_genecompdb,
+                                    output_directory=args.output_path, user_cai_table=args.user_cai_table,
+                                    cai_optimal_threshold=args.cai_optimal_threshold)
                     else:
                         verbose_print(args.verbose, 'STATUS:')
 
@@ -718,7 +723,7 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
     if args.timer_output:
        output.output_timer('Time to find all paths for {}\t{}\t{}\n'.format(target_info[0], (end-start), (end-start)/60))
     verbose_print(args.verbose, "\nINFO:\tTime to find all paths for "+str(target_info[0])+' '+str(end - start))
-
+    return ()
 def run_flux_balance_analysis(target_info, ex_info, incpds_active,
                               inrxns, media, ko,
                               output, DB, verbose):
@@ -752,6 +757,16 @@ def main():
     verbose_print(args.verbose,'\nSTATUS:\tRetrieving database information...')
     all_db_compounds, all_db_reactions, database = retrieve_database_info(args)
     targets, ignore_reactions, output, temp_imgs_PATH = read_in_and_generate_output_files(args, database)
+    if args.gene_compatibility:
+        orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb = gc(database, 
+                                                                         output_directory=args.output_path,
+                                                                         default_db='%s.db' % DEFAULT_DB_NAME,)
+    else:
+        orgs_gbs=False
+        gbs_orgs=False
+        R=False
+        keggorganisms_ids=False
+        output_genecompdb=False
 
     args_targets = [targets[i:i+args.processors]
             for i in range(0, len(targets), args.processors)]
@@ -761,7 +776,8 @@ def main():
         LP = retrieve_constraints(args, all_db_reactions, all_db_compounds, ignore_reactions, database)
 
         verbose_print(args.verbose,'\nSTATUS:\tConstructing and running linear integer program...')
-        IP = construct_and_run_integerprogram(args, targets, output, database)        
+        IP = construct_and_run_integerprogram(args, targets, output, database)
+        
 
         args_targets = [targets[i:i+args.processors]
                 for i in range(0, len(targets), args.processors)]
@@ -770,13 +786,16 @@ def main():
             processes = []
             for target in targets:
                 LPc=deepcopy(LP)
-                processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LPc, database, args, output, temp_imgs_PATH)))
+                processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LPc, database, args,
+                                                                             output, temp_imgs_PATH, orgs_gbs,
+                                                                             gbs_orgs, R, keggorganisms_ids,
+                                                                             output_genecompdb)))
                 # retrieve_shortestpath(target, IP, LPc, database, args, output, temp_imgs_PATH)
             for p in processes:
                 p.start()
             for p in processes:
                 p.join()
-
+    
             if args.output_xlsx_format:
                 output.convert_output_2_xlsx()
 

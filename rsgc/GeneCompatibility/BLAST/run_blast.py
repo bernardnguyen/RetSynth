@@ -20,12 +20,11 @@ def make_directory(folder):
         pass
 
 class ImplementBLAST(object):
-    def __init__(self, blastdb, chassis_org, Seq16S_filename, output_directory, run=True):
+    def __init__(self, blastdb, Seq16S_filename, output_directory):
         '''Initialize'''
         
         ##PATH TO STORED CHASSIS ORGANISM BLAST DATABASE
         self.blastdb = blastdb
-        self.chassis_org = chassis_org
         self.Seq16S_filename = Seq16S_filename
 
         make_directory(os.path.join(output_directory, "query"))
@@ -39,13 +38,6 @@ class ImplementBLAST(object):
         else:
             self._BLAST_QUERY_PATH=os.path.abspath(os.path.join(output_directory,'query'))
             self._BLAST_OUTPUT_PATH=os.path.abspath(os.path.join(output_directory,'blastoutput'))            
-        
-        if run:
-            self.read_16S_fasta_file()
-            self.generate_temp_query_file()
-            self.generate_blast_dbs()
-            self.blastn_sequences()
-            self.process_blast_output()
 
     def read_16S_fasta_file(self):
         '''read in 16S sequences'''
@@ -71,13 +63,13 @@ class ImplementBLAST(object):
                 sequence = line
                 self.fasta16S[active_sequence_name].append(sequence)
 
-    def generate_temp_query_file(self):
+    def generate_temp_query_file(self, chassis_org):
         '''generate temporary query file'''
 
         with open(self._BLAST_QUERY_PATH+'temp_input_query.fa', 'w') as fout:
 
-            fout.write('>'+self.chassis_org+'\n')
-            fout.write(''.join(self.fasta16S[self.chassis_org])+'\n')
+            fout.write('>'+chassis_org+'\n')
+            fout.write(''.join(self.fasta16S[chassis_org])+'\n')
 
     def generate_blast_dbs(self):
         '''make blast database'''
@@ -94,7 +86,7 @@ class ImplementBLAST(object):
         else:
             print ('INFO:\t{} blast databases already exist'.format(self.blastdb))
 
-    def blastn_sequences(self):
+    def blastn_sequences(self, chassis_org):
         '''perform blastn'''
 
         ##Run blast 
@@ -105,19 +97,19 @@ class ImplementBLAST(object):
         ### -strand = strand to search against (we do both plus and minus)
         args_blastn = [_BLAST_PATH+"blastn", "-db", self.blastdb, 
                        "-query", self._BLAST_QUERY_PATH+'temp_input_query.fa', 
-                       "-out", self._BLAST_OUTPUT_PATH+"blast_out_"+self.chassis_org+'.txt']
+                       "-out", self._BLAST_OUTPUT_PATH+"blast_out_"+chassis_org+'.txt']
 
         process = subprocess.run(args_blastn)
         # stdoutdata, stderrdata = process.dd()
 
-    def process_blast_output(self):
+    def process_blast_output(self,chassis_org):
         '''read in blast output file'''
 
         self.blast_results = {}
         self.blast_bitscore = {}
         tempset = set()
 
-        with open(self._BLAST_OUTPUT_PATH+"blast_out_"+self.chassis_org+'.txt') as fin:
+        with open(self._BLAST_OUTPUT_PATH+"blast_out_"+chassis_org+'.txt') as fin:
             count = 0
 
             for line in fin:

@@ -33,7 +33,6 @@ class NCBI_SSU(object):
         ##CHECK TO SEE IF NECESSARY .fa FILE HAS BEEN GENERATED###
         if run:
             if os.path.isfile(outputfile_name) is False:
-    
                 print ('STATUS:\tretrieving 16S data for orgs in database and KEGG ...')
     
                 self.outputfile = open(outputfile_name, 'w')
