@@ -44,8 +44,6 @@ class TanimotoStructureSimilarity(object):
         self.cytosol = cytosol
         self.extracellular = extracellular
         self.threshold_score = float(threshold_score)
-        self.IN = indigo.Indigo()
-        self.INCHI = indigo_inchi.IndigoInchi(self.IN)
         self.calculate_tanimoto_score()
 
     def remove_compartment_info_from_cpdID(self, cpd):
@@ -96,11 +94,11 @@ class TanimotoStructureSimilarity(object):
         else:
             return index
 
-    def get_tanimoto_score(self, tmol, threshold):
+    def get_tanimoto_score(self, tmol, threshold, IN):
         temp = {}
         # print (threshold)
         for db_cpd in self.db_cpds_fp:
-            score = self.IN.similarity(self.individualtargets_p_fp[tmol], self.db_cpds_fp[db_cpd], 'tanimoto')
+            score = IN.similarity(self.individualtargets_p_fp[tmol], self.db_cpds_fp[db_cpd], 'tanimoto')
             temp[db_cpd] = score
         # print (temp)
         max_score_cpds = [i for i, v in list(temp.items()) if float(v) >= float(threshold)]
@@ -111,11 +109,11 @@ class TanimotoStructureSimilarity(object):
            
         self.finaltargets = self.targets
         self.individualtargets_p = self.process_targets(set(self.individualtargets))
-        self.retrieve_fingerprints()
+        IN = self.retrieve_fingerprints()
         for count ,tmol in enumerate(self.individualtargets_p_fp.keys()):
             # print (tmol)
             if tmol+'_'+self.cytosol in self.all_compounds:
-                max_score_cpds = self.get_tanimoto_score(tmol, self.threshold_score)
+                max_score_cpds = self.get_tanimoto_score(tmol, self.threshold_score, IN)
                 if max_score_cpds:
                     for max_score_cpd in set(max_score_cpds):
                         if max_score_cpd != tmol:
@@ -132,7 +130,7 @@ class TanimotoStructureSimilarity(object):
                     self.finaltargets[index][0] = new_target
 
             else:
-                max_score_cpds = self.get_tanimoto_score(tmol, self.threshold_score)
+                max_score_cpds = self.get_tanimoto_score(tmol, self.threshold_score, IN)
                 if max_score_cpds:
                     index = self.get_original_target(tmol+'_'+self.cytosol)
                     if index:
@@ -154,6 +152,8 @@ class TanimotoStructureSimilarity(object):
 
     def retrieve_fingerprints(self):
         """Retrieve fingerprints for database compounds and targets"""
+        IN = indigo.Indigo()
+        INCHI = indigo_inchi.IndigoInchi(IN)
         db_cpds = []
         self.cpd_dict = {}
         for cpd in self.all_compounds:
@@ -166,7 +166,7 @@ class TanimotoStructureSimilarity(object):
         verbose_print(self.verbose, "STATUS:\tgetting fingerprints for target compounds")
         for count, tmol in enumerate(tqdm(self.individualtargets_p)):
             try:
-                self.individualtargets_p_fp[tmol] = self.INCHI.loadMolecule(tmol).fingerprint('full')
+                self.individualtargets_p_fp[tmol] = INCHI.loadMolecule(tmol).fingerprint('full')
             except indigo.IndigoException:
                 verbose_print(self.verbose, 'WARNING:\tCould not get fingerprint for {}'.format(tmol))
 
@@ -175,10 +175,11 @@ class TanimotoStructureSimilarity(object):
         verbose_print(self.verbose, "STATUS:\tgetting fingerprints for database compounds")        
         for db_cpd in tqdm(db_cpds_set):
             try:
-                mol = self.INCHI.loadMolecule(db_cpd)
+                mol = INCHI.loadMolecule(db_cpd)
                 self.db_cpds_fp[db_cpd] = mol.fingerprint('full')
             except indigo.IndigoException:
                 pass
+        return IN
 
     def extract_db_cpd_ID(self, cpdID):
         """Extract correct database ID for a compound"""

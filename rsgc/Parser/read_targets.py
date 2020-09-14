@@ -57,10 +57,13 @@ class Readfile(object):
         for count, values in list(self.input.items()):
             temp = []
             if 'compoundid' in values:
-                match = re.search('\_\w{1}0$', values['compoundid'])
+                compartment = self.DB.get_compound_compartment(values['compoundid'])
+                match = re.search("_"+compartment+"$", values['compoundid'])
                 if match:
                     temp.extend((values['compoundid'], ''))
                 else:
+                    print (compartment)
+                    print(values['compoundid'])
                     temp.extend((values['compoundid']+'_'+compartmentID, ''))                    
             elif 'pubchem' in values:
                 cid = values['pubchem']
