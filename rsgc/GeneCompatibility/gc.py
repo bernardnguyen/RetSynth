@@ -37,29 +37,6 @@ def verbose_print(verbose, line):
     if verbose:
         print(line)
 
-def make_tmp_folders():    
-    def make_folder(fp):
-        try:
-            os.mkdir(fp)
-        except FileNotFoundError:
-            make_folder('/'.join(fp.split('/')[:-1]))
-            make_folder(fp)
-        except FileExistsError:
-            pass
-
-    folders = [PATH+'/D_Tailor/tmp/transterm_files',
-                PATH+'/D_Tailor/tmp/structures',
-                PATH+'/D_Tailor/tmp/unafold_files',
-                PATH+'/.temp_fasta_files',
-                PATH+'/BLAST/blastoutput',
-                PATH+'/BLAST/query',
-                PATH+'/BLAST/blastdbs',
-                PATH+'/NCBI_SSU/ncbi_gn_data']
-    for folder in folders:
-        make_folder(folder)
-
-
-
 def empty_tmp_folders():
     '''empty temporary folders'''
 
@@ -123,7 +100,6 @@ def gc_main(database,  output_directory='', default_db=''):
         print ('STATUS:\tHave pre-saved list of kegg bacteria, plant and fungi species therefore opening file...')
 
         orgs_gbs = db_org_gbs
-        print(output_genecompdb)
         with open(os.path.join(output_genecompdb, 'kegg_bac_plant_fungi_%s.list' % DB_NAME), 'rb') as fin:
              keggorganisms = pickle.load(fin)
 
@@ -288,6 +264,7 @@ def gc_enzyme(enzyme, orgs_gbs, gbs_orgs, target_org, R, keggorganisms_ids, outp
         design = Optimization(["cdsCAI"],design_param, '5')  
 
         org_cai_table = get_cai_table(target_org, user_cai_table)
+
         max_cai_index, max_cai, cai_scores = get_max_cai(seqs, cai_scores, design, org_cai_table, initial=True)
 
         outputfile = open('%s/geneseqs_%s_%s.txt' % (output_directory,enzyme,target_org), 'w')
@@ -343,9 +320,12 @@ def run_DTailor(seqs, max_cai_index, max_cai, cai_scores, design, org_cai_table,
     # tfec_designer = CAIEcoliDesigner(seqs[max_cai_index]['name'], seqs[max_cai_index]['sequence'],
     #                                     design, PATH+'/genecompatability', outputfile, createDB=True)
     tfec_designer = CAIDesigner(seqs[max_cai_index]['name'], seqs[max_cai_index]['sequence'],
-                                        design, PATH+'/genecompatability', outputfile, org_cai_table, createDB=True)
+                                        design, PATH+'/genecompatability', outputfile,
+                                        org_cai_table, createDB=True)
 
-    solution = so.Solution(seqs[max_cai_index]['name'], seqs[max_cai_index]['sequence'],design=design,cai_table=org_cai_table)
+    solution = so.Solution(seqs[max_cai_index]['name'], seqs[max_cai_index]['sequence'], 
+                        design=design,cai_table=org_cai_table)
+
     tfec_designer.configureSolution(solution)
     valid = tfec_designer.validateSolution(solution)
 
@@ -391,8 +371,9 @@ def get_cai_table(organism, user_cai_table):
 
 if __name__ == '__main__':
 
-    enzyme = '1.1.1.80'
-    # enzyme = '4.2.3.110'
+    # enzyme = '1.1.1.80'
+    # enzyme = '2.4.2.45'
+    enzyme = '4.2.3.28'
     database = '/home/leann/sandia_work/DevelopedDatabases/PATRICrhodoONLY_mc_inchi.db'
     # database = '/Users/bernguy/Documents/RetSynth_lt/rs/ConstructedDatabases/DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x.db'
     # default_db = 'DBINCHIECOLIDH1_CP_MC_cas_SPRESI_reduced1x.db'

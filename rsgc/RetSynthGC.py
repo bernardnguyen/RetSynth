@@ -230,7 +230,7 @@ def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_im
                         output.generate_gc_directory()
                         for enzyme in enzymes:
                             verbose_print(args.verbose,'\nSTATUS:\tOptimizing gene compatibility for EC: %s' % enzyme)
-                            if os.path.isfile(os.path.join(args.output_path, "geneseqs_{}_{}.txt".format(enzyme, target_info[2]))):
+                            if os.path.isfile(os.path.join(output.GC_output_path, "geneseqs_{}_{}.txt".format(enzyme, target_info[2]))):
                                 print ("STATUS: already have sequence information for {} in {}".format(enzyme, target_info[2]))
                             else:
                                 gce(enzyme, orgs_gbs, gbs_orgs, target_info[2], RGC, keggorganisms_ids, output_genecompdb,
@@ -388,7 +388,7 @@ class RetSynthGC(object):
         IP, CRV = self.construct_and_run_integerprogram(targets, output, database, rankingfile=self.rankingpathways_seperation_file)
         if gene_compatibility:
             orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb = gc(database, 
-                                                                            output_directory=output.GC_output_path,
+                                                                            output_directory=output_path,
                                                                             default_db='%s.db' % DEFAULT_DB_NAME)
         else:
             orgs_gbs=False
