@@ -366,7 +366,7 @@ class BuildModelSeed(object):
                         count_attemps+=1
                         print ('STATUS: Unable to get cobra model for genome {} {}, error 2, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
-                    except Database.mackinac.SeedClient.ObjectNotFoundError:
+                    except rsgc.Database.mackinac.SeedClient.ObjectNotFoundError:
                         count_attemps+=1
                         print ('STATUS: Unable to get cobra model for genome {} {},  error 3, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
