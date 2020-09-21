@@ -54,6 +54,7 @@ class HtmlOutput(object):
                 larray = line.split("\t")
                 cpd = larray[0].split("---")
                 org = larray[1].split("---")
+                cpd[1] = re.sub(" ", "-", cpd[1])
                 temp_dict.setdefault(cpd[1], {})
                 temp_dict[cpd[1]].setdefault(org[1], {})
                 temp_dict[cpd[1]][org[1]]["bio"]=larray[-1]
@@ -122,6 +123,7 @@ class HtmlOutput(object):
                 self.output.write("</table>\n")
                 if self.fba:
                     if o != "inchi":
+                        print(o)
                         self.output.write("<h3>Theoretical yield information (FBA) results</h3>\n")
                         self.output.write("<p>%s</p>\n" % self.fba_dict[i][o]["tar"])
                         self.output.write("<p>%s</p>\n" % self.fba_dict[i][o]["bio"])
@@ -135,7 +137,6 @@ class HtmlOutput(object):
         with open(self.output_path+"/optimal_pathways.txt", 'r') as fin:
             for line in fin:
                 line = line.strip("\n")
-
                 if line.startswith("SHORTEST PATH FOR "):
                     line = re.sub("SHORTEST PATH FOR ", "", line)
                     larray = line.split(" ")
@@ -172,6 +173,8 @@ class HtmlOutput(object):
                             self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["prod"].append(prod[2])
                         else:
                             self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["prod"].append(prod[1])
+                elif line.startswith("No paths"):
+                    pass
                 elif line != "":
                     rxncounter+=1
                     rxnarray = line.split("\t")

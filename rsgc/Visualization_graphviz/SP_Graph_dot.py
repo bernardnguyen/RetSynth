@@ -137,6 +137,13 @@ class GraphDot(object):
             cpdname = cpdname[:-remove_variable]
         return cpdname
 
+    def alter_rxnname_length(self, rxnname):
+        '''Shorten compound name if it is too long'''
+        if len(rxnname) > 50:
+            rxnname = rxnname[:50]
+        return rxnname
+
+
     def get_figure(self, cpdID, cpdname, rxn, type_node):
         '''Get smiles for a compounds'''
         IN = indigo.Indigo()
@@ -171,6 +178,7 @@ class GraphDot(object):
             IN.setOption("render-image-size", "300,200")
             IN.setOption("render-margins", "40, 0, 0, 0")
             cpdname = self.reformat_inchi(cpdname)
+            rxn = self.alter_rxnname_length(rxn)
             cpdname = self.alter_name_length(self.temp_imgs_path+'/compound_'+cpdname+'_'+rxn+'.png', cpdname)
             IN.setOption("render-output-format","png")
             IR.renderToFile(mol, self.temp_imgs_path+'/compound_'+cpdname+'_'+rxn+'.png')
@@ -185,6 +193,12 @@ class GraphDot(object):
         inchi = re.sub('/', '_', inchi)
         inchi = re.sub('-', '_', inchi)
         inchi = re.sub(' ', '_', inchi)
+        inchi = re.sub(',', '_', inchi)
+        inchi = re.sub('\)', '_', inchi)
+        inchi = re.sub('\(', '_', inchi)
+        inchi = re.sub('<', '_', inchi)
+        inchi = re.sub('>', '_', inchi)
+        inchi = re.sub(':', '_', inchi)
         return inchi
 
     def synthetic_compound_attr(self, cpdID, name, rxn):
@@ -196,6 +210,7 @@ class GraphDot(object):
             name = re.sub('_', '-', name)
             namereformat = self.reformat_inchi(name)
             figure_bool = self.get_figure(cpdID, namereformat, rxn, 'synthetic')
+            rxn = self.alter_rxnname_length(rxn)
             namereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+namereformat+'_'+rxn+'.png', namereformat)
             if figure_bool:
                 self.outputfile_dot.append('    "{}" [color="{}", image="{}", shape={}, label=""];\n'.format(origname, 'None', self.temp_imgs_path+'/compound_'+namereformat+'_'+rxn+'_cropped.png', 'None'))
@@ -213,6 +228,7 @@ class GraphDot(object):
             name = re.sub('_', '-', name)
             namereformat = self.reformat_inchi(name)
             figure_bool = self.get_figure(cpdID, namereformat, rxn, 'internal')
+            rxn = self.alter_rxnname_length(rxn)
             namereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+namereformat+'_'+rxn+'.png', namereformat)
             if figure_bool:
                 self.outputfile_dot.append('    "{}" [color={}, image="{}", shape={}, label=""];\n'.format(origname, 'None', self.temp_imgs_path+'/compound_'+namereformat+'_'+rxn+'_cropped.png', 'None'))
@@ -277,6 +293,7 @@ class GraphDot(object):
                 if prod == self.target:
                     if self.images is True:
                         figure_bool = self.get_figure(prod, prodname, rxn, 'target')
+                        rxn = self.alter_rxnname_length(rxn)
                         prodnamereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+prodnamereformat+'_'+rxn+'.png', prodnamereformat)
                         if figure_bool:
                             self.outputfile_dot.append('    "{}" [color={}, image="{}", shape={}, label=""];\n'.format(prodname, 'None', self.temp_imgs_path+'/compound_'+prodnamereformat+'_'+rxn+'_cropped.png', 'None'))

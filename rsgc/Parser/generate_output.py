@@ -178,9 +178,9 @@ class Output(object):
                                                                                                                                   self.DB.get_compound_name(t),
                                                                                                                                   self.DB.get_organism_name(target_org)))
             else:
-                verbose_print(self.verbose, '\nSTATUS:\tSHORTEST PATH FOR {} {} in target organism {}'.format(t, self.DB.get_compound_name(t),
+                verbose_print(self.verbose, '\nSTATUS:\tSHORTEST PATH FOR {} {} in target organism {}'.format(t, re.sub(" ", "-", self.DB.get_compound_name(t)),
                                                                                 self.DB.get_organism_name(target_org)))
-                self.optimal_paths.write('\nSHORTEST PATH FOR {} {} in target organism {}\n'.format(t, self.DB.get_compound_name(t),
+                self.optimal_paths.write('\nSHORTEST PATH FOR {} {} in target organism {}\n'.format(t, re.sub(" ", "-", self.DB.get_compound_name(t)),
                                                                                                     self.DB.get_organism_name(target_org)))
                 for count, os_dict in list(temp_rxns.items()):
                     verbose_print(self.verbose, '\nSTATUS:\tSolution {}'.format(count))
