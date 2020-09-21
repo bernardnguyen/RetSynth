@@ -35,7 +35,7 @@ class CDXML_Editor(object):
 		self.container.append(box, arrange=arrange)
 	
 	def parse_cdxml(self, compound):
-		compound = re.sub(">|<|\(|\)|,", "", compound)
+		compound = re.sub("-|/|,|\)|\(|<|>|:|\]|\[|\/", "", compound)
 		path = self.cdxml_path + compound + '.cdxml'
 		output = ''
 		try:

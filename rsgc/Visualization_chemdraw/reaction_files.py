@@ -79,7 +79,7 @@ class ReactionFiles(object):
                     cdxml_cpds.append(cpd_name)
                     IN.setOption("render-comment", cpd_name)
                     IN.setOption("render-output-format", "cdxml")
-                    cpd_name = re.sub(">|<|\(|\)|,", "", cpd_name)
+                    cpd_name = re.sub("-|/|,|\)|\(|<|>|:|\]|\[|\/", "", cpd_name)
                     IR.renderToFile(mol, self.output_path+'/compounds/'+cpd_name+'.cdxml')
                 else:
                     promiscuous_cpds.append(cpd_name)

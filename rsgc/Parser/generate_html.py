@@ -90,7 +90,7 @@ class HtmlOutput(object):
                     self.output.write("<div class=\"content\">\n")
                     self.output.write("<p>{} pathways in {}</p>\n".format(i, o))
                     if self.figures:
-                        itemp = re.sub("-|/|,|\)|\(|<|>|:", "_", i)
+                        itemp = re.sub("-|/|,|\)|\(|<|>|:|\]|\[|\/", "_", i)
                         itemp = re.sub(' ', '_', itemp)
                         encoded = base64.b64encode(open("{}/solution_figures/SC_graph_{}_{}.png".format(self.output_path, itemp , o), "rb").read()).decode('utf-8')
                         self.output.write("<img src=\"data:image/png;base64, {}\" style=\"width:100%\"></img>\n".format(encoded))

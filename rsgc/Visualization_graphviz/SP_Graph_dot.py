@@ -151,6 +151,7 @@ class GraphDot(object):
 
         if cpdID.startswith('InChI'):
             cpdID = re.sub('_\w{1}\d{1}$', '', cpdID)
+            cpdID = re.sub('_\w+_\S+_\S+$', '', cpdID)
             mol = IN.loadMolecule(cpdID)
         else:
             for comp in self.compartments:
@@ -199,6 +200,8 @@ class GraphDot(object):
         inchi = re.sub('<', '_', inchi)
         inchi = re.sub('>', '_', inchi)
         inchi = re.sub(':', '_', inchi)
+        inchi = re.sub('\]', '_', inchi)
+        inchi = re.sub('\[', '_', inchi)
         return inchi
 
     def synthetic_compound_attr(self, cpdID, name, rxn):
