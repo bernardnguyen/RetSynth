@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as et
 from .cdxml_elements import *
+import re
 
 class CDXML_Editor(object):
 	def __init__(self, cdxml_files_path=None, output_path=None, BP=None, BP_predicted=None, logP=None, logp_predicted=None):
@@ -34,6 +35,7 @@ class CDXML_Editor(object):
 		self.container.append(box, arrange=arrange)
 	
 	def parse_cdxml(self, compound):
+		compound = re.sub(">|<|\(|\)|,", "", compound)
 		path = self.cdxml_path + compound + '.cdxml'
 		output = ''
 		try:
