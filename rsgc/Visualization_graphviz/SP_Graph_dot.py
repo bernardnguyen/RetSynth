@@ -296,10 +296,10 @@ class GraphDot(object):
                 if prod == self.target:
                     if self.images is True:
                         figure_bool = self.get_figure(prod, prodname, rxn, 'target')
-                        rxn = self.alter_rxnname_length(rxn)
-                        prodnamereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+prodnamereformat+'_'+rxn+'.png', prodnamereformat)
+                        rxnorg = self.alter_rxnname_length(rxn)
+                        prodnamereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+prodnamereformat+'_'+rxnorg+'.png', prodnamereformat)
                         if figure_bool:
-                            self.outputfile_dot.append('    "{}" [color={}, image="{}", shape={}, label=""];\n'.format(prodname, 'None', self.temp_imgs_path+'/compound_'+prodnamereformat+'_'+rxn+'_cropped.png', 'None'))
+                            self.outputfile_dot.append('    "{}" [color={}, image="{}", shape={}, label=""];\n'.format(prodname, 'None', self.temp_imgs_path+'/compound_'+prodnamereformat+'_'+rxnorg+'_cropped.png', 'None'))
                         else:
                             self.outputfile_dot.append('    "{}" [fillcolor={}, color="{}", height={}, width={}, fontsize={}, fontname="{}", label="{}", fontcolor={}];\n'.format(prodname, 'None', 'None', '.4', '.4', '12', 'times', prodname, 'red'))
                     else:
