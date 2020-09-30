@@ -782,9 +782,9 @@ def main():
         args_targets = [targets[i:i+args.processors]
                 for i in range(0, len(targets), args.processors)]
 
-        for targets in args_targets:
+        for targets_sub in args_targets:
             processes = []
-            for target in targets:
+            for target in targets_sub:
                 LPc=deepcopy(LP)
                 processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LPc, database, args,
                                                                              output, temp_imgs_PATH, orgs_gbs,

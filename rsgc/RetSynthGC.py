@@ -399,9 +399,9 @@ class RetSynthGC(object):
 
         args_targets = [targets[i:i+self.processors]
                       for i in range(0, len(targets), self.processors)]
-        for targets in args_targets:
+        for targets_sub in args_targets:
             processes = []
-            for target in targets:
+            for target in targets_sub:
                 processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LP, LPchem, database, output,
                                                             temp_imgs_PATH, CRV, self.timer_output, self.media_for_FBA,
                                                             self.flux_balance_analysis, self.knockouts, self.images,
