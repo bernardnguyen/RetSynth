@@ -140,9 +140,9 @@ def run_flux_balance_analysis(target_info, ex_info, incpds_active,
 
     return opt_fba
  
-def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_imgs_PATH, CRV, timer_output,
+def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_imgs_PATH, timer_output,
                     media_for_FBA, flux_balance_analysis, knockouts, images, figures_graphviz, figures_chemdraw,
-                    evaluate_reactions, rankpathways_logP_solvent, rankpathways_logP, rankpathways_boilingpoint,
+                    evaluate_reactions,
                     show_rxn_info, output_path, multiple_solutions, start_compounds, gene_compatibility,
                     cai_optimal_threshold, user_cai_table,orgs_gbs, gbs_orgs, RGC, keggorganisms_ids,
                     output_genecompdb, verbose):
@@ -365,9 +365,6 @@ class RetSynthGC(object):
         self.show_rxn_info = show_rxn_info
         self.timer_output = timer_output
         self.rankingpathways_seperation_file = rankingpathways_seperation_file
-        self.rankpathways_boilingpoint = rankpathways_boilingpoint
-        self.rankpathways_logP = rankpathways_logP
-        self.rankpathways_logP_solvent = rankpathways_logP_solvent
         self.gene_compatability = gene_compatability
         self.cai_threshold = cai_threshold
         self.user_cai_table = user_cai_table
@@ -385,7 +382,7 @@ class RetSynthGC(object):
         targets, ignore_reactions, include_rxns, output, temp_imgs_PATH = self.read_in_and_generate_output_files(database)
 
         LP, LPchem = self.retrieve_constraints(all_db_reactions, all_db_compounds, ignore_reactions, include_rxns, database)
-        IP, CRV = self.construct_and_run_integerprogram(targets, output, database, rankingfile=self.rankingpathways_seperation_file)
+        IP, CRV = self.construct_and_run_integerprogram(targets, output, database)
         if gene_compatibility:
             orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb = gc(database, 
                                                                             output_directory=output_path,
@@ -403,11 +400,9 @@ class RetSynthGC(object):
             processes = []
             for target in targets_sub:
                 processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LP, LPchem, database, output,
-                                                            temp_imgs_PATH, CRV, self.timer_output, self.media_for_FBA,
+                                                            temp_imgs_PATH, self.timer_output, self.media_for_FBA,
                                                             self.flux_balance_analysis, self.knockouts, self.images,
-                                                            self.figures_graphviz, self.figures_chemdraw, self.evaluate_reactions,
-                                                            self.rankpathways_logP_solvent, self.rankpathways_logP,
-                                                            self.rankpathways_boilingpoint, self.show_rxn_info,
+                                                            self.figures_graphviz, self.figures_chemdraw, self.evaluate_reactions, self.show_rxn_info,
                                                             self.output_path, self.multiple_solutions, self.start_compounds,
                                                             self.gene_compatability, self.cai_threshold, self.user_cai_table,
                                                             orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb,
@@ -476,9 +471,6 @@ class RetSynthGC(object):
                         without finding all multiple_solutions')
         if not self.targets:
             raise ValueError('Requires an input file of target compounds')
-        
-        if not self.rankingpathways_seperation_file and (self.rankpathways_boilingpoint or self.rankpathways_logP):
-            raise ValueError('Requires an boiling point input file for database')
 
     def retrieve_database_info(self):
         '''
@@ -715,26 +707,9 @@ class RetSynthGC(object):
 
         LPchem=None
 
-        if self.rankpathways_boilingpoint or self.rankpathways_logP:
-            print ('STATUS: Load necessary chemical constraints for ranking pathways based on boiling point')
-
-            constraint_file = re.sub('.db$', '_chem.constraints', database)
-            allrxns_chem = DB.get_reactions_based_on_type('chem')
-
-            if not  os.path.isfile(constraint_file):
-                LPchem = co.ConstructInitialLP(allrxns_chem, allcpds, DB, [], [])
-                store_constraint_file(constraint_file, LPchem)         
-
-            else:
-                (lp, allcompounds4matrix, variables, allrxnsrev_dict_rev, allrxnsrev_dict, allrxnsrev) = unload_constraint_file(constraint_file)  
-
-                LPchem = co.ConstructInitialLP(allrxns, allcompounds4matrix, DB,
-                                                [], [], lp, variables, allrxnsrev_dict_rev,
-                                                allrxnsrev_dict, allrxnsrev)
-
         return LP, LPchem
 
-    def construct_and_run_integerprogram(self, targets, output, database, rankingfile=None):
+    def construct_and_run_integerprogram(self, targets, output, database):
         '''
         Constructs ILP and solves it identifying shortest path to the target
         '''
@@ -751,12 +726,4 @@ class RetSynthGC(object):
             IP = ip_pulp.IntergerProgram(DB, self.limit_reactions,
                                         self.limit_cycles, self.k_number_of_paths,
                                         self.cycles, self.verbose, self.solver_time_limit, self.timer_output)
-        if self.rankpathways_boilingpoint or self.rankpathways_logP:
-
-            CRV = rp.ConstructRankingVariables(database, rankingfile, self.verbose)
-
-            return (IP, CRV)
-        
-        else: 
-        
-            return (IP, None)
+        return (IP, None)
