@@ -95,7 +95,8 @@ class HtmlOutput(object):
                         try:
                             encoded = base64.b64encode(open("{}/solution_figures/SC_graph_{}_{}.png".format(self.output_path, itemp , o), "rb").read()).decode('utf-8')
                             self.output.write("<img src=\"data:image/png;base64, {}\" style=\"width:100%\"></img>\n".format(encoded))
-                        except: 
+                        except:
+                            print ("STATUS: no fiugre {}".format(itemp))
                             pass
                     if self.figures and self.fba:
                         self.output.write("<p>Flux through pathways legend</p>\n")
