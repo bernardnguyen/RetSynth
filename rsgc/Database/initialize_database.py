@@ -7,8 +7,7 @@ import sqlite3
 
 class Createdb(object):
     """Generates new sqlite database and creates table and indicies"""
-    def __init__(self,database, inchidb):
-        self.inchidb = inchidb
+    def __init__(self,database):
         self.database = sqlite3.connect(database)
         self.create_model_tbls()
 
