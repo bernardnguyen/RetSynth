@@ -18,6 +18,7 @@ from rsgc.Database import query as Q
 from bs4 import BeautifulSoup, SoupStrainer
 import lxml
 from rsgc.Pubchem import pubchem_inchi_translator as pit
+from rsgc.Database import database_functions as df
 from sys import platform
 if platform == 'darwin':
     from rsgc.indigopython130_mac import indigo
@@ -36,50 +37,11 @@ def verbose_print(verbose, line):
     if verbose:
         print(line)
 
-def extract_KEGG_data(url):
-    '''Extract Kegg db info'''
-    print (url)
-    try:
-        data = urllib2.urlopen(url).read()
-        darray = data.split('\n')
-        return darray
-    except:
-        return None
-
-def get_inchi_from_kegg_ID(cpd):
-    darray = extract_KEGG_data(KEGG+'get/'+cpd)
-    inchicpd = None
-    cas = None
-    if darray:
-        for value in darray:
-            array = value.split()
-            if 'PubChem:' in array:
-                index = array.index('PubChem:')
-                sid = array[index+1]
-                try:
-                    substance = pubchempy.Substance.from_sid(sid)
-                    substance_cids = substance.cids
-                    if substance_cids:
-                        try:
-                            compounds = pubchempy.get_compounds(substance_cids[0])
-                            if compounds:
-                                inchicpd = compounds[0].inchi
-                        except Exception as e:
-                            print (e)
-                except Exception as e:
-                    print ('WARNING: Could not get substance for {} {}'.format(sid, cpd))
-                    print (e)
-            if 'CAS:' in array:
-                index = array.index('CAS:')
-                cas = array[index+1]
-    return (inchicpd, cas)
-
 class Translate(object):
     """Translates metacyc compound and reaction IDs to Kbase compound and reaction IDs
     if a kbase database is used (ONLY WORKS WITH KBASE, ModelSeed/patric)"""
     def __init__(self, DBPath, file_name, inchidb, rxntype, verbose, add=True):
-        # print (translation_file)
-        # print (file_name)
+
         self.file_name = file_name
         self.inchidb = inchidb
         self.cnx = sqlite3.connect(DBPath)
@@ -144,8 +106,8 @@ class Translate(object):
                 result = Q.fetchone()
                 if result is None:
                     count_compound += 1
-                    self.cnx.execute("""INSERT INTO compound VALUES (?,?,?,?,?,?)""",
-                                     (cpd[0], cpd[1], cpd[2], cpd[3], cpd[4], cpd[5]))
+                    self.cnx.execute("""INSERT INTO compound VALUES (?,?,?,?,?,?,?)""",
+                                     (cpd[0], cpd[1], cpd[2], cpd[3], cpd[4], cpd[5], cpd[6]))
             self.cnx.commit()
             print ('STATUS: {} added MetaCyc compounds'.format(count_compound))
 
@@ -211,7 +173,7 @@ class Translate(object):
             for key, value in MC.all_rxns.items():
                 allreactions.append((key, value[0], value[1]))
             for key, value in MC.all_cpds.items():
-                allcompounds.append((key, value[0], value[1], value[2], value[3], value[4]))
+                allcompounds.append((key, value[0], value[1], value[2], value[3], value[4], value[5]))
 
             add_cpds_2_db(allcompounds)
             add_rxns_2_db(allreactions)
@@ -234,9 +196,8 @@ class MetaCyc(object):
         if self.inchidb:
             self.IN = indigo.Indigo()
             self.INCHI = indigo_inchi.IndigoInchi(self.IN)
-            self.prom_cpds = self.get_promiscuous_cpds(PATH+'/data/promiscuous_cpds_inchi.txt')
-        else:
-            self.prom_cpds = self.get_promiscuous_cpds(PATH+'/data/promiscuous_cpds_kegg.txt')
+        self.prom_cpds = self.get_promiscuous_cpds(PATH+'/data/promiscuous_cpds_kegg.txt')
+        self.CPD2KEGG = df.open_translation_file(PATH+'/data/KbasetoKEGGCPD.txt')
 
     def get_promiscuous_cpds(self, file_name):
         prom_cpds=set()
@@ -271,11 +232,12 @@ class MetaCyc(object):
                             cpdID = cpdIDs[0]
                         else:
                             print ('WARNING: compound ID {} issue'.format(cpdID))
-                    self.fill_compound_arrays(compound_ID, inchi_ID, cpdID, str(KEGG_ID), name, compartment)
+                    new_cpd_keggid, raw_cpd_keggid=df.get_KEGG_IDs(cpd, compartment, self.CPD2KEGG)
+                    self.fill_compound_arrays(compound_ID, inchi_ID, new_cpd_keggid, raw_cpd_keggid, name, compartment)
             except KeyError:
-                self.fill_compound_arrays(compound_ID, inchi_ID, compound_ID, str(KEGG_ID), name, compartment)
+                self.fill_compound_arrays(compound_ID, inchi_ID, compound_ID, KEGG_ID, name, compartment)
         else:
-            self.fill_compound_arrays(compound_ID, inchi_ID, compound_ID, str(KEGG_ID), name, compartment)
+            self.fill_compound_arrays(compound_ID, inchi_ID, compound_ID, KEGG_ID, name, compartment)
 
     def get_fp_cf_info(self, inchi):
         inchi = re.sub('_'+'c0'+'$', '', inchi)
@@ -290,7 +252,7 @@ class MetaCyc(object):
             cf = re.sub(' ', '', cf)
         except indigo.IndigoException:
             print ('STATUS: Could not load inchi molecule {}'.format(inchi))
-            cf = 'None'
+            cf = None
         return (cf)
 
     def fill_compound_arrays(self, ID, inchi, cpdID, KEGG_ID, name, compartment):
@@ -299,88 +261,73 @@ class MetaCyc(object):
         later be added to the sqlite database
         '''
         if not self.inchidb:
-            self.arrays(cpdID+'_'+compartment, compartment, name, KEGG_ID, 'None', 'None')
+            self.arrays(cpdID+'_'+compartment, compartment, name, KEGG_ID, None, None, None)
             self.store_compounds[ID] = cpdID+'_'+compartment
         else:
-            if KEGG_ID != 'None' or KEGG_ID is None:
-                cpd_inchi, cas = get_inchi_from_kegg_ID(KEGG_ID)
-            else:
-                cas=None
             if not inchi:
-                cpdID = self.check_db(cpdID+'_'+compartment, KEGG_ID)
-                if cpdID.startswith('InChI'):
-                    cpdID_temp = re.sub('_'+compartment+'$', '', cpdID)
-                    cf = self.get_fp_cf_info(cpdID_temp)
-                    self.arrays(cpdID, compartment, name, KEGG_ID, cf, str(cas))
-                    self.store_compounds[ID] = cpdID
-                else:
-                    if KEGG_ID != 'None' or KEGG_ID is None:
-                        count = 0
-                        while count < 3:
-                            cpd, cas = get_inchi_from_kegg_ID(KEGG_ID)
-                            if cpd:
-                                count = 4
-                            else:
-                                count+=1
-                                print ('WARNING: No INCHI was found from {} will try again for {} time'.format(KEGG_ID, count))                        
 
-                        if cpd:
-                            cf = self.get_fp_cf_info(cpd)
-                            self.arrays(cpd+'_'+compartment, compartment, name, KEGG_ID, cf, str(cas))
-                            self.store_compounds[ID] = cpd+'_'+compartment
-                        else:    
-                            inchi2, iupac_name, cas = self.CT.translate(name)
-                            if not inchi2:
-                                self.arrays(cpdID, compartment, name, KEGG_ID, 'None', str(cas))
-                                self.store_compounds[ID] = cpdID
-                            else:
-                                cf = self.get_fp_cf_info(inchi2)
-                                self.arrays(inchi2+'_'+compartment, compartment, name, KEGG_ID, cf,  str(cas))
-                                self.store_compounds[ID] = inchi2+'_'+compartment
+                cpdID = self.check_db(cpdID+'_'+compartment, KEGG_ID)
+                cas = None
+                if KEGG_ID is not None:
+                    count = 0
+                    while count < 3:
+                        cpdinchi, cas = df.kegg2pubcheminchi(KEGG_ID, self.verbose)
+                        if cpdinchi:
+                            count = 4
+                        else:
+                            count+=1
+                            print ('WARNING: No INCHI was found from {} will try again for {} time'.format(KEGG_ID, count))
+                    if cpdinchi:
+                        cf = self.get_fp_cf_info(cpdinchi)
+                        self.arrays(cpdID, compartment, name, KEGG_ID, cf, cas, cpdinchi)
+                        self.store_compounds[ID] = cpdID
                     else:
+                        print(name)
                         inchi2, iupac_name, cas = self.CT.translate(name)
                         if not inchi2:
-                            self.arrays(cpdID, compartment, name, KEGG_ID, 'None',  str(cas))
+                            self.arrays(cpdID, compartment, name, KEGG_ID, None, cas, None)
                             self.store_compounds[ID] = cpdID
                         else:
                             cf = self.get_fp_cf_info(inchi2)
-                            self.arrays(inchi2+'_'+compartment, compartment, name, KEGG_ID, cf,  str(cas))
-                            self.store_compounds[ID] = inchi2+'_'+compartment
-
+                            self.arrays(cpdID, compartment, name, KEGG_ID, cf, cas, inchi2)
+                            self.store_compounds[ID] = cpdID
+                else:
+                    inchi2, iupac_name, cas = self.CT.translate(name)
+                    print (name)
+                    if not inchi2:
+                        self.arrays(cpdID, compartment, name, KEGG_ID, None, cas, None)
+                        self.store_compounds[ID] = cpdID
+                    else:
+                        cf = self.get_fp_cf_info(inchi2)
+                        self.arrays(inchi2+'_'+compartment, compartment, name, KEGG_ID, cf,  cas, inchi2)
+                        self.store_compounds[ID] = cpdID
             else:
                 cpdID = self.check_db(cpdID+'_'+compartment, KEGG_ID)
-                if cpdID.startswith('InChI'):
-                    cpdID_temp = re.sub('_'+compartment+'$', '', cpdID)
-                    cf = self.get_fp_cf_info(cpdID_temp)
-                    self.arrays(cpdID, compartment, name, KEGG_ID, cf, str(cas))
-                    self.store_compounds[ID] = cpdID
-                else:
+                inchi2, iupac_name, cas = self.CT.translate(name)
+                print (name)
+                print (cas)
+                try:
+                    QC = self.cnx.execute('''SELECT * from compound where ID=?''', (cpdID,))
                     try:
-                        QC = self.cnx.execute('''SELECT * from compound where ID=?''', (cpdID,))
-                        try:
-                            result = QC.fetchone()[0]
-                            cf = self.get_fp_cf_info(inchi)
-                            self.arrays(cpdID, compartment, name, KEGG_ID, cf, result[-1])
-                            self.store_compounds[ID] = cpdID
-                        except TypeError:
-                            self.cnx.execute("INSERT INTO original_db_cpdIDs VALUES (?,?)",
-                                             (cpdID, inchi+'_'+compartment))
-                            cf = self.get_fp_cf_info(inchi)
-                            self.arrays(inchi+'_'+compartment, compartment, name, KEGG_ID, cf, str(cas))
-                            self.store_compounds[ID] = inchi+'_'+compartment
-                    except sqlite3.OperationalError:
-                        # self.cnx.execute("INSERT INTO original_db_cpdIDs VALUES (?,?)",
-                        #                  (cpdID+'_'+compartment, inchi+'_'+compartment))
+                        result = QC.fetchone()[0]
                         cf = self.get_fp_cf_info(inchi)
-                        self.arrays(inchi+'_'+compartment, compartment, name, KEGG_ID, cf, str(cas))
-                        self.store_compounds[ID] = inchi+'_'+compartment
+                        self.arrays(cpdID, compartment, name, KEGG_ID, cf, result[-1], inchi)
+                        self.store_compounds[ID] = cpdID
+                    except TypeError:
+                        cf = self.get_fp_cf_info(inchi)
+                        self.arrays(cpdID, compartment, name, KEGG_ID, cf, cas, inchi)
+                        self.store_compounds[ID] = cpdID
+                except sqlite3.OperationalError:
+                    cf = self.get_fp_cf_info(inchi)
+                    self.arrays(cpdID, compartment, name, KEGG_ID, cf, str(cas), inchi)
+                    self.store_compounds[ID] = cpdID
 
-    def arrays(self, cpdID, compartment, name, KEGG_ID, chemicalformula, cas):
+    def arrays(self, cpdID, compartment, name, KEGG_ID, chemicalformula, cas, inchi):
         '''
         Adds compound to compound arrays
         '''
         if cpdID not in self.all_cpds:
-            self.all_cpds[cpdID] = [name, compartment, KEGG_ID, chemicalformula, cas]
+            self.all_cpds[cpdID] = [name, compartment, KEGG_ID, chemicalformula, cas, inchi]
         if (cpdID, self.mi) not in self.modelcompounds:
             self.modelcompounds.append((cpdID, self.mi))
 
@@ -506,16 +453,7 @@ class MetaCyc(object):
         '''
         INCHI_CHECK = None
         KEGG_CHECK = None
-        try:
-            QC = self.cnx.execute("""SELECT inchi_id from original_db_cpdIDs where ID=?""", (cpdID,))
-            try:
-                result = QC.fetchone()[0]
-                cpdID = result
-                INCHI_CHECK = True
-            except TypeError:
-                pass
-        except sqlite3.OperationalError:
-            pass
+
         if not INCHI_CHECK and kegg_id != 'None':
             try:
                 QC = self.cnx.execute("""SELECT ID from compound where kegg_id=?""", (kegg_id,))

@@ -71,36 +71,6 @@ def retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd_name, compar
             inchi_pubchem[new_cpd_keggid] = None
     return (inchi_pubchem, inchi_cf, inchi_cas)
 
-
-def open_translation_file(file_name):
-    '''opens and stores KEGG translation files '''
-    dictionary = {}
-    with open(file_name) as fin:
-        for line in fin:
-            line = line.strip()
-            larray = line.split('\t')
-            try:
-                KEGGIDS = larray[1].split('|')
-                dictionary[larray[0]] = KEGGIDS[0]
-            except IndexError:
-                dictionary[larray[0]] = None
-    return dictionary
-
-def get_KEGG_IDs(ID, compartment, KEGGdict):
-    '''Retrieve KEGG IDs'''
-    new_ID = re.sub('_'+compartment+'$', '', ID)
-    try:
-        KEGG_ID = KEGGdict[new_ID]
-        original_KEGG_ID = str(deepcopy(KEGG_ID))
-        if not KEGG_ID:
-            KEGG_ID = ID+'0'
-        else:
-            KEGG_ID = str(KEGG_ID)+'_'+str(compartment)+'0'
-    except KeyError:
-        KEGG_ID = ID+'0'
-        original_KEGG_ID = None
-    return(KEGG_ID, original_KEGG_ID)
-
 def build_patric_models(genome_id, genome_name, media, username):
     '''Builds patric models on the patric server'''
 
@@ -150,8 +120,8 @@ class BuildModelSeed(object):
         self.verbose = verbose
         self.patricfile = patricfile
         self.previously_built_patric_models = previously_built_patric_models
-        self.CPD2KEGG = open_translation_file(PATH+'/data/KbasetoKEGGCPD.txt')
-        self.RXN2KEGG = open_translation_file(PATH+'/data/KbasetoKEGGRXN.txt')
+        self.CPD2KEGG = df.open_translation_file(PATH+'/data/KbasetoKEGGCPD.txt')
+        self.RXN2KEGG = df.open_translation_file(PATH+'/data/KbasetoKEGGRXN.txt')
         self.inchi_dict = {}
         self.inchi_fp_dict = {}
         self.inchi_cf_dict = {}
@@ -163,7 +133,6 @@ class BuildModelSeed(object):
         self.reaction_reversibility = {}
         self.CT = pit.CompoundTranslator()
         self.L2D = LoadIntoDB(DBpath, self.verbose, self.inchidb)
-        self.originalIDs = set()
         if self.inchidb:
             self.IN = indigo.Indigo()
             self.INCHI = indigo_inchi.IndigoInchi(self.IN)
@@ -185,7 +154,7 @@ class BuildModelSeed(object):
         reactions_compounds = []
         cpd_IDs = {}
         for cpd in tqdm(model.metabolites):
-            new_cpd_keggid, raw_cpd_keggid=get_KEGG_IDs(cpd.id, cpd.compartment, self.CPD2KEGG)
+            new_cpd_keggid, raw_cpd_keggid=df.get_KEGG_IDs(cpd.id, cpd.compartment, self.CPD2KEGG)
             cpd_IDs[cpd.id] = new_cpd_keggid
             model_compounds.append((new_cpd_keggid, genome_id))
             if self.inchidb:
@@ -203,10 +172,10 @@ class BuildModelSeed(object):
         print ('STATUS: Getting reactions for cobra model {}'.format(genome_id))
         for reaction in tqdm(model.reactions):
             try:
-                new_rxn_keggid, raw_rxn_keggid = get_KEGG_IDs(reaction.id, list(reaction.compartments)[0], self.RXN2KEGG)
+                new_rxn_keggid, raw_rxn_keggid = df.get_KEGG_IDs(reaction.id, list(reaction.compartments)[0], self.RXN2KEGG)
             except (KeyError, IndexError):
                 print ('STATUS: {} has no compartments {} make compartment c0'.format(reaction.id, reaction.compartments))
-                new_rxn_keggid, raw_rxn_keggid=get_KEGG_IDs(reaction.id, 'c', self.RXN2KEGG)
+                new_rxn_keggid, raw_rxn_keggid=df.get_KEGG_IDs(reaction.id, 'c', self.RXN2KEGG)
             if new_rxn_keggid.startswith('bio'):
                 new_rxn_keggid  = new_rxn_keggid+'_'+str(genome_id)
             model_reactions.append((new_rxn_keggid, genome_id, bool(reaction.reversibility)))
@@ -327,13 +296,13 @@ class BuildModelSeed(object):
             reaction_revers_total.append((rxnid, revers))
         model_ids = list(set(model_ids))
         if self.newdb:
-            self.L2D.add_all_info_new(list(self.allcompounds), list(self.originalIDs),
+            self.L2D.add_all_info_new(list(self.allcompounds),
                                       list(self.allreactions),
                                       reaction_revers_total, model_ids,
                                       list(model_compartments))
             self.L2D.add_cluster_info()
         else:
-            self.L2D.add_all_info_existing(list(self.allcompounds), list(self.originalIDs),
+            self.L2D.add_all_info_existing(list(self.allcompounds),
                                            list(self.allreactions),
                                            reaction_revers_total, model_ids,
                                            list(model_compartments))
@@ -376,7 +345,7 @@ class LoadIntoDB(object):
                     self.cnx.execute("INSERT INTO reaction_compound VALUES (?,?,?,?,?)", rxn)
             self.cnx.commit()          
 
-    def add_all_info_new(self, allcompounds, originalIDs, allreactions, reaction_reversibility, model_ids, model_compartments):
+    def add_all_info_new(self, allcompounds, allreactions, reaction_reversibility, model_ids, model_compartments):
         '''Loads unique compound, reaction, compartment and model information into new database'''
         self.cnx.executemany("INSERT INTO compound VALUES (?,?,?,?,?,?,?)", allcompounds)
         self.cnx.executemany("INSERT INTO reaction VALUES (?,?,?,?)", allreactions)
@@ -386,7 +355,7 @@ class LoadIntoDB(object):
         self.cnx.executemany("INSERT INTO fba_models VALUES (?,?)", model_ids)
         self.cnx.commit()
 
-    def add_all_info_existing(self, allcompounds, originalIDs, allreactions, reaction_reversibility, model_ids, model_compartments):
+    def add_all_info_existing(self, allcompounds, allreactions, reaction_reversibility, model_ids, model_compartments):
         '''Loads unique compound, reaction, compartment and model information into preexisting database'''
         q=self.cnx.execute("SELECT ID FROM compound") 
         hits = q.fetchall()
