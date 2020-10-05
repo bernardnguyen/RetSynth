@@ -435,7 +435,7 @@ def retrieve_database_info(args):
         '''
         Generate a database
         '''
-        init_db.Createdb(args.generate_database, args.inchidb)
+        init_db.Createdb(args.generate_database)
         DB = Q.Connector(args.generate_database)
         if args.patric_models:
             bms.BuildModelSeed(username=args.patric_username, password=args.patric_password, rxntype=args.patric_reaction_type,
