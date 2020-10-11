@@ -31,7 +31,6 @@ elif platform == "win32" or platform == "win64" or platform == "cygwin":
     from rsgc.indigopython130_win import indigo_inchi
 
 PATH = os.path.dirname(os.path.abspath(__file__))
-KEGG = 'http://rest.kegg.jp/'
 
 def verbose_print(verbose, line):
     if verbose:
@@ -207,7 +206,7 @@ class MetaCyc(object):
                 prom_cpds.add(line)
         return prom_cpds
 
-    def compound_translator(self, compound_ID, biocyc_ID, inchi_ID, KEGG_ID, name, compartment):
+    def compound_translator(self, compound_ID, biocyc_ID, inchi_ID, KEGG_ID, name, compartment, counter):
         '''
         Checks if metacyc compound is in database, if it is not it adds it
         '''
@@ -232,12 +231,15 @@ class MetaCyc(object):
                             cpdID = cpdIDs[0]
                         else:
                             print ('WARNING: compound ID {} issue'.format(cpdID))
-                    new_cpd_keggid, raw_cpd_keggid=df.get_KEGG_IDs(cpd, compartment, self.CPD2KEGG)
+                    new_cpd_keggid, raw_cpd_keggid=df.get_KEGG_IDs(cpdID, compartment, self.CPD2KEGG)
                     self.fill_compound_arrays(compound_ID, inchi_ID, new_cpd_keggid, raw_cpd_keggid, name, compartment)
             except KeyError:
-                self.fill_compound_arrays(compound_ID, inchi_ID, compound_ID, KEGG_ID, name, compartment)
+                self.fill_compound_arrays(compound_ID, inchi_ID, self.generate_cpd_id(compound_ID, counter), KEGG_ID, name, compartment)
         else:
-            self.fill_compound_arrays(compound_ID, inchi_ID, compound_ID, KEGG_ID, name, compartment)
+            self.fill_compound_arrays(compound_ID, inchi_ID, self.generate_cpd_id(compound_ID, counter), KEGG_ID, name, compartment)
+
+    def generate_cpd_id(self, cpd, counter):
+        return("rs_mc_cpd_"+str(counter))
 
     def get_fp_cf_info(self, inchi):
         inchi = re.sub('_'+'c0'+'$', '', inchi)
@@ -266,7 +268,7 @@ class MetaCyc(object):
         else:
             if not inchi:
 
-                cpdID = self.check_db(cpdID+'_'+compartment, KEGG_ID)
+                cpdID = self.check_db(cpdID+'_'+compartment, KEGG_ID, inchi)
                 cas = None
                 if KEGG_ID is not None:
                     count = 0
@@ -282,7 +284,6 @@ class MetaCyc(object):
                         self.arrays(cpdID, compartment, name, KEGG_ID, cf, cas, cpdinchi)
                         self.store_compounds[ID] = cpdID
                     else:
-                        print(name)
                         inchi2, iupac_name, cas = self.CT.translate(name)
                         if not inchi2:
                             self.arrays(cpdID, compartment, name, KEGG_ID, None, cas, None)
@@ -293,19 +294,16 @@ class MetaCyc(object):
                             self.store_compounds[ID] = cpdID
                 else:
                     inchi2, iupac_name, cas = self.CT.translate(name)
-                    print (name)
                     if not inchi2:
                         self.arrays(cpdID, compartment, name, KEGG_ID, None, cas, None)
                         self.store_compounds[ID] = cpdID
                     else:
                         cf = self.get_fp_cf_info(inchi2)
-                        self.arrays(inchi2+'_'+compartment, compartment, name, KEGG_ID, cf,  cas, inchi2)
+                        self.arrays(cpdID, compartment, name, KEGG_ID, cf,  cas, inchi2)
                         self.store_compounds[ID] = cpdID
             else:
-                cpdID = self.check_db(cpdID+'_'+compartment, KEGG_ID)
+                cpdID = self.check_db(cpdID+'_'+compartment, KEGG_ID, inchi)
                 inchi2, iupac_name, cas = self.CT.translate(name)
-                print (name)
-                print (cas)
                 try:
                     QC = self.cnx.execute('''SELECT * from compound where ID=?''', (cpdID,))
                     try:
@@ -404,7 +402,7 @@ class MetaCyc(object):
                     kegg_id = kegg[1]                
             self.store_compounds_cpt[c.get('id')] = c.get('compartment')+'0'
             self.compound_translator(c.get('id'), biocycID, inchi_id, kegg_id,
-                                     c.get('name'), c.get('compartment')+'0')
+                                     c.get('name'), c.get('compartment')+'0', count)
         reactions_soup = soup.listofreactions
         allreactions = reactions_soup.findAll('reaction')
         print ('STATUS: compiling metacyc reactions')
@@ -446,25 +444,33 @@ class MetaCyc(object):
             temp_all_rxn_compound.append((cpdID, is_prod, stoic))
         return temp_all_rxn_compound
 
-    def check_db(self, cpdID, kegg_id):
+    def check_db(self, cpdID, kegg_id, inchi):
         '''
         Checks database for table original_db_cpdIDs if table exists and cpd ID exists
         the inchi value for that compound is retrieved
         '''
-        INCHI_CHECK = None
-        KEGG_CHECK = None
 
-        if not INCHI_CHECK and kegg_id != 'None':
+        if kegg_id is not None:
             try:
                 QC = self.cnx.execute("""SELECT ID from compound where kegg_id=?""", (kegg_id,))
                 try:
                     result = QC.fetchone()[0]
                     cpdID = result
-                    KEGG_CHECK = True
                 except TypeError:
                     pass
             except sqlite3.OperationalError:
-                pass
+                if inchi is not None:
+                    try:
+                        QC = self.cnx.execute("""SELECT ID from compound where inchistring=?""", (inchi,))
+                        try:
+                            result = QC.fetchone()[0]
+                            cpdID = result
+                        except TypeError:
+                            pass
+                    except sqlite3.OperationalError:
+                        pass
+                else:
+                    pass
         return cpdID 
 
     def get_compounds_4_rxn(self, species):
