@@ -489,7 +489,7 @@ class RetSynthGC(object):
             '''
             Generate a database
             '''
-            init_db.Createdb(self.generate_database, self.inchidb)
+            init_db.Createdb(self.generate_database)
             database = self.generate_database
             new_db = True
 
