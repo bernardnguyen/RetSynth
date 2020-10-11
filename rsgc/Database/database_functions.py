@@ -4,6 +4,8 @@ __email__ = 'leanne382@gmail.com'
 __description__ = 'Code contains database functions'
 
 import pubchempy
+import re
+from copy import deepcopy
 try:
     import urllib.request as urllib2
     import http.client as httplib
