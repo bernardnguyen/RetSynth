@@ -480,9 +480,6 @@ def retrieve_database_info(args):
             #Add ATLAS repository to database
             batlasdb.build_atlas(args.atlas_dump_directory, database, args.inchidb,
                                     args.processors, args.atlas_reaction_type)
-        if args.inchidb and (args.patric_models or args.kbase or args.metacyc or args.kegg or args.SPRESI or args.mine or args.atlas):
-            #Remove duplicate compounds from database
-            rdc.OverlappingCpdIDs(database)
 
         database = args.generate_database
         rdc.OverlappingCpdIDs(database)
@@ -668,13 +665,13 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                         rxn = re.sub('_R$', '', rxn)
                         path_org.append(rxn)
                     uniq_externalrxns.append(list(set(path_org) - set(inrxns_active)))
-
                 ex_info = ei.Extract_Information(optimal_pathways, incpds_active, inrxns_active, DB)
                 output.output_shortest_paths(target_info, ex_info.temp_rxns)
 
+
                 R = rf.ReactionFiles(args.output_path, DB, ex_info.temp_rxns,
                                  target_info[0], target_info[2], incpds_active)
-
+                print("TEST")
                 output.output_raw_solutions(target_info[0], target_info[2], R.ordered_paths,
                                             ex_info.temp_rxns, ex_info.temp_external, incpds_active)
 
@@ -723,7 +720,7 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
     if args.timer_output:
        output.output_timer('Time to find all paths for {}\t{}\t{}\n'.format(target_info[0], (end-start), (end-start)/60))
     verbose_print(args.verbose, "\nINFO:\tTime to find all paths for "+str(target_info[0])+' '+str(end - start))
-    return ()
+
 def run_flux_balance_analysis(target_info, ex_info, incpds_active,
                               inrxns, media, ko,
                               output, DB, verbose):
