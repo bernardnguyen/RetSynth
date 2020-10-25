@@ -54,11 +54,10 @@ class HtmlOutput(object):
                 larray = line.split("\t")
                 cpd = larray[0].split("---")
                 org = larray[1].split("---")
-                cpd[1] = re.sub(" ", "-", cpd[1])
-                temp_dict.setdefault(cpd[1], {})
-                temp_dict[cpd[1]].setdefault(org[1], {})
-                temp_dict[cpd[1]][org[1]]["bio"]=larray[-1]
-                temp_dict[cpd[1]][org[1]]["tar"]=larray[-3]
+                temp_dict.setdefault(cpd[0], {})
+                temp_dict[cpd[0]].setdefault(org[1], {})
+                temp_dict[cpd[0]][org[1]]["bio"]=larray[-1]
+                temp_dict[cpd[0]][org[1]]["tar"]=larray[-3]
         return(temp_dict)
 
     def write_collapsible(self):
@@ -79,58 +78,61 @@ class HtmlOutput(object):
         self.output.write("}\n")
         self.output.write("</script>")
 
+    def retrieve_cpd_name(self, cpdID):
+        if self.DB.get_compound_name(cpdID) is None:
+            return i
+        else:
+            return self.DB.get_compound_name(cpdID)        
+
     def load_individual_path_info(self):
         if self.fba:
             self.fba_dict = self.load_fba()
         self.output.write("<h3>Novel pathway information for targets:</h3>\n")
         for i in self.opt_path:
+            cpdname = self.retrieve_cpd_name(i)
             for o in self.opt_path[i]:
-                if o != "inchi":
-                    self.output.write("<button type=\"button\" class=\"collapsible\"><a href=\"#{}\">{}_{}</a></button>\n".format(i, i, o))
-                    self.output.write("<div class=\"content\">\n")
-                    self.output.write("<p>{} pathways in {}</p>\n".format(i, o))
-                    if self.figures:
-                        itemp = re.sub("-|/|,|\)|\(|<|>|:|\]|\[|\/", "_", i)
-                        itemp = re.sub(' ', '_', itemp)
-                        encoded = base64.b64encode(open("{}/solution_figures/SC_graph_{}_{}.png".format(self.output_path, itemp , o), "rb").read()).decode('utf-8')
-                        self.output.write("<img src=\"data:image/png;base64, {}\" style=\"width:100%\"></img>\n".format(encoded))
-                    if self.figures and self.fba:
-                        self.output.write("<p>Flux through pathways legend</p>\n")
-                        self.output.write("<img src=\"data:image/png;base64, {}\" style=\"width:50%\"></img>\n".format(legend))
-                    
-                    self.output.write("<h4>Pathway information:</h4>\n")
-                    self.output.write("<table style=\"width:100%\">\n")
-                    self.output.write("<tr>\n")
-                    self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Pathway</th>\n")
-                    self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Reaction</th>\n")
-                    self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Reaction Name</th>\n")
-                    self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Enzymes</th>\n")
-                    self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Reactants</th>\n")
-                    self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Products</th>\n")
-                    self.output.write("</tr>\n")
-                    for s in self.opt_path[i][o]['sol']:
-                        for r in self.opt_path[i][o]['sol'][s]['rxn']:
-                            self.output.write("<tr>\n")
-                            self.output.write("<td style=\"text-align: center; vertical-align: middle; font-size: 13px;\">%s</td>\n" % s)
-                            self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % r)
-                            self.output.write("<td style=\"text-align: center; vertical-align: middle; font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["name"])
-                            if os.path.exists(self.output_path+'/gene_compatibility/geneseqs_{}_{}.txt'.format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"],  self.DB.get_model_ID(o))):
-                                file_path=header_path+os.path.abspath(self.output_path+"gene_compatibility/geneseqs_{}_{}.txt".format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"], self.DB.get_model_ID(o)))
-                                self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\"><a href=file:///{} target=\"popup\"\">{}</a></td>\n".format(file_path, self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"]))
-                            else:
-                                self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"])
-                            self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % ",".join(self.opt_path[i][o]['sol'][s]['rxn'][r]["react"]))
-                            self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % ",".join(self.opt_path[i][o]['sol'][s]['rxn'][r]["prod"]))
-                            self.output.write("</tr>\n")
+                self.output.write("<button type=\"button\" class=\"collapsible\"><a href=\"#{}\">{}_{}</a></button>\n".format(cpdname, cpdname, o))
+                self.output.write("<div class=\"content\">\n")
+                self.output.write("<p>{} pathways in {}</p>\n".format(cpdname, o))
+                if self.figures:
+                    itemp = re.sub("-|/|,|\)|\(|<|>|:|\]|\[|\/", "_", i)
+                    itemp = re.sub(' ', '_', itemp)
+                    encoded = base64.b64encode(open("{}/solution_figures/SC_graph_{}_{}.png".format(self.output_path, itemp , o), "rb").read()).decode('utf-8')
+                    self.output.write("<img src=\"data:image/png;base64, {}\" style=\"width:100%\"></img>\n".format(encoded))
+                if self.figures and self.fba:
+                    self.output.write("<p>Flux through pathways legend</p>\n")
+                    self.output.write("<img src=\"data:image/png;base64, {}\" style=\"width:50%\"></img>\n".format(legend))
+
+                self.output.write("<h4>Pathway information:</h4>\n")
+                self.output.write("<table style=\"width:100%\">\n")
+                self.output.write("<tr>\n")
+                self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Pathway</th>\n")
+                self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Reaction</th>\n")
+                self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Reaction Name</th>\n")
+                self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Enzymes</th>\n")
+                self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Reactants</th>\n")
+                self.output.write("<th style=\"text-align: center; vertical-align: middle; background-color: #75c47c; color: black\">Products</th>\n")
+                self.output.write("</tr>\n")
+                for s in self.opt_path[i][o]['sol']:
+                    for r in self.opt_path[i][o]['sol'][s]['rxn']:
+                        self.output.write("<tr>\n")
+                        self.output.write("<td style=\"text-align: center; vertical-align: middle; font-size: 13px;\">%s</td>\n" % s)
+                        self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % r)
+                        self.output.write("<td style=\"text-align: center; vertical-align: middle; font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["name"])
+                        if os.path.exists(self.output_path+'/gene_compatibility/geneseqs_{}_{}.txt'.format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"],  self.DB.get_model_ID(o))):
+                            file_path=header_path+os.path.abspath(self.output_path+"gene_compatibility/geneseqs_{}_{}.txt".format(self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"], self.DB.get_model_ID(o)))
+                            self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\"><a href=file:///{} target=\"popup\"\">{}</a></td>\n".format(file_path, self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"]))
+                        else:
+                            self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % self.opt_path[i][o]['sol'][s]['rxn'][r]["enz"])
+                        self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % ",".join(self.opt_path[i][o]['sol'][s]['rxn'][r]["react"]))
+                        self.output.write("<td style=\"text-align: center; vertical-align: middle;font-size: 13px\">%s</td>\n" % ",".join(self.opt_path[i][o]['sol'][s]['rxn'][r]["prod"]))
+                        self.output.write("</tr>\n")
                 self.output.write("</table>\n")
                 if self.fba:
-                    if o != "inchi":
-                        print(o)
-                        self.output.write("<h3>Theoretical yield information (FBA) results</h3>\n")
-                        self.output.write("<p>%s</p>\n" % self.fba_dict[i][o]["tar"])
-                        self.output.write("<p>%s</p>\n" % self.fba_dict[i][o]["bio"])
+                    self.output.write("<h3>Theoretical yield information (FBA) results</h3>\n")
+                    self.output.write("<p>%s</p>\n" % self.fba_dict[i][o]["tar"])
+                    self.output.write("<p>%s</p>\n" % self.fba_dict[i][o]["bio"])
                 self.output.write("</div>\n")
-
 
     def open_optimal_pathways(self):
         self.opt_path = dict()
@@ -143,49 +145,47 @@ class HtmlOutput(object):
                     line = re.sub("SHORTEST PATH FOR ", "", line)
                     larray = line.split(" ")
                     if larray[1] != "in":
-                        self.opt_path.setdefault(larray[1], {})
-                        self.opt_path[larray[1]].setdefault(larray[5], {})
-                        self.opt_path[larray[1]][larray[5]].setdefault("sol", {})
-                        self.opt_path[larray[1]].setdefault("inchi", larray[0])
+                        self.opt_path.setdefault(larray[0], {})
+                        self.opt_path[larray[0]].setdefault(larray[5], {})
+                        self.opt_path[larray[0]][larray[5]].setdefault("sol", {})
                         orgid = larray[5]
                     else:
                         self.opt_path.setdefault(larray[0], {})
-                        self.opt_path[larray[1]].setdefault(larray[4], {})
-                        self.opt_path[larray[1]][larray[4]].setdefault("sol", {}) 
-                        self.opt_path[larray[1]].setdefault("inchi", larray[0])
+                        self.opt_path[larray[0]].setdefault(larray[4], {})
+                        self.opt_path[larray[0]][larray[4]].setdefault("sol", {}) 
                         orgid = larray[4]
                 elif line.startswith("Solution"):
                     rxncounter=0
                     temparray = line.split(" ")
-                    self.opt_path[larray[1]][orgid]["sol"].setdefault(temparray[1], {})
-                    self.opt_path[larray[1]][orgid]["sol"][temparray[1]].setdefault("rxn", {})
+                    self.opt_path[larray[0]][orgid]["sol"].setdefault(temparray[1], {})
+                    self.opt_path[larray[0]][orgid]["sol"][temparray[1]].setdefault("rxn", {})
                 elif line.endswith("reactants") or line.endswith("products"):
                     line = line.strip()
                     if line.endswith("reactants"):
                         line = re.sub(" reactants", "", line)
                         react = line.split("\t")
                         if len(react) >2:
-                            self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["react"].append(react[2])
+                            self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["react"].append(react[2])
                         else:
-                            self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["react"].append(react[1])
+                            self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["react"].append(react[1])
                     if line.endswith("products"):
                         line = re.sub(" products", "", line)
                         prod = line.split("\t")
                         if len(react) >2:
-                            self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["prod"].append(prod[2])
+                            self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["prod"].append(prod[2])
                         else:
-                            self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["prod"].append(prod[1])
+                            self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"][rxnid]["prod"].append(prod[1])
                 elif line.startswith("No paths"):
                     pass
                 elif line != "":
                     rxncounter+=1
                     rxnarray = line.split("\t")
                     rxnid=str(rxncounter)+"_"+rxnarray[0]
-                    self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"].setdefault(rxnid, {})
-                    self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("react", [])
-                    self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("prod", [])
-                    self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("enz", str(rxnarray[3]))
-                    self.opt_path[larray[1]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("name", str(rxnarray[1]))
+                    self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"].setdefault(rxnid, {})
+                    self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("react", [])
+                    self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("prod", [])
+                    self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("enz", str(rxnarray[3]))
+                    self.opt_path[larray[0]][orgid]["sol"][temparray[1]]["rxn"][rxnid].setdefault("name", str(rxnarray[1]))
 
     def load_pathways(self):
         self.output.write("<div class=\"section\" id=\"retSynth-results\">\n")
@@ -198,13 +198,13 @@ class HtmlOutput(object):
         self.output.write("</tr>\n")
         self.open_optimal_pathways()
         for i in self.opt_path:
+            cpdname = self.retrieve_cpd_name(i)
             for o in self.opt_path[i]:
-                if o != "inchi":
-                    self.output.write("<tr>\n")
-                    self.output.write("<td style=\"text-align: center; vertical-align: middle;\"><a id=\"#{}\">{}</a></td>\n".format(i, i))
-                    self.output.write("<td style=\"text-align: center; vertical-align: middle;\">%s</td>\n" % o) 
-                    self.output.write("<td style=\"text-align: center; vertical-align: middle;\">%s</td>\n" % len(self.opt_path[i][o]['sol']))
-                    self.output.write("</tr>\n")
+                self.output.write("<tr>\n")
+                self.output.write("<td style=\"text-align: center; vertical-align: middle;\"><a id=\"#{}\">{}</a></td>\n".format(cpdname, cpdname))
+                self.output.write("<td style=\"text-align: center; vertical-align: middle;\">%s</td>\n" % o) 
+                self.output.write("<td style=\"text-align: center; vertical-align: middle;\">%s</td>\n" % len(self.opt_path[i][o]['sol']))
+                self.output.write("</tr>\n")
         self.output.write("</table>\n")
     def load_general_stats(self):
         self.output.write("<p>Number of targets evaluated = %s </p>\n" % self.eval_targets)
