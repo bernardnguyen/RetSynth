@@ -367,6 +367,17 @@ class Connector(object):
         else:
             return None
 
+    def get_all_compounds_inchi(self):
+        '''Retrieves all compounds in the database'''
+        query = "select inchistring from compound"
+        conn, cnx = self.connect_to_database()
+        Q, cnx = test_db_4_error(conn, cnx, query, self.database, 0)
+        hits = fetching_all_query_results(Q, conn, cnx, self.database, query, 0)
+        if hits != 'Errored' and hits is not None:
+            return [i[0] for i in hits if i[0] is not None]
+        else:
+            return None
+
     def get_reactions_in_model(self, organism_ID):
         '''Retrieves all reactions in a metabolic model given model ID'''
         if organism_ID.strip() == "":

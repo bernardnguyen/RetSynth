@@ -413,7 +413,7 @@ def read_in_and_generate_output_files(args, database):
         verbose_print(args.verbose, 'STATUS:\t{} tanimoto threshold being used'.format(float(args.tanimoto_threshold)*100))
         cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')
         extracell_compartmentID = get_compartmentID_from_db(DB, 'extracellular')
-        SIM = ss.TanimotoStructureSimilarity(R.targets, DB.get_all_compounds(),
+        SIM = ss.TanimotoStructureSimilarity(R.targets, database, DB.get_all_compounds_inchi(),
                                              cytosol_compartmentID, extracell_compartmentID,
                                              args.verbose, args.tanimoto_threshold)
         OUTPUT.output_final_targets(SIM.finaltargets, args.tanimoto_threshold)
@@ -671,7 +671,6 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
 
                 R = rf.ReactionFiles(args.output_path, DB, ex_info.temp_rxns,
                                  target_info[0], target_info[2], incpds_active)
-                print("TEST")
                 output.output_raw_solutions(target_info[0], target_info[2], R.ordered_paths,
                                             ex_info.temp_rxns, ex_info.temp_external, incpds_active)
 

@@ -593,7 +593,7 @@ class RetSynthGC(object):
             verbose_print(self.verbose, 'STATUS: {} tanimoto threshold being used'.format(float(self.tanimoto_threshold)*100))
             cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')
             extracell_compartmentID = get_compartmentID_from_db(DB, 'extracellular')
-            SIM = ss.TanimotoStructureSimilarity(R.targets, DB.get_all_compounds(),
+            SIM = ss.TanimotoStructureSimilarity(R.targets, daatabase, DB.get_all_compounds_inchi(),
                                                 cytosol_compartmentID, extracell_compartmentID,
                                                 self.verbose, self.tanimoto_threshold)
             OUTPUT.output_final_targets(SIM.finaltargets, self.tanimoto_threshold)
