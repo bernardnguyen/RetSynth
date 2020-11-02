@@ -182,11 +182,11 @@ def parse_arguments():
                                                                            and bacteria seperate list by comma i.e. plants,bacteria', 
                         required=False, type=str, default='bacteria')
 
-    parser.add_argument('-keggnunorganisms', '--kegg_number_of_organisms', help='Define number of organisms \
+    parser.add_argument('-keggnumorganisms', '--kegg_number_of_organisms', help='Define number of organisms \
                                                                                  from kegg database to add',
                         required=False, type=str, default='all')
 
-    parser.add_argument('-keggnunorganismpaths', '--kegg_number_of_organism_pathways', help='Define number of pathways \
+    parser.add_argument('-keggnumorganismpaths', '--kegg_number_of_organism_pathways', help='Define number of pathways \
                                                                                              from an organism to add',
                         required=False, type=str, default='all')
 
@@ -448,7 +448,7 @@ def retrieve_database_info(args):
             '''
             bmcdb.Translate(args.generate_database, args.metacyc_addition,
                             args.inchidb, args.metacyc_reaction_type, args.verbose)
-        if args.kegg and (args.patric_models or args.metacyc):
+        if args.kegg: #and (args.patric_models or args.metacyc):
             '''
             Add kegg daatabase
             '''
