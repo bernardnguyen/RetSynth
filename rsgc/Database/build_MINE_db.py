@@ -133,10 +133,10 @@ class BuildMINEdb(object):
                     self.reaction_dict[rxn][typecpd].append(compound)
             except KeyError:
                 self.compound_dict_temp[compound] = {}
-                self.compound_dict_temp[compound]['Name'] = 'None'
-                self.compound_dict_temp[compound]['SMILES'] = 'None'
-                self.compound_dict_temp[compound]['Inchikey'] = 'None'
-                self.compound_dict_temp[compound]['MINE_id'] = 'None'
+                self.compound_dict_temp[compound]['Name'] = None
+                self.compound_dict_temp[compound]['SMILES'] = None
+                self.compound_dict_temp[compound]['Inchikey'] = None
+                self.compound_dict_temp[compound]['MINE_id'] = None
                 self.compound_dict_temp[compound]['ENZYME'] = {}
                 self.reaction_dict[rxn][typecpd].append(compound)
         else:
@@ -145,10 +145,10 @@ class BuildMINEdb(object):
                 self.reaction_dict[rxn][typecpd].append(compound)
             except KeyError:
                 self.compound_dict_temp[compound] = {}
-                self.compound_dict_temp[compound]['Name'] = 'None'
-                self.compound_dict_temp[compound]['SMILES'] = 'None'
-                self.compound_dict_temp[compound]['Inchikey'] = 'None'
-                self.compound_dict_temp[compound]['MINE_id'] = 'None'
+                self.compound_dict_temp[compound]['Name'] = None
+                self.compound_dict_temp[compound]['SMILES'] = None
+                self.compound_dict_temp[compound]['Inchikey'] = None
+                self.compound_dict_temp[compound]['MINE_id'] = None
                 self.compound_dict_temp[compound]['ENZYME'] = {}
                 self.reaction_dict[rxn][typecpd].append(compound)
     
@@ -224,37 +224,38 @@ class BuildMINEdb(object):
 
         cnx.commit()
         DB = Q.Connector(self.database)
-        original_cpds_in_db = DB.get_all_compounds()
+        original_cpds_in_db = DB.get_all_compounds_inchi()
 
         temp_inchi = set()
         for cpd in self.compound_dict:
             try:
-                cpd_inchi = self.compound_dict[cpd]['INCHI']+cytosol
+                cpd_inchi = self.compound_dict[cpd]['INCHI']
                 if cpd_inchi not in original_cpds_in_db:
-                    if self.inchidb:
-                        original_cpds.append((cpd+cytosol,
-                                              self.compound_dict[cpd]['INCHI']+cytosol))
-                    if self.compound_dict[cpd]['INCHI']+cytosol  not in temp_inchi:
-                        model_compound.append((self.compound_dict[cpd]['INCHI']+cytosol, 'MINE'))
+                    if cpd  not in temp_inchi:
+                        model_compound.append((cpd+cytosol, 'MINE'))
                         try:
-                            compound.append((self.compound_dict[cpd]['INCHI']+cytosol,
-                                             self.compound_dict[cpd]['Name'], 'c0', 'None',
-                                             self.compound_dict[cpd].get('CF', 'None'),
-                                             'None'))
+                            compound.append((cpd+cytosol,
+                                             self.compound_dict[cpd]['Name'], 'c0', None,
+                                             self.compound_dict[cpd].get('CF', None),
+                                             None, self.compound_dict[cpd]['INCHI']))
                         except KeyError:
-                            compound.append((self.compound_dict[cpd]['INCHI']+cytosol,
-                                             'None', 'c0', 'None',
-                                              self.compound_dict[cpd].get('CF', 'None'), 
-                                              'None'))
-                        temp_inchi.add(cpd_inchi)
+                            compound.append((cpd+cytosol,
+                                             None, 'c0', None,
+                                              self.compound_dict[cpd].get('CF', None), 
+                                              None,self.compound_dict[cpd]['INCHI']))
+                        temp_inchi.add(cpd)
+                else: 
+                    if DB.get_compound_ID_from_inchi(cpd_inchi) is None:
+                        cpd = cpd 
+                    else:
+                        cpd = DB.get_compound_ID_from_inchi(cpd_inchi)
             except KeyError:
                 model_compound.append((cpd+cytosol, 'MINE'))
                 try:
-                    compound.append((cpd+cytosol, self.compound_dict[cpd]['Name'], 'c0', 'None', 'None', 'None'))
+                    compound.append((cpd+cytosol, self.compound_dict[cpd]['Name'], 'c0', None, None, None, None))
                 except KeyError:
-                    compound.append((cpd+cytosol, 'None', 'c0', 'None', 'None', 'None'))
-        if self.inchidb:
-            cnx.executemany("INSERT INTO original_db_cpdIDs VALUES (?,?)", original_cpds)
+                    compound.append((cpd+cytosol, None, 'c0', None, None, None, None))
+
         cnx.executemany("INSERT INTO model_compound VALUES (?,?)", model_compound)
-        cnx.executemany("""INSERT INTO compound VALUES (?,?,?,?,?,?)""", compound)
+        cnx.executemany("""INSERT INTO compound VALUES (?,?,?,?,?,?,?)""", compound)
         cnx.commit()
