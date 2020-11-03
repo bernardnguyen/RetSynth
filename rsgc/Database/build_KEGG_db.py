@@ -320,13 +320,13 @@ def process_compound(cpd, reactionID, reactioninfo, is_prod,
     """Extract compound info"""
     cpd = re.sub('\s*\(\S+\)$', '', cpd)
     cpd = re.sub('^\(\S+\)\s*', '', cpd)
-    cpd = re.sub('n ', '', cpd)
+    cpd = re.sub('n\s*', '', cpd)
 
-    match = re.search('^\d', cpd)
+    match = re.search('^\d+', cpd)
     match2 = re.search('^\w+\s+', cpd)
     if match:
         stoichiometry = int(match.group(0))
-        cpd = re.sub('^\d+ ', '', cpd)
+        cpd = re.sub('^\d+\s*', '', cpd)
     elif match2:
         stoichiometry = 1
         cpd = re.sub('^\w+\s+', '', cpd)
