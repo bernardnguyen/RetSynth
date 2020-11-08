@@ -459,26 +459,26 @@ def retrieve_database_info(args):
             DB = BKD.DB
         if args.SPRESI:
             #Translate synthetic rdf files from SPRESI into database
-            DB = Q.Connector(database)
+            DB = Q.Connector(args.generate_database)
             cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')
             bspresidb.RDF_Reader(args.spresi_dump_directory,
-                                database,
+                                args.generate_database,
                                 args.spresi_reaction_type,
                                 cytosol_compartmentID, args.processors)
 
         if args.user_rxns_2_database:
             #Add user identified reactions
-            burdb.AddUserRxns2DB(database, args.user_rxns_2_database,
+            burdb.AddUserRxns2DB(args.generate_database, args.user_rxns_2_database,
                                 model_id='UserAdded', rxntype=args.user_rxns_2_database_type)
 
         if args.mine:
             #Add MINE repository to database
-            bminedb.BuildMINEdb(args.mine_dump_directory, database,
+            bminedb.BuildMINEdb(args.mine_dump_directory, args.generate_database,
                                 args.inchidb, args.mine_reaction_type)
 
         if args.atlas:
             #Add ATLAS repository to database
-            batlasdb.build_atlas(args.atlas_dump_directory, database, args.inchidb,
+            batlasdb.build_atlas(args.atlas_dump_directory, args.generate_database, args.inchidb,
                                     args.processors, args.atlas_reaction_type)
 
         database = args.generate_database
