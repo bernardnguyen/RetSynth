@@ -16,13 +16,14 @@ except:
 import pubchempy
 from tqdm import tqdm
 from sys import platform
+from rsgc.Database import database_functions as df
 if platform == 'darwin':
     from rsgc.indigopython130_mac import indigo
     from rsgc.indigopython130_mac import indigo_inchi
 elif platform == "linux" or platform == "linux2":
     from rsgc.indigopython130_linux import indigo
     from rsgc.indigopython130_linux import indigo_inchi
-elif platform == "win32" or platform == "win64":
+elif platform == "win32" or platform == "win64" or platform == "cygwin":
     from rsgc.indigopython130_win import indigo
     from rsgc.indigopython130_win import indigo_inchi
 
@@ -34,12 +35,12 @@ def build_atlas(atlas_dir, DBPath, inchidb, processors, rxntype='bio'):
     (cnx, reactions, reaction_reversible,
      model_reaction, reaction_protein,
      reaction_genes, model_compound,
-     compound, reaction_compound, original_db_cpd_new) = fill_arrays_4_db(rxn_keggids, rxn_atlas,
+     compound, reaction_compound) = fill_arrays_4_db(rxn_keggids, rxn_atlas,
                                                                           DBPath, inchidb,
                                                                           processors, rxntype)
     fill_database(cnx, reactions, reaction_reversible, model_reaction,
                   reaction_protein, reaction_genes, model_compound,
-                  compound, reaction_compound, original_db_cpd_new)
+                  compound, reaction_compound)
 
 def fill_dictionary(larray, dictionary, KEGGID=False):
     '''Fill dictionaries with ATLAS reactions'''
@@ -122,16 +123,6 @@ def fill_arrays_4_db(rxn_keggids, rxn_atlas, DBPath, inchidb, processors, rxntyp
     reaction_genes = []
     model_compound = []
     model_reaction = []
-    original_db_cpd_new = []
-    original_db_cpd_current = []
-
-    IN = indigo.Indigo()
-    INCHI = indigo_inchi.IndigoInchi(IN)
-
-    if inchidb is True:
-        Q = cnx.execute("""SELECT * from original_db_cpdIDs""")
-        hits = Q.fetchall()
-        original_db_cpd_current = list(set(hits))
 
     Q = cnx.execute("""SELECT kegg_id from reaction""")
     hits = Q.fetchall()
@@ -165,7 +156,7 @@ def fill_arrays_4_db(rxn_keggids, rxn_atlas, DBPath, inchidb, processors, rxntyp
             try:
                 name = rxn_keggids[rxn]['name']
             except KeyError:
-                name = 'None'
+                name = None
             try:
                 proteins = rxn_keggids[rxn]['mostsim']
             except KeyError:
@@ -189,17 +180,18 @@ def fill_arrays_4_db(rxn_keggids, rxn_atlas, DBPath, inchidb, processors, rxntyp
             except KeyError:
                 print ('WARNING: no formula for rxn {}'.format(rxn))
                 rxnformula = ''
-            rxns.append((rxn, 'None', rxnformula, proteins, False))
+            rxns.append((rxn, None, rxnformula, proteins, False))
     output_queue = Queue()
     rxns_processors = [rxns[i:i+processors]
                      for i in range(0, len(rxns), processors)]
+
     print ('STATUS: Processing all reactions')
     for rxns_processor in tqdm(rxns_processors):
         processes = []
         for rxninfo in rxns_processor:
             processes.append(Process(target=process_reactions,
-                                     args=(rxninfo, currentcpds, dbcpds, original_db_cpd_current,
-                                           inchidb, rxntype, INCHI, output_queue)))
+                                     args=(rxninfo, currentcpds, dbcpds,
+                                           inchidb, rxntype, output_queue)))
         for p in processes:
             p.start()
         for p in processes:
@@ -212,19 +204,17 @@ def fill_arrays_4_db(rxn_keggids, rxn_atlas, DBPath, inchidb, processors, rxntyp
             model_compound.extend(result_tuples[5])
             compound.extend(result_tuples[6])
             reaction_compound.extend(result_tuples[7])
-            original_db_cpd_new.extend(result_tuples[8])   
     reactions = list(set(reactions))
     model_reaction = list(set(model_reaction))
     model_compound = list(set(model_compound))
     compound = list(set(compound))
     reaction_reversible = list(set(reaction_reversible))
-    if original_db_cpd_new:
-        original_db_cpd_new = list(set(original_db_cpd_new))
+
 
     return (cnx, reactions, reaction_reversible, model_reaction, reaction_protein,
-            reaction_genes, model_compound, compound, reaction_compound, original_db_cpd_new)
+            reaction_genes, model_compound, compound, reaction_compound)
 
-def process_reactions(rxninfo, currentcpds, dbcpds, original_db_cpd_current, inchidb, rxntype, INCHI, output_queue):
+def process_reactions(rxninfo, currentcpds, dbcpds, inchidb, rxntype, output_queue):
     '''Process ATLAS reactions'''
     reactions_temp = []
     reaction_reversible_temp = []
@@ -234,14 +224,14 @@ def process_reactions(rxninfo, currentcpds, dbcpds, original_db_cpd_current, inc
     reaction_compound_temp = []
     model_compound_temp = []
     compound_temp = []
-    original_db_cpd_temp = []
+
     if rxninfo[4] is True:
         reactions_temp.append((rxninfo[0]+'_c0', rxninfo[1], rxninfo[0], rxntype))
     else:
-        reactions_temp.append((rxninfo[0]+'_c0', rxninfo[1], 'None', rxntype))
-    reaction_reversible_temp.append((rxninfo[0]+'_c0', 'true'))
-    model_reaction_temp.append((rxninfo[0]+'_c0', 'ATLAS', 'true'))
-    reaction_genes_temp.append((rxninfo[0]+'_c0', 'ATLAS', 'None'))
+        reactions_temp.append((rxninfo[0]+'_c0', rxninfo[1], None, rxntype))
+    reaction_reversible_temp.append((rxninfo[0]+'_c0', True))
+    model_reaction_temp.append((rxninfo[0]+'_c0', 'ATLAS', True))
+    reaction_genes_temp.append((rxninfo[0]+'_c0', 'ATLAS', None))
     
     for protein in rxninfo[3]:
         reaction_protein_temp.append((rxninfo[0]+'_c0', 'ATLAS', protein))
@@ -251,48 +241,38 @@ def process_reactions(rxninfo, currentcpds, dbcpds, original_db_cpd_current, inc
     if match:
         reactionarray = reactionformula.split('<=>')
         reactants = reactionarray[0].split('+')
-        # try:
         products = reactionarray[1].split('+')
-        # except IndexError:
-        #     print ('STATUS: INDEX ERROR in ATLAS FORMATION {}'.format(reactionformula))
         if reactants and products:
             for reactant in reactants:
                 (model_compound_temp,
                 compound_temp,
-                reaction_compound_temp,
-                original_db_cpd_temp) = process_substrates(rxninfo[0]+'_c0', reactant, 0,
+                reaction_compound_temp) = process_substrates(rxninfo[0]+'_c0', reactant, 0,
                                                             currentcpds, dbcpds, inchidb,
-                                                            original_db_cpd_current,
                                                             model_compound_temp,
                                                             reaction_compound_temp,
                                                             model_reaction_temp,
-                                                            compound_temp,
-                                                            original_db_cpd_temp, INCHI)
+                                                            compound_temp)
             for product in products:
                 (model_compound_temp,
                 compound_temp,
-                reaction_compound_temp,
-                original_db_cpd_temp) = process_substrates(rxninfo[0]+'_c0', product, 1,
+                reaction_compound_temp) = process_substrates(rxninfo[0]+'_c0', product, 1,
                                                             currentcpds, dbcpds, inchidb,
-                                                            original_db_cpd_current,
                                                             model_compound_temp,
                                                             reaction_compound_temp,
                                                             model_reaction_temp,
-                                                            compound_temp,
-                                                            original_db_cpd_temp, INCHI)
+                                                            compound_temp)
         else:
             print ('WARNING: {} does not have reactants {} and/or products {}'.format(rxninfo[0], reactants, products))
     else:
         print ('WARNING: {} does not have equation'.format(reactionformula))
     output_queue.put((reactions_temp, reaction_reversible_temp, model_reaction_temp,
                     reaction_protein_temp, reaction_genes_temp, model_compound_temp,
-                    compound_temp, reaction_compound_temp, original_db_cpd_temp))
+                    compound_temp, reaction_compound_temp))
 
-def process_substrates(rxn, cpd, is_prod, currentcpds, dbcpds, inchidb, original_db_cpd_current,
+def process_substrates(rxn, cpd, is_prod, currentcpds, dbcpds, inchidb,
                        model_compound_temp, reaction_compound_temp, model_reaction_temp,
-                       compound_temp, original_db_cpd_temp, INCHI):
+                       compound_temp):
     '''Process ATLAS compounds'''
-
     match = re.search('^\(\d+\)', cpd)
     if match is not None:
         stoich = match.group(0)
@@ -312,34 +292,30 @@ def process_substrates(rxn, cpd, is_prod, currentcpds, dbcpds, inchidb, original
         db_cpd_id = re.sub('_'+compartment_keys[0], '_c0', db_cpd_id)
         reaction_compound_temp.append((rxn, db_cpd_id, is_prod, stoich, 0))
         if db_cpd_id not in dbcpds:
-            compound_temp.append((db_cpd_id, 'None', 'c0', cpd, 'None', 'None'))
+            compound_temp.append((db_cpd_id, None, 'c0', cpd, None, None, None))
         model_compound_temp.append((db_cpd_id, 'ATLAS'))
 
     else:
         if inchidb:
-            db_cpd_id, cf, cas = get_inchi_4_cpd(cpd, INCHI)
-            if db_cpd_id:
-                reaction_compound_temp.append((rxn, db_cpd_id+'_c0', is_prod, stoich, 0))
-                if db_cpd_id+'_c0' not in dbcpds:
-                    compound_temp.append((db_cpd_id+'_c0', 'None', 'c0', cpd, str(cf), str(cas)))
-                if (cpd+'_c0', db_cpd_id+'_c0') not in original_db_cpd_current:
-                    original_db_cpd_temp.append((cpd+'_c0', db_cpd_id+'_c0'))
-                model_compound_temp.append((db_cpd_id+'_c0', 'ATLAS'))
-            else:
-                reaction_compound_temp.append((rxn, cpd+'_c0', is_prod, stoich, 0))
-                if cpd+'_c0' not in dbcpds:
-                    compound_temp.append((cpd+'_c0', 'None', 'c0', cpd, str(cf),  str(cas)))
-                model_compound_temp.append((cpd+'_c0', 'ATLAS'))
+            inchi, cf, cas = get_inchi_4_cpd(cpd)
+
+            reaction_compound_temp.append((rxn, cpd+'_c0', is_prod, stoich, 0))
+            if cpd+'_c0' not in dbcpds:
+                compound_temp.append((cpd+'_c0', None, 'c0', cpd, cf, cas, inchi))
+            model_compound_temp.append((cpd+'_c0', 'ATLAS'))
+
         else:
             reaction_compound_temp.append((rxn, cpd+'_c0', is_prod, stoich, 0))
             if cpd+'_c0' not in dbcpds:
-                compound_temp.append((cpd+'_c0', 'None', 'c0', cpd, 'None', 'None'))
+                compound_temp.append((cpd+'_c0', None, 'c0', cpd, None, None, None))
                 model_compound_temp.append((cpd+'_c0', 'ATLAS'))
-    return (model_compound_temp, compound_temp, reaction_compound_temp, original_db_cpd_temp)
+    return (model_compound_temp, compound_temp, reaction_compound_temp)
 
-def get_inchi_4_cpd(cpd, INCHI):
+def get_inchi_4_cpd(cpd):
     '''Get inchi for a compound if inchidb is True'''
-    darray = extract_KEGG_data(KEGG+'get/'+cpd)
+    darray = df.extract_KEGG_data(KEGG+'get/'+cpd, False)
+    IN = indigo.Indigo()
+    INCHI = indigo_inchi.IndigoInchi(IN)
     inchivalue = None
     cf = None
     cas = None
@@ -355,14 +331,10 @@ def get_inchi_4_cpd(cpd, INCHI):
                     if substance_cids:
                         try:
                             compounds = pubchempy.get_compounds(substance_cids[0])
+
                             if compounds:
                                 inchivalue = compounds[0].inchi
                                 mol = INCHI.loadMolecule(inchivalue)
-                                # fp = mol.fingerprint('full')
-                                # buffer = fp.toBuffer()
-                                # buffer_array = [str(i) for i in buffer]
-                                # buffer_string = ','.join(buffer_array)
-                                # fp = buffer_string
                                 cf = mol.grossFormula()
                                 cf = re.sub(' ', '', cf)                            
                         except:
@@ -374,18 +346,9 @@ def get_inchi_4_cpd(cpd, INCHI):
                 cas = array[index+1]
     return inchivalue, cf, cas
 
-def extract_KEGG_data(url):
-    '''Extract Kegg db info'''
-    try:
-        data = urllib2.urlopen(url).read()
-        darray = data.split('\n')
-        return darray
-    except:
-        return None
-
 def fill_database(cnx, reactions, reaction_reversible, model_reaction,
                   reaction_protein, reaction_genes, model_compound,
-                  compound, reaction_compound, original_db_cpd_new):
+                  compound, reaction_compound):
     '''fill database with ATLAS information'''
     Q = cnx.execute("SELECT ID FROM model WHERE ID = 'ATLAS'")
     hits = Q.fetchall()
@@ -407,8 +370,6 @@ def fill_database(cnx, reactions, reaction_reversible, model_reaction,
     cnx.executemany("INSERT INTO reaction VALUES (?,?,?,?)", reactions)
     cnx.executemany("INSERT INTO reaction_compound VALUES (?,?,?,?,?)",
                          reaction_compound)
-    cnx.executemany("INSERT INTO compound VALUES (?,?,?,?,?,?)", compound)
-    if original_db_cpd_new:
-        cnx.executemany("INSERT INTO original_db_cpdIDs VALUES (?,?)",
-                             original_db_cpd_new)
+    cnx.executemany("INSERT INTO compound VALUES (?,?,?,?,?,?,?)", compound)
+
     cnx.commit()
