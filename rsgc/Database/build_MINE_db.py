@@ -26,8 +26,6 @@ class BuildMINEdb(object):
         self.database = database
         self.rxntype = rxntype
         self.inchidb = inchidb
-        self.IN = indigo.Indigo()
-        self.INCHI = indigo_inchi.IndigoInchi(self.IN)
         self.compound_dict = {}
         self.cpd_translate = {}
         self.reaction_dict = {}
@@ -48,15 +46,17 @@ class BuildMINEdb(object):
 
     def extract_cpd_information(self, compoundid, INFO, tp, DB):
         '''Get compound information'''
+        IN = indigo.Indigo()
+        INCHI = indigo_inchi.IndigoInchi(IN)
         if tp.startswith(INFO):
             tparray = tp.split()
             if INFO not in self.compound_dict[compoundid]:
                 self.compound_dict[compoundid][INFO] = tparray[1]
                 if INFO == 'SMILES' and self.inchidb is True:
                     try:
-                        mol = self.IN.loadMolecule(tparray[1])
+                        mol = IN.loadMolecule(tparray[1])
                         if mol:
-                            inchi = self.INCHI.getInchi(mol)
+                            inchi = INCHI.getInchi(mol)
                             cf = mol.grossFormula()
                             cf = re.sub(' ', '', cf)                           
                             if inchi:
@@ -67,7 +67,6 @@ class BuildMINEdb(object):
                             self.fill_in_cpd_info(compoundid, None, None, DB)
                     except indigo.IndigoException:
                         self.fill_in_cpd_info(compoundid, None, None, DB)
-
     def extract_source_information(self, compoundid, tp):
         '''extract operator information (EC number)'''
         if tp.startswith('Sources'):

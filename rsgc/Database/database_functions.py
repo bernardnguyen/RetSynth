@@ -14,7 +14,6 @@ except:
     import urllib2
     import httplib
 PATH = os.path.dirname(os.path.abspath(__file__))
-print (PATH)
 KEGG = 'http://rest.kegg.jp/'
 translate_dict = {}
 if os.path.exists(PATH+"/KEGG2INCHI.txt") is True:
