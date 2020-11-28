@@ -23,8 +23,8 @@ if os.path.exists(PATH+"/KEGG2INCHI.txt") is True:
             line = line.strip()
             larray = line.split('\t')
             translate_dict[larray[0]] = str(larray[1])+"\t"+str(larray[2])
-translatefile = open(PATH+"/KEGG2INCHI.txt", "a")
-    
+#translatefile = open(PATH+"/KEGG2INCHI.txt", "a")
+
 
 def verbose_print(verbose, line):
     '''verbose print function'''
@@ -44,6 +44,7 @@ def extract_KEGG_data(url, verbose):
 
 def kegg2pubcheminchi(cpd, verbose):
     '''Convvert kegg ID to InChI value'''
+    translatefile = open(PATH+"/KEGG2INCHI.txt", "a")
     if cpd in translate_dict:
         larray = translate_dict[cpd].split("\t")
         for i, x in enumerate(larray):
@@ -78,6 +79,7 @@ def kegg2pubcheminchi(cpd, verbose):
                     index = array.index('CAS:')
                     cas = array[index+1]
         translatefile.write(cpd+"\t"+str(inchicpd)+"\t"+str(cas)+"\n")
+        translatefile.close()
         return (inchicpd, cas)
 
 def get_KEGG_IDs(ID, compartment, KEGGdict):

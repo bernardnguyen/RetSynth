@@ -146,13 +146,13 @@ class BuildModelSeed(object):
         '''Adds information from cobra model into appropriate arrays'''
         print ('STATUS: Processing cobra model {}'.format(genome_id))
         print ('STATUS: Getting metabolites for cobra model {}'.format(genome_id))
-
         model_compounds = []
         model_reactions = []
         reaction_gene = []
         reaction_protein = []
         reactions_compounds = []
         cpd_IDs = {}
+        print(len(model.metabolites))
         for cpd in tqdm(model.metabolites):
             new_cpd_keggid, raw_cpd_keggid=df.get_KEGG_IDs(cpd.id, cpd.compartment, self.CPD2KEGG)
             cpd_IDs[cpd.id] = new_cpd_keggid
@@ -168,8 +168,8 @@ class BuildModelSeed(object):
                     self.allcompounds_check.add(new_cpd_keggid)
             else:
                 self.allcompounds.add((new_cpd_keggid, cpd.name, cpd.compartment+'0', raw_cpd_keggid, None, None, None))
-
         print ('STATUS: Getting reactions for cobra model {}'.format(genome_id))
+        print ("NUMBER OF REACTIONS "+str(len(model.reactions)))
         for reaction in tqdm(model.reactions):
             try:
                 new_rxn_keggid, raw_rxn_keggid = df.get_KEGG_IDs(reaction.id, list(reaction.compartments)[0], self.RXN2KEGG)
@@ -201,7 +201,6 @@ class BuildModelSeed(object):
             else:
                 if self.reaction_reversibility[new_rxn_keggid] is False and bool(reaction.reversibility) == True:
                     self.reaction_reversibility[new_rxn_keggid] = bool(reaction.reversibility)
-
         #ADD TO DATABASE
 
         self.L2D.add_model_compounds(model_compounds)
@@ -276,19 +275,20 @@ class BuildModelSeed(object):
                             io.write_sbml_model(cobra_model, self.output_folder+'sbml_models/'+genome_name+'_'+self.media)
                     except ConnectionError:
                         count_attemps+=1
-                        print ('STATUS: Unable to get cobra model for genome {} {}, error 1, attempt {}'.format(genome_id, genome_name, count_attemps))
+                        print ('ERROR 1: Unable to get cobra model for genome {} {}, error 1, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
                     except mackinac.SeedClient.ObjectNotFoundError:
                         count_attemps+=1
-                        print ('STATUS: Unable to get cobra model for genome {} {}, error 2, attempt {}'.format(genome_id, genome_name, count_attemps))
+                        print ('ERROR 2: Unable to get cobra model for genome {} {}, error 2, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
                     except rsgc.Database.mackinac.SeedClient.ObjectNotFoundError:
                         count_attemps+=1
-                        print ('STATUS: Unable to get cobra model for genome {} {},  error 3, attempt {}'.format(genome_id, genome_name, count_attemps))
+                        print ('ERROR 3: Unable to get cobra model for genome {} {},  error 3, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
-                    except:
+                    except Exception as e:
+                        print (e)
                         count_attemps+=1
-                        print ('STATUS: Unexpected error for cobra model for genome {} {},  error 4, attempt {}'. format(genome_id, genome_name, count_attemps))
+                        print ('ERROR 4: Unexpected error for cobra model for genome {} {},  error 4, attempt {}'. format(genome_id, genome_name, count_attemps))
             else:
                 print ('STATUS: {} genome already in database'.format(genome_id))
             reaction_revers_total = []
