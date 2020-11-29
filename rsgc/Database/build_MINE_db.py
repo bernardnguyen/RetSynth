@@ -113,7 +113,10 @@ class BuildMINEdb(object):
     def open_mspfile(self, filename):
         '''Opens and reads msp files'''
         print ('STATUS: Reading '+filename)
-        numlines = len(open(filename).readlines())
+        file_open = open(filename)
+        lines = file_open.readlines()
+        numlines = len(lines)
+        file_open.close()
         with open(filename) as fin:
             cpd = []
             for count_line, line in enumerate(tqdm(fin)):
@@ -179,7 +182,7 @@ class BuildMINEdb(object):
         try:
             reaction_compound.append((reaction+compartment, self.cpd_translate[cpd], is_prod, 1, 0))
         except KeyError:
-            reaction_compound.append((reaction+compartment, cpd, is_prod, 1, 0))
+            reaction_compound.append((reaction+compartment, cpd+compartment, is_prod, 1, 0))
         return(reaction_compound)
 
     def fill_database(self):
