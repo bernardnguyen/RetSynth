@@ -114,6 +114,9 @@ def open_atlas_files(atlas_files):
 
 def fill_arrays_4_db(rxn_keggids, rxn_atlas, DBPath, inchidb, processors, rxntype):
     '''fill arrays with ATLAS reactions to add to database'''
+    '''WE REMOVE REACTIONS ALREADY IN THE DATABASE AND DO NOT THEN ADD THEM IN THE MODEL 
+    REACTIONS TABLE.  THIS IS A SPACE SAVING PROCEEDURE AND BECAUSE NO METABOLIC MODELING 
+    CAN BE PERFORMED ANY WAY ON JUST ATLAS THIS IS FINE'''
     cnx = sqlite3.connect(DBPath)
     reaction_compound = []
     compound = []
@@ -167,6 +170,8 @@ def fill_arrays_4_db(rxn_keggids, rxn_atlas, DBPath, inchidb, processors, rxntyp
                 print ('WARNING: no formula for rxn {}'.format(rxn))
                 rxnformula = ''
             rxns.append((rxn, name, rxnformula, proteins, True))
+        else:
+            print ("STATUS: "+rxn+" already in the database")
 
     print ('STATUS: Retrieving ATLAS rxns without kegg id')
     for rxn in tqdm(rxn_atlas):
@@ -181,6 +186,8 @@ def fill_arrays_4_db(rxn_keggids, rxn_atlas, DBPath, inchidb, processors, rxntyp
                 print ('WARNING: no formula for rxn {}'.format(rxn))
                 rxnformula = ''
             rxns.append((rxn, None, rxnformula, proteins, False))
+        else:
+            print ("STATUS: "+rxn+" already in the database")
     output_queue = Queue()
     rxns_processors = [rxns[i:i+processors]
                      for i in range(0, len(rxns), processors)]
