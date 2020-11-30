@@ -61,7 +61,6 @@ from rsgc.Database import build_MINE_db as bminedb
 from rsgc.Database import build_KEGG_db as bkeggdb
 from rsgc.Database import build_SPRESI_db as bspresidb
 from rsgc.Database import query as Q
-from rsgc.Database import remove_duplicate_cpds as rdc
 from rsgc.FBA import build_model as bm
 from rsgc.FBA import optimize_target as ot
 from rsgc.FBA import compare_results as cr
@@ -546,10 +545,6 @@ class RetSynthGC(object):
             #Add ATLAS repository to database
             batlasdb.build_atlas(self.atlas_dump_directory, database, self.inchidb,
                                     self.processors, self.atlas_reaction_type)
-            
-        if self.inchidb and (self.patric_models or self.metacyc or self.kegg or self.SPRESI or self.mine or self.atlas):
-            #Remove duplicate compounds from database
-            rdc.OverlappingCpdIDs(database)
 
         ##IF DATABASE IS NOT SPECIFIED USE DEFUALT DATABASE IN ./ConstructedDatabases FOLDER##
         if not self.generate_database and not self.database:
