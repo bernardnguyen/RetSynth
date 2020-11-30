@@ -360,6 +360,6 @@ class RDFileReaderTests(unittest.TestCase):
                        'PATENT CATALYST AND PROCESS FOR THE SELECTIVE DIMERIZATION OF PROPYLENE TO METHY+L-1-PENTENE, STEVENS JAMES C.; FORDYCE WILLIAM A., 1991, Patent number-4855523, US, Patent Class-4 C 07 C 2/10, Patent Owner-THE DOW CHEMICAL CO.'), result)
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(exit=False)
     os.remove(PATH+'/datam/testPATRIC_spresi.db')
     os.remove(PATH+'/datam/testPATRICinchi_spresi.db')

@@ -206,6 +206,6 @@ class Generate_databaseTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(exit=False)
-    # os.remove(PATH+'/test.db')
+    os.remove(PATH+'/datam/testPATRICinchi_query.db')
 
 

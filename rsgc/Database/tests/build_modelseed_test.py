@@ -1,6 +1,6 @@
 from __future__ import print_function
 __author__ = 'Leanne Whitmore'
-__email__ = 'lwhitmo@sandia.gov'
+__email__ = 'leanne382@gmail.com'
 __description__ = 'Runs tests on codes that add reactions and compounds to database from model seed/patric database'
 
 import os
@@ -66,7 +66,7 @@ class BuildKEGG(unittest.TestCase):
     def test_patric(self):
         bms.BuildModelSeed(username=username, password=password, rxntype='bio', inchidb=False,
                            DBpath=PATH+'/testPATRIC.db', output_folder=PATH, newdb=True,  media='Complete',
-                           sbml_output=False, processors=1, patricfile=PATH+'/data8/PATRIC_genome_complete_07152018.csv')
+                           sbml_output=False, processors=1, patricfile=PATH+'/data_patric/PATRIC_genome_complete_07152018.csv')
         DB = Q.Connector(PATH+'/testPATRIC.db')
         m1_cpds = DB.get_compounds_in_model(str(551115.6))
         m2_cpds = DB.get_compounds_in_model(str(329726.14))
@@ -85,7 +85,7 @@ class BuildKEGG(unittest.TestCase):
     def test_patric_inchi(self):
         bms.BuildModelSeed(username=username, password=password, rxntype='bio', inchidb=True,
                            DBpath=PATH+'/testPATRICinchi.db', output_folder=PATH, newdb=True,  media='Complete',
-                           sbml_output=False, processors=1, patricfile=PATH+'/data8/PATRIC_genome_complete_07152018.csv')
+                           sbml_output=False, processors=1, patricfile=PATH+'/data_patric/PATRIC_genome_complete_07152018.csv')
         DB = Q.Connector(PATH+'/testPATRICinchi.db')
         m1_cpds = DB.get_compounds_in_model(str(551115.6))
         m2_cpds = DB.get_compounds_in_model(str(329726.14))

@@ -1,6 +1,6 @@
 from __future__ import print_function
 __author__ = 'Leanne Whitmore'
-__email__ = 'lwhitmo@sandia.gov'
+__email__ = 'leanne382@gmail.com'
 __description__ = 'Runs tests on codes that add reactions and compounds to database from MINE'
 
 import os
@@ -29,7 +29,7 @@ class BuildMINEtests(unittest.TestCase):
 
     def test_MINE_no_inchi(self):
         ''' test addition of reaction info from MINE raw files'''
-        bminedb.BuildMINEdb(PATH+'/data5', PATH+'/datam/testPATRIC_mine.db', False, 'bio')
+        bminedb.BuildMINEdb(PATH+'/data_mine', PATH+'/datam/testPATRIC_mine.db', False, 'bio')
         DB = Q.Connector(PATH+'/datam/testPATRIC_mine.db')
         cnx = sqlite3.connect(PATH+'/datam/testPATRIC_mine.db')
         QC = cnx.execute("""SELECT * FROM model WHERE ID = ?""", ("MINE",))
@@ -66,7 +66,7 @@ class BuildMINEtests(unittest.TestCase):
 
     def test_MINE_inchi(self):
         ''' test addition of reaction info from MINE raw files'''
-        bminedb.BuildMINEdb(PATH+'/data5', PATH+'/datam/testPATRICinchi_mine.db', True, 'bio')
+        bminedb.BuildMINEdb(PATH+'/data_mine', PATH+'/datam/testPATRICinchi_mine.db', True, 'bio')
         DBinchi = Q.Connector(PATH+'/datam/testPATRICinchi_mine.db')
         cnx = sqlite3.connect(PATH+'/datam/testPATRICinchi_mine.db')
 

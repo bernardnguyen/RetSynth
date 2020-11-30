@@ -1,6 +1,6 @@
 from __future__ import print_function
 __author__ = 'Leanne Whitmore'
-__email__ = 'lwhitmo@sandia.gov'
+__email__ = 'leanne382@gmail.com'
 __description__ = 'Runs tests on codes that generate database on test set of metabolic networks'
 
 import os
