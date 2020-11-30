@@ -32,7 +32,6 @@ from rsgc.Database import build_MINE_db as bminedb
 from rsgc.Database import build_KEGG_db as bkeggdb
 from rsgc.Database import build_SPRESI_db as bspresidb
 from rsgc.Database import build_user_rxns_db as burdb
-from rsgc.Database import remove_duplicate_cpds as rdc
 from rsgc.Database import query as Q
 from rsgc.FBA import build_model as bm
 from rsgc.FBA import optimize_target as ot
@@ -482,7 +481,6 @@ def retrieve_database_info(args):
                                     args.processors, args.atlas_reaction_type)
 
         database = args.generate_database
-        rdc.OverlappingCpdIDs(database)
 
     elif args.database:
         '''
