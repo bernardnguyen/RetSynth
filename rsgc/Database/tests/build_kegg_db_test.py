@@ -35,7 +35,7 @@ class BuildKEGG(unittest.TestCase):
         K = bkeggdb.CompileKEGGIntoDB(PATH+'/datam/testPATRIC_kegg.db', 'bacteria', False, 1, 2, 2, 'bio', True)
         DBadd = Q.Connector(PATH+'/datam/testPATRIC_kegg.db')
         newrxns = set()
-        with open('newrxns.txt') as fin:
+        with open(PATH+'/newrxns.txt') as fin:
             for line in fin:
                 line = line.strip()
                 newrxns.add(line)
@@ -78,7 +78,7 @@ class BuildKEGG(unittest.TestCase):
         K = bkeggdb.CompileKEGGIntoDB(PATH+'/datam/testPATRICinchi_kegg.db', 'bacteria', True, 4, 2, 2, 'bio', True)
         DBaddinchi = Q.Connector(PATH+'/datam/testPATRICinchi_kegg.db')
         newrxns = set()
-        with open('newrxns.txt') as fin:
+        with open(PATH+'/newrxns.txt') as fin:
             for line in fin:
                 line = line.strip()
                 newrxns.add(line)
