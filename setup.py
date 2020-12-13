@@ -49,6 +49,7 @@ setup(name="RetSynth_gc",
           'scipy==1.5.1',
           "pillow",
           "lxml", "bio"
+          "requests"
       ],
       include_package_data=True,
       zip_safe=False,

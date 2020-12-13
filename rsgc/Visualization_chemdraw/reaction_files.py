@@ -87,6 +87,7 @@ class ReactionFiles(object):
                 if cpd_name == 'None':
                     cpd_name = cpd
                 cdxml_cpds.append(cpd_name)
+
         return cdxml_cpds, promiscuous_cpds
 
     def generate_output_folders(self, folder):

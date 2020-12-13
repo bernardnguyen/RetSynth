@@ -25,8 +25,8 @@ class Readfile(object):
         '''
         self.input = {}
         header = {}
-        with open(self.file_name) as f:
-            line = f.readline()
+        with open(self.file_name) as fin:
+            line = fin.readline()
             if line.startswith('#'):
                 line = line.replace("#", "")
                 line = line.lower()
@@ -36,7 +36,7 @@ class Readfile(object):
             else:
                 raise ValueError('Input file needs header or # sign in front of header line')
 
-            for line_count, line in enumerate(f):
+            for line_count, line in enumerate(fin):
                 self.input[line_count] = {}
                 larray = line.strip('\n').split()
                 for count, item in enumerate(larray):
@@ -87,17 +87,23 @@ class Readfile(object):
                 else:
                     print ('WARNING:\tno compound ID found for compound name {} value not added to list'.format(name))
             elif 'inchi' in values:
-                temp.extend((values['inchi']+'_'+compartmentID, ''))
+                db_cpdID = self.DB.get_compound_ID_from_inchi(values['inchi'])
+                if db_cpdID is not None:
+                   temp.extend((db_cpdID, ''))
             else:
                 raise ValueError('Need compound ID, pubchem ID or name of compound in target file')
 
             if temp:
-                if 'organismid' in list(values.keys()):
-                    multiplevalues = values['organismid'].split(',')
+                if 'organismid' in list(values.keys()) or 'genomeid' in list(values.keys()):
+                    try:
+                        multiplevalues = values['organismid'].split(',')
+                    except KeyError:
+                        multiplevalues = values['genomeid'].split(',')
                     for m in multiplevalues:
                         temp2 = deepcopy(temp)
                         temp2.extend((m, ''))
                         self.targets.append(temp2)
+            
                 elif 'organism' in list(values.keys()):
                     multipleorgs = values['organism'].split(',')
                     for org in multipleorgs:

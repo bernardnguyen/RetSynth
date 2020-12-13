@@ -144,14 +144,12 @@ class GraphDot(object):
         return rxnname
 
 
-    def get_figure(self, cpdID, cpdname, rxn, type_node):
+    def get_figure(self, cpdID, origcpdID, cpdname, rxn, type_node):
         '''Get smiles for a compounds'''
         IN = indigo.Indigo()
         IR = indigo_renderer.IndigoRenderer(IN)
 
         if cpdID.startswith('InChI'):
-            cpdID = re.sub('_\w{1}\d{1}$', '', cpdID)
-            cpdID = re.sub('_\w+_\S+_\S+$', '', cpdID)
             mol = IN.loadMolecule(cpdID)
         else:
             for comp in self.compartments:
@@ -178,13 +176,13 @@ class GraphDot(object):
             IN.setOption("render-relative-thickness", "2")
             IN.setOption("render-image-size", "300,200")
             IN.setOption("render-margins", "40, 0, 0, 0")
-            cpdname = self.reformat_inchi(cpdname)
+            # cpdname = self.reformat_inchi(cpdname)
             rxn = self.alter_rxnname_length(rxn)
-            cpdname = self.alter_name_length(self.temp_imgs_path+'/compound_'+cpdname+'_'+rxn+'.png', cpdname)
+            # cpdname = self.alter_name_length(self.temp_imgs_path+'/compound_'+cpdname+'_'+rxn+'.png', cpdname)
             IN.setOption("render-output-format","png")
-            IR.renderToFile(mol, self.temp_imgs_path+'/compound_'+cpdname+'_'+rxn+'.png')
-            cropped = self.crop_figure(self.temp_imgs_path+'/compound_'+cpdname+'_'+rxn+'.png')
-            cropped.save(self.temp_imgs_path+'/compound_'+cpdname+'_'+rxn+'_cropped.png', transparent=True)
+            IR.renderToFile(mol, self.temp_imgs_path+'/compound_'+origcpdID+'_'+rxn+'.png')
+            cropped = self.crop_figure(self.temp_imgs_path+'/compound_'+origcpdID+'_'+rxn+'.png')
+            cropped.save(self.temp_imgs_path+'/compound_'+origcpdID+'_'+rxn+'_cropped.png', transparent=True)
             return True
         else:
             return False
@@ -212,11 +210,11 @@ class GraphDot(object):
         if self.images is True:
             name = re.sub('_', '-', name)
             namereformat = self.reformat_inchi(name)
-            figure_bool = self.get_figure(cpdID, namereformat, rxn, 'synthetic')
+            figure_bool = self.get_figure(self.DB.get_inchi_from_compoundID(cpdID), cpdID, namereformat, rxn, 'synthetic')
             rxn = self.alter_rxnname_length(rxn)
-            namereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+namereformat+'_'+rxn+'.png', namereformat)
+            namereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+cpdID+'_'+rxn+'.png', cpdID)
             if figure_bool:
-                self.outputfile_dot.append('    "{}" [color="{}", image="{}", shape={}, label=""];\n'.format(origname, 'None', self.temp_imgs_path+'/compound_'+namereformat+'_'+rxn+'_cropped.png', 'None'))
+                self.outputfile_dot.append('    "{}" [color="{}", image="{}", shape={}, label=""];\n'.format(origname, 'None', self.temp_imgs_path+'/compound_'+cpdID+'_'+rxn+'_cropped.png', 'None'))
             else:
                 self.outputfile_dot.append('    "{}" [fillcolor={}, color="{}", height={}, width={}, fontsize={}, fontname="{}", label="{}", fontcolor={}];\n'.format(origname, 'None', 'None', '.3', '.3', '12', 'times', name, 'blue'))
         else:
@@ -230,11 +228,11 @@ class GraphDot(object):
         if self.images is True:
             name = re.sub('_', '-', name)
             namereformat = self.reformat_inchi(name)
-            figure_bool = self.get_figure(cpdID, namereformat, rxn, 'internal')
+            figure_bool = self.get_figure(self.DB.get_inchi_from_compoundID(cpdID), cpdID, namereformat, rxn, 'internal')
             rxn = self.alter_rxnname_length(rxn)
-            namereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+namereformat+'_'+rxn+'.png', namereformat)
+            namereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+cpdID+'_'+rxn+'.png', namereformat)
             if figure_bool:
-                self.outputfile_dot.append('    "{}" [color={}, image="{}", shape={}, label=""];\n'.format(origname, 'None', self.temp_imgs_path+'/compound_'+namereformat+'_'+rxn+'_cropped.png', 'None'))
+                self.outputfile_dot.append('    "{}" [color={}, image="{}", shape={}, label=""];\n'.format(origname, 'None', self.temp_imgs_path+'/compound_'+cpdID+'_'+rxn+'_cropped.png', 'None'))
             else:
                 self.outputfile_dot.append('    "{}" [fillcolor={}, color={}, height={}, width={}, fontsize={}, fontname="{}", label="{}", fontcolor={}];\n'.format(origname, 'None', 'None', '.2', '.2', '10', 'times', name, 'gray33'))
         else:
@@ -295,11 +293,11 @@ class GraphDot(object):
                     self.outputfile_dot.append('    "{}" -> "{}"    [color="{}", label=""];\n'.format(rxn, prodname, 'black'))
                 if prod == self.target:
                     if self.images is True:
-                        figure_bool = self.get_figure(prod, prodname, rxn, 'target')
+                        figure_bool = self.get_figure(self.DB.get_inchi_from_compoundID(prod), prod, prodname, rxn, 'target')
                         rxnorg = self.alter_rxnname_length(rxn)
-                        prodnamereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+prodnamereformat+'_'+rxnorg+'.png', prodnamereformat)
+                        prodnamereformat = self.alter_name_length(self.temp_imgs_path+'/compound_'+prod+'_'+rxnorg+'.png', prod)
                         if figure_bool:
-                            self.outputfile_dot.append('    "{}" [color={}, image="{}", shape={}, label=""];\n'.format(prodname, 'None', self.temp_imgs_path+'/compound_'+prodnamereformat+'_'+rxnorg+'_cropped.png', 'None'))
+                            self.outputfile_dot.append('    "{}" [color={}, image="{}", shape={}, label=""];\n'.format(prodname, 'None', self.temp_imgs_path+'/compound_'+prod+'_'+rxnorg+'_cropped.png', 'None'))
                         else:
                             self.outputfile_dot.append('    "{}" [fillcolor={}, color="{}", height={}, width={}, fontsize={}, fontname="{}", label="{}", fontcolor={}];\n'.format(prodname, 'None', 'None', '.4', '.4', '12', 'times', prodname, 'red'))
                     else:
@@ -381,10 +379,8 @@ class GraphDot(object):
                load_into_dot_file(rxns)
         self.outputfile_dot.append('    subgraph None{\n\tlabel="test"\n\t}\n')
         self.outputfile_dot.append('}\n')
-        cpdname = self.DB.get_compound_name(target_compound_ID)
-        if cpdname.startswith('None'):
-            cpdname = self.reformat_inchi(target_compound_ID)
-        else:
-            cpdname = self.reformat_inchi(cpdname)
-        cuge.dot2graph(self.outputfile_dot, 'SC_graph_'+str(cpdname)+'_'+str(self.DB.get_organism_name(str(target_organism_ID)))+'.png', self.GRAPHPATH)
+        
+        cpd_target_reformat = self.reformat_inchi(target_compound_ID)
+
+        cuge.dot2graph(self.outputfile_dot, 'SC_graph_'+str(target_compound_ID)+'_'+str(self.DB.get_organism_name(str(target_organism_ID)))+'.png', self.GRAPHPATH)
         graph_files = glob.glob(os.path.join(self.GRAPHPATH, '*'))

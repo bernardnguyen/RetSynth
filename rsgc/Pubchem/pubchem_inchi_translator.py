@@ -12,7 +12,7 @@ class CompoundTranslator(object):
         '''
         Retrieve InChi\'s for compounds
         '''
-        cas_value = 'None'
+        cas_value = None
         compound_name = re.sub('\_\w{1}0$', '', compound_name)
         compound_name = re.sub('_', ' ', compound_name)
         self.get_inchi(compound_name)

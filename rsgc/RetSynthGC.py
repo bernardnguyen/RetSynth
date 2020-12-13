@@ -61,7 +61,6 @@ from rsgc.Database import build_MINE_db as bminedb
 from rsgc.Database import build_KEGG_db as bkeggdb
 from rsgc.Database import build_SPRESI_db as bspresidb
 from rsgc.Database import query as Q
-from rsgc.Database import remove_duplicate_cpds as rdc
 from rsgc.FBA import build_model as bm
 from rsgc.FBA import optimize_target as ot
 from rsgc.FBA import compare_results as cr
@@ -481,7 +480,7 @@ class RetSynthGC(object):
             '''
             Generate a database
             '''
-            init_db.Createdb(self.generate_database, self.inchidb)
+            init_db.Createdb(self.generate_database)
             database = self.generate_database
             new_db = True
 
@@ -501,20 +500,13 @@ class RetSynthGC(object):
             bmcdb.Translate(database, self.metacyc_addition,
                             self.inchidb, self.metacyc_reaction_type, self.verbose)
 
-        if self.kegg and (self.patric_models or self.kbase or self.metacyc):
+        if self.kegg: #nd (self.patric_models or self.kbase or self.metacyc):
             #Add kegg repository database
             BKD = bkeggdb.CompileKEGGIntoDB(database, self.kegg_organism_type,
                                             self.inchidb, self.processors, self.kegg_number_of_organisms,
                                             self.kegg_number_of_organism_pathways,
                                             self.kegg_reaction_type, True)
 
-        elif self.kegg and not self.kbase and not self.patric_models and not self.metacyc:
-            #Add kegg repository database
-            print ('STATUS: Add only KEGG to RetSynth database')
-            BKD = bkeggdb.CompileKEGGIntoDB(database, self.kegg_organism_type,
-                                            self.inchidb, self.processors,
-                                            self.kegg_number_of_organisms, self.kegg_number_of_organism_pathways,
-                                            self.kegg_reaction_type, False)
 
         if self.user_rxns_2_database:
             #Add user identified reactions
@@ -538,10 +530,6 @@ class RetSynthGC(object):
             #Add ATLAS repository to database
             batlasdb.build_atlas(self.atlas_dump_directory, database, self.inchidb,
                                     self.processors, self.atlas_reaction_type)
-            
-        if self.inchidb and (self.patric_models or self.metacyc or self.kegg or self.SPRESI or self.mine or self.atlas):
-            #Remove duplicate compounds from database
-            rdc.OverlappingCpdIDs(database)
 
         ##IF DATABASE IS NOT SPECIFIED USE DEFUALT DATABASE IN ./ConstructedDatabases FOLDER##
         if not self.generate_database and not self.database:
@@ -585,7 +573,7 @@ class RetSynthGC(object):
             verbose_print(self.verbose, 'STATUS: {} tanimoto threshold being used'.format(float(self.tanimoto_threshold)*100))
             cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')
             extracell_compartmentID = get_compartmentID_from_db(DB, 'extracellular')
-            SIM = ss.TanimotoStructureSimilarity(R.targets, DB.get_all_compounds(),
+            SIM = ss.TanimotoStructureSimilarity(R.targets, daatabase, DB.get_all_compounds_inchi(),
                                                 cytosol_compartmentID, extracell_compartmentID,
                                                 self.verbose, self.tanimoto_threshold)
             OUTPUT.output_final_targets(SIM.finaltargets, self.tanimoto_threshold)

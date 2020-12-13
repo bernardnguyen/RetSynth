@@ -99,7 +99,7 @@
         </body>
       </notes>
   </species>
-  <species id="OXYGEN__45__MOLECULE_c" name="oxygen" initialAmount="1000" compartment="m" boundaryCondition="false" charge="0">
+  <species id="OXYGEN__45__MOLECULE_c" name="oxygen" initialAmount="1000" compartment="c" boundaryCondition="false" charge="0">
       <notes>
         <body xmlns="http://www.w3.org/1999/xhtml">
           <p>BIOCYC: OXYGEN-MOLECULE</p>

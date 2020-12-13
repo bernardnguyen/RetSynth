@@ -1,3 +1,7 @@
+from __future__ import print_function
+__author__ = 'Leanne Whitmore'
+__email__ = 'leanne382@gmail.com'
+__description__ = 'Build database with PATRIC'
 import os
 import shutil
 import re
@@ -8,7 +12,6 @@ try:
 except:
     import urllib2
     import httplib
-# from tqdm import tqdm
 from multiprocessing import Process, Queue
 from requests.exceptions import ConnectionError
 from cobra import io
@@ -17,7 +20,9 @@ import pubchempy
 import rsgc.Database
 from rsgc.Database import mackinac
 from rsgc.Pubchem import pubchem_inchi_translator as pit
+from rsgc.Database import database_functions as df
 from sys import platform
+from tqdm import tqdm
 if platform == 'darwin':
     from rsgc.indigopython130_mac import indigo
     from rsgc.indigopython130_mac import indigo_inchi
@@ -28,32 +33,20 @@ elif platform == "win32" or platform == "win64" or platform == "cygwin":
     from rsgc.indigopython130_win import indigo
     from rsgc.indigopython130_win import indigo_inchi
 
-KEGG = 'http://rest.kegg.jp/'
 PATH = os.path.dirname(os.path.abspath(__file__))
 def verbose_print(verbose, line):
     '''verbose print function'''
     if verbose:
         print(line)
 
-def extract_KEGG_data(url, verbose):
-    '''Extract Kegg db info'''
-    print("STATUS: Getting data for url "+url)
-    try:
-        verbose_print(verbose, url)
-        data = urllib2.urlopen(url).read()
-        darray = str(data).split('\\n')
-        return(darray)
-    except urllib2.HTTPError:
-        return(None)
-
 def retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd_name, compart_info,
                                 inchi_pubchem, inchi_cf, inchi_cas, CT, INCHI, verbose):
     '''Retrieve InChI values'''
     if new_cpd_keggid not in inchi_pubchem:
-        if raw_cpd_keggid != 'None':
+        if raw_cpd_keggid is not None:
             count = 0
             while count < 3:
-                inchi, cas = kegg2pubcheminchi(raw_cpd_keggid, verbose)
+                inchi, cas = df.kegg2pubcheminchi(raw_cpd_keggid, verbose)
                 if inchi:
                     count = 4
                 else:
@@ -69,80 +62,14 @@ def retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd_name, compar
             mol = INCHI.loadMolecule(inchi)
             cf = mol.grossFormula()
             cf = re.sub(' ', '', cf)
-            # fp = mol.fingerprint('full')
-            # buffer = fp.toBuffer()
-            # buffer_array = [str(i) for i in buffer]
-            # buffer_string = ','.join(buffer_array)
             inchi_cf[new_cpd_keggid] = cf
             inchi_cas[new_cpd_keggid] = cas
-            inchi_pubchem[new_cpd_keggid] = inchi+'_'+compart_info+'0'
+            inchi_pubchem[new_cpd_keggid] = inchi
         else:
-            inchi_cf[new_cpd_keggid] = 'None'
-            inchi_cas[new_cpd_keggid] = 'None'
-            # inchi_fp[new_cpd_keggid] = 'None'
-            inchi_pubchem[new_cpd_keggid] = new_cpd_keggid
+            inchi_cf[new_cpd_keggid] = None
+            inchi_cas[new_cpd_keggid] = None
+            inchi_pubchem[new_cpd_keggid] = None
     return (inchi_pubchem, inchi_cf, inchi_cas)
-
-def kegg2pubcheminchi(cpd, verbose):
-    '''Convvert kegg ID to InChI value'''
-    darray = extract_KEGG_data(KEGG+'get/'+cpd, verbose)
-
-    inchicpd = None
-    cas = None
-    if darray:
-        for value in darray:
-            array = value.split()
-            if 'PubChem:' in array:
-                index = array.index('PubChem:')
-                sid = array[index+1]
-                try:
-                    substance = pubchempy.Substance.from_sid(sid)
-                    substance_cids = substance.cids
-                    if substance_cids:
-                        try:
-                            compounds = pubchempy.get_compounds(substance_cids[0])
-                            if compounds:
-                                inchicpd = compounds[0].inchi
-                        except (pubchempy.PubChemHTTPError, httplib.BadStatusLine, urllib2.URLError):
-                            pass
-                except (pubchempy.PubChemHTTPError, httplib.BadStatusLine, urllib2.URLError):
-                    verbose_print(verbose, 'WARNING: Could not get substance for {} {}'.format(sid, cpd))
-                    pass
-            if 'CAS:' in array:
-                index = array.index('CAS:')
-                cas = array[index+1]
-
-            
-    return (inchicpd, cas)
-
-def open_translation_file(file_name):
-    '''opens and stores KEGG translation files '''
-    dictionary = {}
-    with open(file_name) as fin:
-        for line in fin:
-            line = line.strip()
-            larray = line.split('\t')
-            try:
-                KEGGIDS = larray[1].split('|')
-                dictionary[larray[0]] = KEGGIDS[0]
-            except IndexError:
-                dictionary[larray[0]] = None
-    return dictionary
-
-def get_KEGG_IDs(ID, compartment, KEGGdict):
-    '''Retrieve KEGG IDs'''
-    new_ID = re.sub('_'+compartment+'$', '', ID)
-    try:
-        KEGG_ID = KEGGdict[new_ID]
-        original_KEGG_ID = str(deepcopy(KEGG_ID))
-        if not KEGG_ID:
-            KEGG_ID = ID+'0'
-        else:
-            KEGG_ID = str(KEGG_ID)+'_'+str(compartment)+'0'
-    except KeyError:
-        KEGG_ID = ID+'0'
-        original_KEGG_ID = 'None'
-    return(KEGG_ID, original_KEGG_ID)
 
 def build_patric_models(genome_id, genome_name, media, username):
     '''Builds patric models on the patric server'''
@@ -193,8 +120,8 @@ class BuildModelSeed(object):
         self.verbose = verbose
         self.patricfile = patricfile
         self.previously_built_patric_models = previously_built_patric_models
-        self.CPD2KEGG = open_translation_file(PATH+'/data/KbasetoKEGGCPD.txt')
-        self.RXN2KEGG = open_translation_file(PATH+'/data/KbasetoKEGGRXN.txt')
+        self.CPD2KEGG = df.open_translation_file(PATH+'/data/KbasetoKEGGCPD.txt')
+        self.RXN2KEGG = df.open_translation_file(PATH+'/data/KbasetoKEGGRXN.txt')
         self.inchi_dict = {}
         self.inchi_fp_dict = {}
         self.inchi_cf_dict = {}
@@ -206,7 +133,6 @@ class BuildModelSeed(object):
         self.reaction_reversibility = {}
         self.CT = pit.CompoundTranslator()
         self.L2D = LoadIntoDB(DBpath, self.verbose, self.inchidb)
-        self.originalIDs = set()
         if self.inchidb:
             self.IN = indigo.Indigo()
             self.INCHI = indigo_inchi.IndigoInchi(self.IN)
@@ -220,44 +146,39 @@ class BuildModelSeed(object):
         '''Adds information from cobra model into appropriate arrays'''
         print ('STATUS: Processing cobra model {}'.format(genome_id))
         print ('STATUS: Getting metabolites for cobra model {}'.format(genome_id))
-
         model_compounds = []
         model_reactions = []
         reaction_gene = []
         reaction_protein = []
         reactions_compounds = []
         cpd_IDs = {}
-
-        for cpd in model.metabolites:
-            new_cpd_keggid, raw_cpd_keggid=get_KEGG_IDs(cpd.id, cpd.compartment, self.CPD2KEGG)
+        print(len(model.metabolites))
+        for cpd in tqdm(model.metabolites):
+            new_cpd_keggid, raw_cpd_keggid=df.get_KEGG_IDs(cpd.id, cpd.compartment, self.CPD2KEGG)
             cpd_IDs[cpd.id] = new_cpd_keggid
-
+            model_compounds.append((new_cpd_keggid, genome_id))
             if self.inchidb:
-                self.inchi_dict, self.inchi_cf_dict,self.inchi_cas_dict = retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd.name,
+                if new_cpd_keggid not in self.allcompounds_check:
+                    self.inchi_dict, self.inchi_cf_dict,self.inchi_cas_dict = retrieve_exact_inchi_values(new_cpd_keggid, raw_cpd_keggid, cpd.name,
                                                                                                       cpd.compartment, self.inchi_dict,
                                                                                                       self.inchi_cf_dict, self.inchi_cas_dict, 
                                                                                                       self.CT, self.INCHI, self.verbose)
-                model_compounds.append((self.inchi_dict[new_cpd_keggid], genome_id))
-                if self.inchi_dict[new_cpd_keggid] not in self.allcompounds_check:
-                    self.allcompounds.add((self.inchi_dict[new_cpd_keggid], cpd.name, cpd.compartment+'0', raw_cpd_keggid,
-                                        self.inchi_cf_dict[new_cpd_keggid], self.inchi_cas_dict[new_cpd_keggid]))
-                    if self.inchi_dict[new_cpd_keggid].startswith('InChI'):
-                        self.originalIDs.add((new_cpd_keggid, self.inchi_dict[new_cpd_keggid]))
-                    self.allcompounds_check.add(self.inchi_dict[new_cpd_keggid])
+                    self.allcompounds.add((new_cpd_keggid, cpd.name, cpd.compartment+'0', raw_cpd_keggid,
+                                        self.inchi_cf_dict[new_cpd_keggid], self.inchi_cas_dict[new_cpd_keggid], self.inchi_dict[new_cpd_keggid]))
+                    self.allcompounds_check.add(new_cpd_keggid)
             else:
-                model_compounds.append((new_cpd_keggid, genome_id))
-                self.allcompounds.add((new_cpd_keggid, cpd.name, cpd.compartment+'0', raw_cpd_keggid, 'None', 'None'))
-
+                self.allcompounds.add((new_cpd_keggid, cpd.name, cpd.compartment+'0', raw_cpd_keggid, None, None, None))
         print ('STATUS: Getting reactions for cobra model {}'.format(genome_id))
-        for reaction in model.reactions:
+        print ("NUMBER OF REACTIONS "+str(len(model.reactions)))
+        for reaction in tqdm(model.reactions):
             try:
-                new_rxn_keggid, raw_rxn_keggid=get_KEGG_IDs(reaction.id, list(reaction.compartments)[0], self.RXN2KEGG)
+                new_rxn_keggid, raw_rxn_keggid = df.get_KEGG_IDs(reaction.id, list(reaction.compartments)[0], self.RXN2KEGG)
             except (KeyError, IndexError):
                 print ('STATUS: {} has no compartments {} make compartment c0'.format(reaction.id, reaction.compartments))
-                new_rxn_keggid, raw_rxn_keggid=get_KEGG_IDs(reaction.id, 'c', self.RXN2KEGG)
+                new_rxn_keggid, raw_rxn_keggid=df.get_KEGG_IDs(reaction.id, 'c', self.RXN2KEGG)
             if new_rxn_keggid.startswith('bio'):
                 new_rxn_keggid  = new_rxn_keggid+'_'+str(genome_id)
-            model_reactions.append((new_rxn_keggid, genome_id, str(reaction.reversibility).lower()))
+            model_reactions.append((new_rxn_keggid, genome_id, bool(reaction.reversibility)))
             for gene in reaction.genes:
                 reaction_gene.append((str(new_rxn_keggid), str(genome_id), str(gene)))
             ECnames = reaction.gene_name_reaction_rule
@@ -269,23 +190,17 @@ class BuildModelSeed(object):
             if new_rxn_keggid not in self.allreactions_id:
                 for cpd in reaction.reactants:
                     stoich = reaction.get_coefficient(cpd.id)
-                    if self.inchidb:
-                        reactions_compounds.append((new_rxn_keggid, self.inchi_dict[cpd_IDs[cpd.id]], 0, abs(stoich), 0))
-                    else:
-                        reactions_compounds.append((new_rxn_keggid, cpd_IDs[cpd.id], 0, abs(stoich), 0))
+                    reactions_compounds.append((new_rxn_keggid, cpd_IDs[cpd.id], 0, abs(stoich), 0))
                 for cpd in reaction.products:
                     stoich = reaction.get_coefficient(cpd.id)
-                    if self.inchidb:
-                        reactions_compounds.append((new_rxn_keggid, self.inchi_dict[cpd_IDs[cpd.id]], 1, abs(stoich), 0))
-                    else:
-                        reactions_compounds.append((new_rxn_keggid, cpd_IDs[cpd.id], 1, abs(stoich), 0))
+                    reactions_compounds.append((new_rxn_keggid, cpd_IDs[cpd.id], 1, abs(stoich), 0))
                 self.allreactions.add((new_rxn_keggid, reaction.name, raw_rxn_keggid, self.rxntype))
                 self.allreactions_id.add(new_rxn_keggid)
-            if new_rxn_keggid not in self.reaction_reversibility:
-                self.reaction_reversibility[new_rxn_keggid] = str(reaction.reversibility).lower()
+                if new_rxn_keggid not in self.reaction_reversibility:
+                    self.reaction_reversibility[new_rxn_keggid] = bool(reaction.reversibility)
             else:
-                if self.reaction_reversibility[new_rxn_keggid] == 'false' and str(reaction.reversibility).lower() == 'true':
-                    self.reaction_reversibility[new_rxn_keggid] = str(reaction.reversibility).lower()
+                if self.reaction_reversibility[new_rxn_keggid] is False and bool(reaction.reversibility) == True:
+                    self.reaction_reversibility[new_rxn_keggid] = bool(reaction.reversibility)
         #ADD TO DATABASE
 
         self.L2D.add_model_compounds(model_compounds)
@@ -360,19 +275,20 @@ class BuildModelSeed(object):
                             io.write_sbml_model(cobra_model, self.output_folder+'sbml_models/'+genome_name+'_'+self.media)
                     except ConnectionError:
                         count_attemps+=1
-                        print ('STATUS: Unable to get cobra model for genome {} {}, error 1, attempt {}'.format(genome_id, genome_name, count_attemps))
+                        print ('ERROR 1: Unable to get cobra model for genome {} {}, error 1, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
                     except mackinac.SeedClient.ObjectNotFoundError:
                         count_attemps+=1
-                        print ('STATUS: Unable to get cobra model for genome {} {}, error 2, attempt {}'.format(genome_id, genome_name, count_attemps))
+                        print ('ERROR 2: Unable to get cobra model for genome {} {}, error 2, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
                     except rsgc.Database.mackinac.SeedClient.ObjectNotFoundError:
                         count_attemps+=1
-                        print ('STATUS: Unable to get cobra model for genome {} {},  error 3, attempt {}'.format(genome_id, genome_name, count_attemps))
+                        print ('ERROR 3: Unable to get cobra model for genome {} {},  error 3, attempt {}'.format(genome_id, genome_name, count_attemps))
                         pass
-                    except:
+                    except Exception as e:
+                        print (e)
                         count_attemps+=1
-                        print ('STATUS: Unexpected error for cobra model for genome {} {},  error 4, attempt {}'. format(genome_id, genome_name, count_attemps))
+                        print ('ERROR 4: Unexpected error for cobra model for genome {} {},  error 4, attempt {}'. format(genome_id, genome_name, count_attemps))
             else:
                 print ('STATUS: {} genome already in database'.format(genome_id))
             reaction_revers_total = []
@@ -380,13 +296,13 @@ class BuildModelSeed(object):
             reaction_revers_total.append((rxnid, revers))
         model_ids = list(set(model_ids))
         if self.newdb:
-            self.L2D.add_all_info_new(list(self.allcompounds), list(self.originalIDs),
+            self.L2D.add_all_info_new(list(self.allcompounds),
                                       list(self.allreactions),
                                       reaction_revers_total, model_ids,
                                       list(model_compartments))
             self.L2D.add_cluster_info()
         else:
-            self.L2D.add_all_info_existing(list(self.allcompounds), list(self.originalIDs),
+            self.L2D.add_all_info_existing(list(self.allcompounds),
                                            list(self.allreactions),
                                            reaction_revers_total, model_ids,
                                            list(model_compartments))
@@ -429,36 +345,26 @@ class LoadIntoDB(object):
                     self.cnx.execute("INSERT INTO reaction_compound VALUES (?,?,?,?,?)", rxn)
             self.cnx.commit()          
 
-    def add_all_info_new(self, allcompounds, originalIDs, allreactions, reaction_reversibility, model_ids, model_compartments):
+    def add_all_info_new(self, allcompounds, allreactions, reaction_reversibility, model_ids, model_compartments):
         '''Loads unique compound, reaction, compartment and model information into new database'''
-        self.cnx.executemany("INSERT INTO compound VALUES (?,?,?,?,?,?)", allcompounds)
+        self.cnx.executemany("INSERT INTO compound VALUES (?,?,?,?,?,?,?)", allcompounds)
         self.cnx.executemany("INSERT INTO reaction VALUES (?,?,?,?)", allreactions)
         self.cnx.executemany("INSERT INTO reaction_reversibility VALUES (?,?)", reaction_reversibility)
         self.cnx.executemany("INSERT INTO compartments VALUES (?,?)", model_compartments)
         self.cnx.executemany("INSERT INTO model VALUES (?,?)", model_ids)
         self.cnx.executemany("INSERT INTO fba_models VALUES (?,?)", model_ids)
-        if self.inchidb:
-            self.cnx.executemany("INSERT INTO original_db_cpdIDs VALUES (?,?)", originalIDs)
         self.cnx.commit()
 
-    def add_all_info_existing(self, allcompounds, originalIDs, allreactions, reaction_reversibility, model_ids, model_compartments):
+    def add_all_info_existing(self, allcompounds, allreactions, reaction_reversibility, model_ids, model_compartments):
         '''Loads unique compound, reaction, compartment and model information into preexisting database'''
         q=self.cnx.execute("SELECT ID FROM compound") 
         hits = q.fetchall()
         db_cpds = [i[0] for i in hits]
         for cpd in allcompounds:
             if cpd[0] not in db_cpds:
-                self.cnx.execute("INSERT INTO compound VALUES (?,?,?,?,?,?)", cpd)
+                self.cnx.execute("INSERT INTO compound VALUES (?,?,?,?,?,?,?)", cpd)
         self.cnx.commit()
-        
-        q=self.cnx.execute("SELECT ID FROM original_db_cpdIDs") 
-        hits = q.fetchall()
-        db_cpds = [i[0] for i in hits]
-        for cpd in originalIDs:
-            if cpd[0] not in db_cpds:
-                self.cnx.execute("INSERT INTO original_db_cpdIDs VALUES (?,?)", cpd)
-        self.cnx.commit()       
-        
+
         q=self.cnx.execute("SELECT ID FROM reaction") 
         hits = q.fetchall()
         db_rxns = [i[0] for i in hits]

@@ -7,8 +7,7 @@ import sqlite3
 
 class Createdb(object):
     """Generates new sqlite database and creates table and indicies"""
-    def __init__(self,database, inchidb):
-        self.inchidb = inchidb
+    def __init__(self,database):
         self.database = sqlite3.connect(database)
         self.create_model_tbls()
 
@@ -20,7 +19,7 @@ class Createdb(object):
             self.database.execute('''CREATE table model (ID text, file_name text)''')
             self.database.execute('''CREATE table fba_models (ID text, file_name text)''')
             self.database.execute('''CREATE table compound (ID text, name text,compartment text,
-                                     kegg_id, chemicalformula text, casnumber text)''')
+                                     kegg_id, chemicalformula text, casnumber text, inchistring text)''')
             self.database.execute('''CREATE table compartments (ID text, name text)''')
             self.database.execute('''CREATE table model_compound (cpd_ID text, model_ID text)''')
             self.database.execute('''CREATE table reaction
@@ -38,9 +37,6 @@ class Createdb(object):
                                             (reaction_ID text, model_ID text, protein_ID text)''')
             self.database.execute('''CREATE table cluster
                                             (cluster_num text, ID text)''')
-            if self.inchidb is True:
-                self.database.execute('''CREATE table original_db_cpdIDs
-                                                (ID text, inchi_id text)''')
             print ('STATUS: Generating new database ...')
         except sqlite3.OperationalError:
             print ('WARNING: Database already exists, adding new xml files to existing database ...')
@@ -70,9 +66,6 @@ class Createdb(object):
             self.database.execute('''CREATE INDEX cluster_ind ON cluster(cluster_num)''')
             self.database.execute('''CREATE INDEX reaction_reversibility_ind ON
                                             reaction_reversibility(reaction_ID)''')
-            if self.inchidb is True:
-                self.database.execute('''CREATE INDEX original_db_cpdIDs_ind ON
-                                                original_db_cpdIDs(ID, inchi_id)''')
         except sqlite3.OperationalError:
             print ('WARNING: Database already exists, reindex indicies')
             self.database.execute('''REINDEX reactioncompound_ind1''')
@@ -89,5 +82,3 @@ class Createdb(object):
             self.database.execute('''REINDEX reactionprotein_ind''')
             self.database.execute('''REINDEX cluster_ind''')
             self.database.execute('''REINDEX reaction_reversibility_ind''')
-            if self.inchidb is True:
-                self.database.execute('''REINDEX original_db_cpdIDs_ind''')
