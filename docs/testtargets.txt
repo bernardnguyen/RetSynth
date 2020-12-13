@@ -1,5 +1,4 @@
-
-#compoundid organismID
+#inchi  genomeID
 InChI=1S/C4H10O/c1-2-3-4-5/h5H,2-4H2,1H3   536056.3
 InChI=1S/C4H8O/c1-2-3-4-5/h4H,2-3H2,1H3   536056.3
 InChI=1S/C3H8O/c1-2-3-4/h4H,2-3H2,1H3   536056.3
