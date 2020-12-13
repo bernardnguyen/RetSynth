@@ -508,20 +508,13 @@ class RetSynthGC(object):
             bmcdb.Translate(database, self.metacyc_addition,
                             self.inchidb, self.metacyc_reaction_type, self.verbose)
 
-        if self.kegg and (self.patric_models or self.kbase or self.metacyc):
+        if self.kegg: #nd (self.patric_models or self.kbase or self.metacyc):
             #Add kegg repository database
             BKD = bkeggdb.CompileKEGGIntoDB(database, self.kegg_organism_type,
                                             self.inchidb, self.processors, self.kegg_number_of_organisms,
                                             self.kegg_number_of_organism_pathways,
                                             self.kegg_reaction_type, True)
 
-        elif self.kegg and not self.kbase and not self.patric_models and not self.metacyc:
-            #Add kegg repository database
-            print ('STATUS: Add only KEGG to RetSynth database')
-            BKD = bkeggdb.CompileKEGGIntoDB(database, self.kegg_organism_type,
-                                            self.inchidb, self.processors,
-                                            self.kegg_number_of_organisms, self.kegg_number_of_organism_pathways,
-                                            self.kegg_reaction_type, False)
 
         if self.user_rxns_2_database:
             #Add user identified reactions
