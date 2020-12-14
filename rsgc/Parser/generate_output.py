@@ -116,19 +116,9 @@ class Output(object):
                 cpdname = cpdname[:-remove_variable]
             return cpdname
 
-        cpdname = self.DB.get_compound_name(compound)
         org_name = self.DB.get_organism_name(org_ID)
-        if cpdname == 'None':
-            cpdname = re.sub('/', '_', compound)
-        else:
-            match = re.search('/', cpdname)
-            if match:
-                cpdname = re.sub('/', '_', cpdname)
-        cpdname = alter_name_length(self.output_path+'/raw_compound_solutions/compound_'+str(cpdname)+'_'+str(org_name)+'_outputfile.txt', cpdname)
-        with open(self.output_path+'/raw_compound_solutions/compound_'+str(cpdname)+'_'+str(org_name)+'_outputfile.txt', 'w') as fin:
-
+        with open(self.output_path+'/raw_compound_solutions/compound_'+str(compound)+'_'+str(org_name)+'_outfile.txt', 'w') as fin:
             for count_pathway, os_dict in list(reactions.items()):
-
                 for rxn in ordered_paths[count_pathway].list_nodes():
                     org = os_dict[rxn]['organisms'][0]
                     protein = self.DB.get_proteins(rxn, org)

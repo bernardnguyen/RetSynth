@@ -164,7 +164,7 @@ class ConstructInitialLP(object):
         count = 0
         print ('STATUS:\tGenerating reaction constraints ...')
         for rxn in tqdm(self.allrxns):
-            if self.DB.is_reversible_all(rxn) == 'true':
+            if self.DB.is_reversible_all(rxn) == '1':
                 count += 1
                 self.load_reaction_variables(str(rxn) + '_F', str(rxn), 'R' + str(count))
 

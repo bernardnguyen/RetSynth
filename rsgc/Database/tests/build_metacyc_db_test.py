@@ -1,27 +1,23 @@
 from __future__ import print_function
 __author__ = 'Leanne Whitmore'
-__email__ = 'lwhitmo@sandia.gov'
+__email__ = 'leanne382@gmail.com'
 __description__ = 'Runs tests on codes add reactions and compounds to existing database'
 
 import os
 import re
 import sqlite3
 import unittest
+from shutil import copyfile
 from rsgc.Database import query as Q
-from rsgc.Database import initialize_database as init_db
 from rsgc.Database.build_metacyc_db import MetaCyc
 from rsgc.Database import build_metacyc_db as bmcdb
-from rsgc.Database import build_kbase_db as bkdb
+path2metacyc = input("Please input path to full metacyc ... ")
 
 PATH = os.path.dirname(os.path.abspath(__file__))
-PPATH = re.sub('/tests', '', PATH)
+copyfile(PATH+'/datam/testPATRIC.db', PATH+'/datam/testPATRIC_mc.db')
 
-if os.path.isfile(PATH+'/kbasetest.db') is True:
-    os.remove(PATH+'/kbasetest.db')
-init_db.Createdb(PATH+'/kbasetest.db', False)
-bkdb.BuildKbase(PATH+'/datam', PPATH+'/data/KbasetoKEGGCPD.txt', PPATH+'/data/KbasetoKEGGRXN.txt',
-                False, PATH+'/kbasetest.db', 'bio')
-DB = Q.Connector(PATH+'/kbasetest.db')
+
+DB = Q.Connector(PATH+'/datam/testPATRIC_mc.db')
 file_name = open(PATH+'/metacyc_data/MetaCyc.aliases')
 line = file_name.readline()
 BIOCYC_translator = {}
@@ -44,24 +40,25 @@ for count, line in enumerate(file_name):
             BIOCYC_translator['compound'][larray[0]].append(larray[2])
         else:
             BIOCYC_translator['compound'][larray[0]].append(larray[2])
+file_name.close()
 
 class Translate_metacycTests(unittest.TestCase):
     def test_metacyc(self):
-        """Tests that metacyc can be added to a kbase database correctly"""
-        print ("Testing that metacyc can be added to a kbase database correctly")
-        MC = MetaCyc(DB, False, sqlite3.connect(PATH+'/kbasetest.db'), True)
-        MC.read_metacyc_file(BIOCYC_translator, PATH+'/metacyc_data/metabolic-reactions.xml')
+        """Tests that metacyc can be added to a patric database correctly"""
+        print ("Testing that metacyc can be added to a patric database correctly")
+        MC = MetaCyc(DB, False, sqlite3.connect(PATH+'/datam/testPATRIC_mc.db'), False)
+        MC.read_metacyc_file(BIOCYC_translator, path2metacyc)
         self.assertIn(('R04139_c0', 'META', '(G-44401)'), MC.genelist)
-        self.assertIn(('R04139_c0', 'META', 'true'), MC.modelreactions)
-        self.assertIn(('R00850_c0', 'META', 'true'), MC.modelreactions)
-        self.assertIn(('R00850_c0_v1', 'META', 'true'), MC.modelreactions)
-        self.assertIn(('R00850_c0_v2', 'META', 'true'), MC.modelreactions)
-        self.assertIn(('R00850_c0_v3', 'META', 'true'), MC.modelreactions)
-        self.assertEqual(MC.all_rxnreversibility['R04139_c0'], 'true')
-        self.assertEqual(MC.all_rxnreversibility['R00850_c0'], 'true')
-        self.assertEqual(MC.all_rxnreversibility['R00850_c0_v1'], 'true')
-        self.assertEqual(MC.all_rxnreversibility['R00850_c0_v2'], 'true')
-        self.assertEqual(MC.all_rxnreversibility['R00850_c0_v3'], 'true')
+        self.assertIn(('R04139_c0', 'META', True), MC.modelreactions)
+        self.assertIn(('R00850_c0', 'META', True), MC.modelreactions)
+        self.assertIn(('R00850_c0_v1', 'META', True), MC.modelreactions)
+        self.assertIn(('R00850_c0_v2', 'META', True), MC.modelreactions)
+        self.assertIn(('R00850_c0_v3', 'META', True), MC.modelreactions)
+        self.assertEqual(MC.all_rxnreversibility['R04139_c0'], True)
+        self.assertEqual(MC.all_rxnreversibility['R00850_c0'], True)
+        self.assertEqual(MC.all_rxnreversibility['R00850_c0_v1'], True)
+        self.assertEqual(MC.all_rxnreversibility['R00850_c0_v2'], True)
+        self.assertEqual(MC.all_rxnreversibility['R00850_c0_v3'], True)
         self.assertEqual(5, len(MC.all_reaction_compound['R04139_c0']))
 
         self.assertIn(('R04139_c0', 'C00003_c0', False, '1'),
@@ -99,12 +96,12 @@ class Translate_metacycTests(unittest.TestCase):
         self.assertIn(('R00850_c0_v2', 'META', '2.7.1.142'), MC.proteinlist)
         self.assertIn(('R00850_c0_v3', 'META', '2.7.1.142'), MC.proteinlist)
         self.assertIn('C01456_c0', MC.all_cpds)
-        self.assertEqual(['tropate', 'c0', 'C01456', 'None', 'None'], MC.all_cpds['C01456_c0'])
+        self.assertEqual(['tropate', 'c0', 'C01456', None, '529-64-6', None], MC.all_cpds['C01456_c0'])
 
     def test_BIOCYC_translator(self):
         """Test that translator dictionary is built correctly"""
         print ("Testing that translator dictionary is built correctly")
-        T = bmcdb.Translate(PATH+'/kbasetest.db', PATH+'/metacyc_data/metabolic-reactions.xml',
+        T = bmcdb.Translate(PATH+'/datam/testPATRIC_mc.db',path2metacyc,
                             False, 'bio', False, add=False)
         self.assertEqual(len(T.BIOCYC_translator['rxn']), len(BIOCYC_translator['rxn']), 'bio')
         self.assertEqual(len(T.BIOCYC_translator['compound']), len(BIOCYC_translator['compound']))
@@ -117,4 +114,4 @@ class Translate_metacycTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(exit=False)
-    os.remove(PATH+'/kbasetest.db')
+    os.remove(PATH+'/datam/testPATRIC_mc.db')

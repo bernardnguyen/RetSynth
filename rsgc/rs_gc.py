@@ -32,7 +32,6 @@ from rsgc.Database import build_MINE_db as bminedb
 from rsgc.Database import build_KEGG_db as bkeggdb
 from rsgc.Database import build_SPRESI_db as bspresidb
 from rsgc.Database import build_user_rxns_db as burdb
-from rsgc.Database import remove_duplicate_cpds as rdc
 from rsgc.Database import query as Q
 from rsgc.FBA import build_model as bm
 from rsgc.FBA import optimize_target as ot
@@ -182,11 +181,11 @@ def parse_arguments():
                                                                            and bacteria seperate list by comma i.e. plants,bacteria', 
                         required=False, type=str, default='bacteria')
 
-    parser.add_argument('-keggnunorganisms', '--kegg_number_of_organisms', help='Define number of organisms \
+    parser.add_argument('-keggnumorganisms', '--kegg_number_of_organisms', help='Define number of organisms \
                                                                                  from kegg database to add',
                         required=False, type=str, default='all')
 
-    parser.add_argument('-keggnunorganismpaths', '--kegg_number_of_organism_pathways', help='Define number of pathways \
+    parser.add_argument('-keggnumorganismpaths', '--kegg_number_of_organism_pathways', help='Define number of pathways \
                                                                                              from an organism to add',
                         required=False, type=str, default='all')
 
@@ -413,7 +412,7 @@ def read_in_and_generate_output_files(args, database):
         verbose_print(args.verbose, 'STATUS:\t{} tanimoto threshold being used'.format(float(args.tanimoto_threshold)*100))
         cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')
         extracell_compartmentID = get_compartmentID_from_db(DB, 'extracellular')
-        SIM = ss.TanimotoStructureSimilarity(R.targets, DB.get_all_compounds(),
+        SIM = ss.TanimotoStructureSimilarity(R.targets, database, DB.get_all_compounds_inchi(),
                                              cytosol_compartmentID, extracell_compartmentID,
                                              args.verbose, args.tanimoto_threshold)
         OUTPUT.output_final_targets(SIM.finaltargets, args.tanimoto_threshold)
@@ -435,7 +434,7 @@ def retrieve_database_info(args):
         '''
         Generate a database
         '''
-        init_db.Createdb(args.generate_database, args.inchidb)
+        init_db.Createdb(args.generate_database)
         DB = Q.Connector(args.generate_database)
         if args.patric_models:
             bms.BuildModelSeed(username=args.patric_username, password=args.patric_password, rxntype=args.patric_reaction_type,
@@ -448,7 +447,7 @@ def retrieve_database_info(args):
             '''
             bmcdb.Translate(args.generate_database, args.metacyc_addition,
                             args.inchidb, args.metacyc_reaction_type, args.verbose)
-        if args.kegg and (args.patric_models or args.metacyc):
+        if args.kegg: #and (args.patric_models or args.metacyc):
             '''
             Add kegg daatabase
             '''
@@ -459,33 +458,29 @@ def retrieve_database_info(args):
             DB = BKD.DB
         if args.SPRESI:
             #Translate synthetic rdf files from SPRESI into database
-            DB = Q.Connector(database)
+            DB = Q.Connector(args.generate_database)
             cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')
             bspresidb.RDF_Reader(args.spresi_dump_directory,
-                                database,
+                                args.generate_database,
                                 args.spresi_reaction_type,
                                 cytosol_compartmentID, args.processors)
 
         if args.user_rxns_2_database:
             #Add user identified reactions
-            burdb.AddUserRxns2DB(database, args.user_rxns_2_database,
+            burdb.AddUserRxns2DB(args.generate_database, args.user_rxns_2_database,
                                 model_id='UserAdded', rxntype=args.user_rxns_2_database_type)
 
         if args.mine:
             #Add MINE repository to database
-            bminedb.BuildMINEdb(args.mine_dump_directory, database,
+            bminedb.BuildMINEdb(args.mine_dump_directory, args.generate_database,
                                 args.inchidb, args.mine_reaction_type)
 
         if args.atlas:
             #Add ATLAS repository to database
-            batlasdb.build_atlas(args.atlas_dump_directory, database, args.inchidb,
+            batlasdb.build_atlas(args.atlas_dump_directory, args.generate_database, args.inchidb,
                                     args.processors, args.atlas_reaction_type)
-        if args.inchidb and (args.patric_models or args.kbase or args.metacyc or args.kegg or args.SPRESI or args.mine or args.atlas):
-            #Remove duplicate compounds from database
-            rdc.OverlappingCpdIDs(database)
 
         database = args.generate_database
-        rdc.OverlappingCpdIDs(database)
 
     elif args.database:
         '''
@@ -668,13 +663,12 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                         rxn = re.sub('_R$', '', rxn)
                         path_org.append(rxn)
                     uniq_externalrxns.append(list(set(path_org) - set(inrxns_active)))
-
                 ex_info = ei.Extract_Information(optimal_pathways, incpds_active, inrxns_active, DB)
                 output.output_shortest_paths(target_info, ex_info.temp_rxns)
 
+
                 R = rf.ReactionFiles(args.output_path, DB, ex_info.temp_rxns,
                                  target_info[0], target_info[2], incpds_active)
-
                 output.output_raw_solutions(target_info[0], target_info[2], R.ordered_paths,
                                             ex_info.temp_rxns, ex_info.temp_external, incpds_active)
 
@@ -723,7 +717,7 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
     if args.timer_output:
        output.output_timer('Time to find all paths for {}\t{}\t{}\n'.format(target_info[0], (end-start), (end-start)/60))
     verbose_print(args.verbose, "\nINFO:\tTime to find all paths for "+str(target_info[0])+' '+str(end - start))
-    return ()
+
 def run_flux_balance_analysis(target_info, ex_info, incpds_active,
                               inrxns, media, ko,
                               output, DB, verbose):
@@ -782,9 +776,9 @@ def main():
         args_targets = [targets[i:i+args.processors]
                 for i in range(0, len(targets), args.processors)]
 
-        for targets in args_targets:
+        for targets_sub in args_targets:
             processes = []
-            for target in targets:
+            for target in targets_sub:
                 LPc=deepcopy(LP)
                 processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LPc, database, args,
                                                                              output, temp_imgs_PATH, orgs_gbs,

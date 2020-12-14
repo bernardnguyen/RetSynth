@@ -61,7 +61,6 @@ from rsgc.Database import build_MINE_db as bminedb
 from rsgc.Database import build_KEGG_db as bkeggdb
 from rsgc.Database import build_SPRESI_db as bspresidb
 from rsgc.Database import query as Q
-from rsgc.Database import remove_duplicate_cpds as rdc
 from rsgc.FBA import build_model as bm
 from rsgc.FBA import optimize_target as ot
 from rsgc.FBA import compare_results as cr
@@ -140,9 +139,9 @@ def run_flux_balance_analysis(target_info, ex_info, incpds_active,
 
     return opt_fba
  
-def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_imgs_PATH, CRV, timer_output,
+def retrieve_shortestpath(target_info, IP, LP, LPchem, database, output, temp_imgs_PATH, timer_output,
                     media_for_FBA, flux_balance_analysis, knockouts, images, figures_graphviz, figures_chemdraw,
-                    evaluate_reactions, rankpathways_logP_solvent, rankpathways_logP, rankpathways_boilingpoint,
+                    evaluate_reactions,
                     show_rxn_info, output_path, multiple_solutions, start_compounds, gene_compatibility,
                     cai_optimal_threshold, user_cai_table,orgs_gbs, gbs_orgs, RGC, keggorganisms_ids,
                     output_genecompdb, verbose):
@@ -365,9 +364,6 @@ class RetSynthGC(object):
         self.show_rxn_info = show_rxn_info
         self.timer_output = timer_output
         self.rankingpathways_seperation_file = rankingpathways_seperation_file
-        self.rankpathways_boilingpoint = rankpathways_boilingpoint
-        self.rankpathways_logP = rankpathways_logP
-        self.rankpathways_logP_solvent = rankpathways_logP_solvent
         self.gene_compatability = gene_compatability
         self.cai_threshold = cai_threshold
         self.user_cai_table = user_cai_table
@@ -385,7 +381,7 @@ class RetSynthGC(object):
         targets, ignore_reactions, include_rxns, output, temp_imgs_PATH = self.read_in_and_generate_output_files(database)
 
         LP, LPchem = self.retrieve_constraints(all_db_reactions, all_db_compounds, ignore_reactions, include_rxns, database)
-        IP, CRV = self.construct_and_run_integerprogram(targets, output, database, rankingfile=self.rankingpathways_seperation_file)
+        IP, CRV = self.construct_and_run_integerprogram(targets, output, database)
         if gene_compatibility:
             orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb = gc(database, 
                                                                             output_directory=output_path,
@@ -399,15 +395,13 @@ class RetSynthGC(object):
 
         args_targets = [targets[i:i+self.processors]
                       for i in range(0, len(targets), self.processors)]
-        for targets in args_targets:
+        for targets_sub in args_targets:
             processes = []
-            for target in targets:
+            for target in targets_sub:
                 processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LP, LPchem, database, output,
-                                                            temp_imgs_PATH, CRV, self.timer_output, self.media_for_FBA,
+                                                            temp_imgs_PATH, self.timer_output, self.media_for_FBA,
                                                             self.flux_balance_analysis, self.knockouts, self.images,
-                                                            self.figures_graphviz, self.figures_chemdraw, self.evaluate_reactions,
-                                                            self.rankpathways_logP_solvent, self.rankpathways_logP,
-                                                            self.rankpathways_boilingpoint, self.show_rxn_info,
+                                                            self.figures_graphviz, self.figures_chemdraw, self.evaluate_reactions, self.show_rxn_info,
                                                             self.output_path, self.multiple_solutions, self.start_compounds,
                                                             self.gene_compatability, self.cai_threshold, self.user_cai_table,
                                                             orgs_gbs, gbs_orgs, R, keggorganisms_ids, output_genecompdb,
@@ -476,9 +470,6 @@ class RetSynthGC(object):
                         without finding all multiple_solutions')
         if not self.targets:
             raise ValueError('Requires an input file of target compounds')
-        
-        if not self.rankingpathways_seperation_file and (self.rankpathways_boilingpoint or self.rankpathways_logP):
-            raise ValueError('Requires an boiling point input file for database')
 
     def retrieve_database_info(self):
         '''
@@ -489,7 +480,7 @@ class RetSynthGC(object):
             '''
             Generate a database
             '''
-            init_db.Createdb(self.generate_database, self.inchidb)
+            init_db.Createdb(self.generate_database)
             database = self.generate_database
             new_db = True
 
@@ -509,20 +500,13 @@ class RetSynthGC(object):
             bmcdb.Translate(database, self.metacyc_addition,
                             self.inchidb, self.metacyc_reaction_type, self.verbose)
 
-        if self.kegg and (self.patric_models or self.kbase or self.metacyc):
+        if self.kegg: #nd (self.patric_models or self.kbase or self.metacyc):
             #Add kegg repository database
             BKD = bkeggdb.CompileKEGGIntoDB(database, self.kegg_organism_type,
                                             self.inchidb, self.processors, self.kegg_number_of_organisms,
                                             self.kegg_number_of_organism_pathways,
                                             self.kegg_reaction_type, True)
 
-        elif self.kegg and not self.kbase and not self.patric_models and not self.metacyc:
-            #Add kegg repository database
-            print ('STATUS: Add only KEGG to RetSynth database')
-            BKD = bkeggdb.CompileKEGGIntoDB(database, self.kegg_organism_type,
-                                            self.inchidb, self.processors,
-                                            self.kegg_number_of_organisms, self.kegg_number_of_organism_pathways,
-                                            self.kegg_reaction_type, False)
 
         if self.user_rxns_2_database:
             #Add user identified reactions
@@ -546,10 +530,6 @@ class RetSynthGC(object):
             #Add ATLAS repository to database
             batlasdb.build_atlas(self.atlas_dump_directory, database, self.inchidb,
                                     self.processors, self.atlas_reaction_type)
-            
-        if self.inchidb and (self.patric_models or self.metacyc or self.kegg or self.SPRESI or self.mine or self.atlas):
-            #Remove duplicate compounds from database
-            rdc.OverlappingCpdIDs(database)
 
         ##IF DATABASE IS NOT SPECIFIED USE DEFUALT DATABASE IN ./ConstructedDatabases FOLDER##
         if not self.generate_database and not self.database:
@@ -593,7 +573,7 @@ class RetSynthGC(object):
             verbose_print(self.verbose, 'STATUS: {} tanimoto threshold being used'.format(float(self.tanimoto_threshold)*100))
             cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')
             extracell_compartmentID = get_compartmentID_from_db(DB, 'extracellular')
-            SIM = ss.TanimotoStructureSimilarity(R.targets, DB.get_all_compounds(),
+            SIM = ss.TanimotoStructureSimilarity(R.targets, daatabase, DB.get_all_compounds_inchi(),
                                                 cytosol_compartmentID, extracell_compartmentID,
                                                 self.verbose, self.tanimoto_threshold)
             OUTPUT.output_final_targets(SIM.finaltargets, self.tanimoto_threshold)
@@ -715,26 +695,9 @@ class RetSynthGC(object):
 
         LPchem=None
 
-        if self.rankpathways_boilingpoint or self.rankpathways_logP:
-            print ('STATUS: Load necessary chemical constraints for ranking pathways based on boiling point')
-
-            constraint_file = re.sub('.db$', '_chem.constraints', database)
-            allrxns_chem = DB.get_reactions_based_on_type('chem')
-
-            if not  os.path.isfile(constraint_file):
-                LPchem = co.ConstructInitialLP(allrxns_chem, allcpds, DB, [], [])
-                store_constraint_file(constraint_file, LPchem)         
-
-            else:
-                (lp, allcompounds4matrix, variables, allrxnsrev_dict_rev, allrxnsrev_dict, allrxnsrev) = unload_constraint_file(constraint_file)  
-
-                LPchem = co.ConstructInitialLP(allrxns, allcompounds4matrix, DB,
-                                                [], [], lp, variables, allrxnsrev_dict_rev,
-                                                allrxnsrev_dict, allrxnsrev)
-
         return LP, LPchem
 
-    def construct_and_run_integerprogram(self, targets, output, database, rankingfile=None):
+    def construct_and_run_integerprogram(self, targets, output, database):
         '''
         Constructs ILP and solves it identifying shortest path to the target
         '''
@@ -751,12 +714,4 @@ class RetSynthGC(object):
             IP = ip_pulp.IntergerProgram(DB, self.limit_reactions,
                                         self.limit_cycles, self.k_number_of_paths,
                                         self.cycles, self.verbose, self.solver_time_limit, self.timer_output)
-        if self.rankpathways_boilingpoint or self.rankpathways_logP:
-
-            CRV = rp.ConstructRankingVariables(database, rankingfile, self.verbose)
-
-            return (IP, CRV)
-        
-        else: 
-        
-            return (IP, None)
+        return (IP, None)

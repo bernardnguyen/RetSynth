@@ -14,7 +14,6 @@
 from rsgc.indigopython130_win.indigo import *
 
 
-
 class IndigoInchi(object):
     def __init__(self, indigo):
         self.indigo = indigo
@@ -79,3 +78,4 @@ class IndigoInchi(object):
     def getAuxInfo(self):
         self.indigo._setSessionId()
         return self.indigo._checkResultString(self._lib.indigoInchiGetAuxInfo())
+

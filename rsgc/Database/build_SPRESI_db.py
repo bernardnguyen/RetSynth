@@ -9,6 +9,7 @@ import os
 import re
 import glob
 import shutil
+from rsgc.Database import query as Q
 from sys import platform
 if platform == 'darwin':
     from rsgc.indigopython130_mac import indigo
@@ -19,6 +20,10 @@ elif platform == "linux" or platform == "linux2":
 elif platform == "win32" or platform == "win64" or platform == "cygwin":
     from rsgc.indigopython130_win import indigo
     from rsgc.indigopython130_win import indigo_inchi
+if platform == "cygwin":
+    header_path = 'C:\cygwin64'
+else:
+    header_path = ''
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -31,7 +36,7 @@ def RDF_Reader(file_directory, DBpath, rxntype, compartment, processors,
     options = [temp_option, pressure_option, yield_option, time_option,
                catalyst_option, solvent_option, compartment]
     rdf_files = glob.glob(os.path.join(file_directory, '*'))
-    args = [(i, str(c), options) for c, i in enumerate(rdf_files)]
+    args = [(i, str(c), options, DBpath, compartment) for c, i in enumerate(rdf_files)]
 
     try:
         os.mkdir(PATH+'/temp')
@@ -55,6 +60,8 @@ def open_file(args):
     file_name = args[0]
     filenumber = args[1]
     options = args[2]
+    DBpath = args[3]
+    compartment = args[4]
     RDF_dict = {}
     print ('STATUS: Loading/Parsing in RDF file {} ...'.format(file_name))
     output_file = open(PATH+'/temp/output_'+str(filenumber)+'.txt', 'w')
@@ -72,7 +79,7 @@ def open_file(args):
         else:
             if line.startswith('$RFMT'):
                 if len(RDF_dict.keys()) > 0:
-                    parse_file(output_file, RDF_dict, filenumber, file_name, options)
+                    parse_file(output_file, RDF_dict, filenumber, file_name, options, DBpath, compartment)
                     RDF_dict = {}
                     array = line.split()
                     RDF_dict[array[2]] = []
@@ -81,7 +88,7 @@ def open_file(args):
                     RDF_dict[array[2]] = []
             else:
                 RDF_dict[array[2]].append(line)
-    parse_file(output_file, RDF_dict, filenumber, file_name, options)
+    parse_file(output_file, RDF_dict, filenumber, file_name, options, DBpath, compartment)
 
 def get_mol_structure(match, item, type_bool, result_dict, count_item=0, GET_RXN=True):
     '''
@@ -192,12 +199,12 @@ def process_rxntext(rxntext_array):
                 pressure = value
     return(temp, time, pressure)
 
-def parse_file(output_file, RDF_dict, filenumber, file_name, options):
+def parse_file(output_file, RDF_dict, filenumber, file_name, options, DBpath, compartment):
     '''
     Parses elements of an RDFile outputs them to new next file
     '''
     compartment = options[6]
-    for key, items in RDF_dict.iteritems():
+    for key, items in RDF_dict.items():
         key = 'rxn'+key+'_s'
         components = items[4].split()
         mol_bool = False
@@ -234,7 +241,6 @@ def parse_file(output_file, RDF_dict, filenumber, file_name, options):
         count_mol = 0
         count_solvents = 0
         count_catalysts = 0
-
         for item in items:
             #Get reaction reactants and products
             mol, mol_bool, count_mol = get_mol_structure(None, item, mol_bool, mol,
@@ -365,7 +371,6 @@ def parse_file(output_file, RDF_dict, filenumber, file_name, options):
                                                                                item,
                                                                                reference_j_details_array,
                                                                                reference_j_details_bool)
-
         #Print warning if reference type was not identified by code
         if reference_type_string == 'PATENT':
             full_citation_string = 'PATENT '+', '.join([''.join(reference_t_details_array),
@@ -389,25 +394,19 @@ def parse_file(output_file, RDF_dict, filenumber, file_name, options):
         len_temp = len(temp.split(','))
         len_time = len(time.split(','))
         len_pressure = len(pressure.split(','))
-
         if (options[0] is True and temp == '') or (options[0] is True and len_temp == temp.count('None')):
             break
-
         if (options[1] is True and pressure == '') or (options[1] is True and len_pressure == pressure.count('None')):
             break
-
         if options[2] is True and yield_string == '':
             break
-
         if (options[3] is True and time == '') or (options[3] is True and len_time == time.count('None')):
             break
-
         if options[4] is True and len(catalysts) == 0:
             break
         if options[5] is True and len(solvents) == 0:
             break
-
-        mol_smiles = generate_mol_file(mol, filenumber, substrates=True)
+        mol_smiles = generate_mol_file(mol, filenumber, substrates=True, DBpath=DBpath, compartment=compartment)
         catalysts_smiles = generate_mol_file(catalysts, filenumber)
         solvents_smiles = generate_mol_file(solvents, filenumber)
 
@@ -424,8 +423,9 @@ def parse_file(output_file, RDF_dict, filenumber, file_name, options):
             try:
                 if mol_smiles[r] is not False:
                     tmp_array=mol_smiles[r].split('|--|')
-                    reactants.append(str(tmp_array[0])+'_'+compartment+'|---|'+'None'+'|---|'+tmp_array[1])
+                    reactants.append(str(tmp_array[0])+'|---|'+'None'+'|---|'+tmp_array[1]+'|---|'+tmp_array[2])
                 else:
+                    print("reactant issue")
                     compound_error = True
             except KeyError:
                 key_error = True
@@ -436,8 +436,9 @@ def parse_file(output_file, RDF_dict, filenumber, file_name, options):
             try:
                 if mol_smiles[p] is not False:
                     tmp_array=mol_smiles[p].split('|--|')
-                    products.append(str(tmp_array[0])+'_'+compartment+'|---|'+'None'+'|---|'+tmp_array[1])
+                    products.append(str(tmp_array[0])+'|---|'+'None'+'|---|'+tmp_array[1]+'|---|'+tmp_array[2])
                 else:
+                    print("product issue")
                     compound_error = True
             except KeyError:
                 key_error = True
@@ -446,7 +447,7 @@ def parse_file(output_file, RDF_dict, filenumber, file_name, options):
         for c in catalysts_smiles:
             try:
                 if catalysts_smiles[c] is not False:
-                    catalysts.append(str(catalysts_smiles[c])+'_'+compartment+'|---|'+'None')
+                    catalysts.append(str(catalysts_smiles[c])+'|---|'+'None')
                 else:
                     compound_error = True
             except KeyError:
@@ -456,7 +457,7 @@ def parse_file(output_file, RDF_dict, filenumber, file_name, options):
         for s in solvents_smiles:
             try:
                 if solvents_smiles[s] is not False:
-                    solvents.append(str(solvents_smiles[s])+'_'+compartment+'|---|'+'None')
+                    solvents.append(str(solvents_smiles[s])+'|---|'+'None')
                 else:
                     compound_error = True
             except KeyError:
@@ -481,54 +482,53 @@ def parse_file(output_file, RDF_dict, filenumber, file_name, options):
                                          str(time), str(yield_string), str(full_citation_string)])+'\n')
         else:
             if compound_error is True:
-                print ('{} skipped because of file issue'.format(key))
+                print ('{} skipped because of file issue compound_error'.format(key))
             if key_error is True:
-                print ('{} skipped because of file issue'.format(key))
-
-def generate_mol_file(compounds, filenumber, substrates=False):
+                print ('{} skipped because of file issue key_error'.format(key))
+def generate_mol_file(compounds, filenumber, substrates=False, DBpath=False, compartment=False):
     '''
     Generates mole file and then reads it in using the indigo API to get the smile
     '''
+    if DBpath is not False:
+        DB=Q.Connector(DBpath)
     IN = indigo.Indigo()
     INCHI = indigo_inchi.IndigoInchi(IN)
     compound_dict = {}
-    for key, values in compounds.iteritems():
+    for key, values in compounds.items():
         output_mol_file = open(PATH+'/mol_output_'+str(filenumber)+'.mol', 'w')
         for value in values:
             output_mol_file.write(value+'\n')
         output_mol_file.close()
         try:
-            mol = IN.loadMoleculeFromFile(PATH+'/mol_output_'+str(filenumber)+'.mol')
+            mol = IN.loadMoleculeFromFile(header_path+PATH+'/mol_output_'+str(filenumber)+'.mol')
+
             try:
                 inchi_value = INCHI.getInchi(mol)
                 if substrates:
                     mol = INCHI.loadMolecule(inchi_value)
-                    # fp = mol.fingerprint('full')
-                    # buffer = fp.toBuffer()
-                    # buffer_array = [str(i) for i in buffer]
-                    # buffer_string = ','.join(buffer_array)
+
                     cf = mol.grossFormula()
                     cf = re.sub(' ', '', cf)
-                    compound_dict[key] = inchi_value+'|--|'+cf
+                    if DB.get_compound_ID_from_inchi(inchi_value) is not None:
+                        compound_dict[key] = DB.get_compound_ID_from_inchi(inchi_value)+'|--|'+cf+'|--|'+inchi_value
+                    else:
+                        smile = mol.smiles()
+                        compound_dict[key] = smile+'_'+compartment+'|--|'+cf+'|--|'+inchi_value
                 else:
                     compound_dict[key] = inchi_value
             except indigo.IndigoException:
                 try:
                     smile = mol.smiles()
                     if substrates:
-                        # fp = mol.fingerprint('full')
-                        # buffer = fp.toBuffer()
-                        # buffer_array = [str(i) for i in buffer]
-                        # buffer_string = ','.join(buffer_array)
                         cf = mol.grossFormula()
                         cf = re.sub(' ', '', cf)
-                        compound_dict[key] = smile+'|--|'+cf
+                        compound_dict[key] = smile+'_'+compartment+'|--|'+cf+'|--|None'
                     else:       
                         compound_dict[key] = smile
                 except indigo.IndigoException:
                     compound_dict[key] = False
             os.remove(PATH+'/mol_output_'+str(filenumber)+'.mol')
-        except indigo.IndigoException:
+        except indigo.IndigoException as e:
             compound_dict[key] = False
     return compound_dict
 
@@ -600,31 +600,24 @@ def add_info_2_database(DBpath, rxntype, compartment):
     cnx.execute('''REINDEX reactionsolvents_ind''')
     cnx.execute('''REINDEX reaction_spresi_info_ind''')
 
-    try:
-        cnx.execute('''REINDEX original_db_cpdIDs_ind''')
-    except sqlite3.OperationalError:
-        pass
-    conn.commit()
-
-    shutil.rmtree(PATH+'/temp')
-
 def check_refs(table, rxn_id, test_info_ref, new_rxn_info, larray, cnx):
     '''check if reference info is already in database'''
     q =  cnx.execute("SELECT {} FROM reaction_spresi_info WHERE reaction_ID = ? and reference = ?".format(table), (rxn_id, test_info_ref))
     hits = q.fetchall()
-    if hits[0] == 'None' and str(new_rxn_info) != 'None':
+    if hits[0][0] == 'None' and str(new_rxn_info) != 'None':
         cnx.execute("UPDATE reaction_spresi_info SET {} = ? WHERE reaction_ID = ? and reference = ?".format(table), (new_rxn_info, rxn_id, test_info_ref))
-    elif hits[0] != 'None' and str(new_rxn_info) != 'None' and  hits[0] != str(new_rxn_info):
-        cnx.execute("INSERT INTO reaction_spresi_info VALUES (?,?,?,?,?,?)",
-                    (str(rxn_id), str(larray[5]), str(larray[6]), str(larray[7]), str(larray[8]),
-                     larray[9].decode('utf-8')))
+    # elif hits[0][0] != 'None' and str(new_rxn_info) != 'None' and  hits[0] != str(new_rxn_info):
+    #     print("enter ")
+    #     cnx.execute("INSERT INTO reaction_spresi_info VALUES (?,?,?,?,?,?)",
+    #                 (str(rxn_id), str(larray[5]), str(larray[6]), str(larray[7]), str(larray[8]),
+    #                  larray[9].encode().decode('utf-8')))
 
 def add_individual_file_info(text_file, cnx, conn, rxntype, compartment, eliminate_duplicates, identification):
     '''
     Specifically adds individual file info from to database
     '''
     modelcompounds = [] #compoundID, #org
-    allcompounds = [] #compoundID, name, compartment
+    allcompounds = [] #compoundID, name, compartment, inchi
     with open(text_file) as open_file:
         for line in open_file:
             line = line.strip('\n\r')
@@ -640,11 +633,11 @@ def add_individual_file_info(text_file, cnx, conn, rxntype, compartment, elimina
                 eliminate_duplicates[larray[1]+larray[2]]['id'] = rxn_id
                 eliminate_duplicates[larray[1]+larray[2]]['catsolv'] = []
                 eliminate_duplicates[larray[1]+larray[2]]['ref'] = []
-                cnx.execute("INSERT INTO model_reaction VALUES (?,?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], 'SR1', 'false'))
-                cnx.execute("INSERT INTO reaction VALUES (?,?,?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], 'None', 'None', rxntype))
-                cnx.execute("INSERT INTO reaction_reversibility VALUES (?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], 'false'))
-                cnx.execute("INSERT INTO reaction_gene VALUES (?,?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], 'SR1', 'None'))
-                cnx.execute("INSERT INTO reaction_protein VALUES (?,?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], 'SR1', 'None'))
+                cnx.execute("INSERT INTO model_reaction VALUES (?,?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], 'SR1', False))
+                cnx.execute("INSERT INTO reaction VALUES (?,?,?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], None, None, rxntype))
+                cnx.execute("INSERT INTO reaction_reversibility VALUES (?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], False))
+                cnx.execute("INSERT INTO reaction_gene VALUES (?,?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], 'SR1', None))
+                cnx.execute("INSERT INTO reaction_protein VALUES (?,?,?)", (eliminate_duplicates[larray[1]+larray[2]]['id'], 'SR1', None))
                 if larray[1] != '':
                     for reactant in reactants:
                         compound = reactant.split('|---|')
@@ -652,10 +645,12 @@ def add_individual_file_info(text_file, cnx, conn, rxntype, compartment, elimina
                         cnx.execute("INSERT INTO reaction_compound VALUES (?,?,?,?,?)",
                                     (eliminate_duplicates[larray[1]+larray[2]]['id'], compound[0], 0, 1, 0))
                         if len(compound) > 2:
-                            allcompounds.append((compound[0], compound[1], compartment,  'None', compound[2], 'None'))
-                        elif len(compound) < 2:
+                            compound[1] = None if compound[1] == 'None' else compound[1]
+                            compound[3] = None if compound[3] == 'None' else compound[3]
+                            allcompounds.append((compound[0], compound[1], compartment,  None, compound[2], None, compound[3]))
+                        elif len(compound) <= 2:
                             print ('WARNING: Issue with name and ID {} {} reactant'.format(compound, eliminate_duplicates[larray[1]+larray[2]]['id']))
-                            allcompounds.append((compound[0], 'None', compartment,  'None',  compound[2], 'None'))
+                            allcompounds.append((compound[0], None, compartment,  None,  compound[1], None, None))
                     conn.commit()
                 if larray[2] != '':
                     for product in products:
@@ -664,14 +659,14 @@ def add_individual_file_info(text_file, cnx, conn, rxntype, compartment, elimina
                         cnx.execute("INSERT INTO reaction_compound VALUES (?,?,?,?,?)",
                                     (eliminate_duplicates[larray[1]+larray[2]]['id'], compound[0], 1, 1, 0))
                         if len(compound) > 2:
-                            allcompounds.append((compound[0], compound[1], compartment,  'None',  compound[2], 'None'))
-                        elif len(compound) < 2:
+                            allcompounds.append((compound[0], compound[1], compartment, None,  compound[2], None, compound[3]))
+                        elif len(compound) <= 2:
                             print ('WARNING: Issue with name and ID {} {} product'.format(compound, eliminate_duplicates[larray[1]+larray[2]]['id']))
-                            allcompounds.append((compound[0], 'None', compartment, 'None',  compound[2], 'None'))
+                            allcompounds.append((compound[0], None, compartment, None,  compound[1], None, None))
                     conn.commit()
             
             test_info_cat_solv = larray[3]+larray[4]
-            test_info_ref = str(larray[9]).decode('utf-8')
+            test_info_ref = str(larray[9]).encode().decode('utf-8')
             if test_info_cat_solv not in eliminate_duplicates[larray[1]+larray[2]]['catsolv']:
                 eliminate_duplicates[larray[1]+larray[2]]['catsolv'].append(test_info_cat_solv)
                 if larray[3] != '':
@@ -683,7 +678,7 @@ def add_individual_file_info(text_file, cnx, conn, rxntype, compartment, elimina
                         elif len(compound) < 2:
                             print ('WARNING: Issue with name and ID {} {} catalyst'.format(compound,eliminate_duplicates[larray[1]+larray[2]]['id']))
                             cnx.execute("INSERT INTO reaction_catalysts VALUES (?,?,?)",
-                                        (eliminate_duplicates[larray[1]+larray[2]]['id'], compound[0], 'None'))
+                                        (eliminate_duplicates[larray[1]+larray[2]]['id'], compound[0], None))
                     conn.commit()
                 if larray[4] != '':
                     for solvent in solvents:
@@ -693,16 +688,14 @@ def add_individual_file_info(text_file, cnx, conn, rxntype, compartment, elimina
                                         (eliminate_duplicates[larray[1]+larray[2]]['id'], compound[0], compound[1]))
                         elif len(compound) < 2:
                             print ('WARNING: Issue with name and ID {} {} solvent'.format(compound, eliminate_duplicates[larray[1]+larray[2]]['id']))
-                            print (larray[4])
                             cnx.execute("INSERT INTO reaction_solvents VALUES (?,?,?)",
-                                        (eliminate_duplicates[larray[1]+larray[2]]['id'], compound[0], 'None'))
+                                        (eliminate_duplicates[larray[1]+larray[2]]['id'], compound[0], None))
                 conn.commit()
-
             if test_info_ref not in  eliminate_duplicates[larray[1]+larray[2]]['ref']:
                 eliminate_duplicates[larray[1]+larray[2]]['ref'].append(test_info_ref)
                 cnx.execute("INSERT INTO reaction_spresi_info VALUES (?,?,?,?,?,?)",
                             (str(eliminate_duplicates[larray[1]+larray[2]]['id']), str(larray[5]), str(larray[6]), str(larray[7]), str(larray[8]),
-                             larray[9].decode('utf-8')))
+                             larray[9].encode().decode('utf-8')))
                 conn.commit()
             else:
                 check_refs('temperature', str(eliminate_duplicates[larray[1]+larray[2]]['id']), test_info_ref, larray[5], larray, cnx)
@@ -713,6 +706,6 @@ def add_individual_file_info(text_file, cnx, conn, rxntype, compartment, elimina
     allcompounds = list(set(allcompounds))
     modelcompounds = list(set(modelcompounds))
     cnx.executemany("INSERT INTO model_compound VALUES (?,?)", modelcompounds)
-    cnx.executemany("INSERT INTO compound VALUES (?,?,?,?,?,?)", allcompounds)
+    cnx.executemany("INSERT INTO compound VALUES (?,?,?,?,?,?,?)", allcompounds)
     conn.commit()
     return(eliminate_duplicates, identification)

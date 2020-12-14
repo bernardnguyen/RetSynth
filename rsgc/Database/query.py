@@ -163,6 +163,31 @@ class Connector(object):
         else:
             return str(None)
 
+    def get_compound_ID_from_inchi(self, inchi):
+        '''Retrieves compound ID given a compound name'''        
+
+        query = "SELECT ID FROM compound WHERE inchistring = '%s' AND compartment != 'e0'" % inchi
+
+        conn, cnx = self.connect_to_database()
+        Q, cnx = test_db_4_error(conn, cnx, query, self.database, 0)
+        hits = fetching_all_query_results(Q, conn, cnx, self.database, query, 0)
+        if hits != 'Errored' and hits is not None and len(hits)!=0:
+            return str(hits[0][0])
+        else:
+            return None
+
+    def get_inchi_from_compoundID(self, cpdID):
+        '''Retrieves compound ID given a compound name'''        
+
+        query = "SELECT inchistring FROM compound WHERE ID = '%s'" % cpdID
+
+        conn, cnx = self.connect_to_database()
+        Q, cnx = test_db_4_error(conn, cnx, query, self.database, 0)
+        hits = fetching_all_query_results(Q, conn, cnx, self.database, query, 0)
+        if hits != 'Errored' and hits is not None and len(hits)!=0:
+            return str(hits[0][0])
+        else:
+            return None
     def get_compound_name(self, compound_ID):
         '''Retrieves compound name given a compound ID'''
         if compound_ID.strip() == "":
@@ -178,7 +203,24 @@ class Connector(object):
             except UnicodeEncodeError:
                 return str(hits[0].decode('utf-8'))
         else:
-            return str(None)
+            return None
+
+    def get_compound_name_from_inchi(self, inchi):
+        '''Retrieves compound name given a compound ID'''
+        if compound_ID.strip() == "":
+            return None
+
+        query = "select name from compound where inchistring = '%s'" % inchi
+        conn, cnx = self.connect_to_database()
+        Q, cnx = test_db_4_error(conn, cnx, query, self.database, 0)
+        hits = fetching_one_query_results(Q, conn, cnx, self.database, query, 0)
+        if hits != 'Errored' and hits is not None:    
+            try:
+                return str(hits[0])
+            except UnicodeEncodeError:
+                return str(hits[0].decode('utf-8'))
+        else:
+            return None
 
     def get_compound_compartment(self, compound_ID):
         '''Retrieves the compartment that the compound is in'''
@@ -322,6 +364,17 @@ class Connector(object):
         hits = fetching_all_query_results(Q, conn, cnx, self.database, query, 0)
         if hits != 'Errored' and hits is not None:
             return [i[0] for i in hits]
+        else:
+            return None
+
+    def get_all_compounds_inchi(self):
+        '''Retrieves all compounds in the database'''
+        query = "select inchistring from compound"
+        conn, cnx = self.connect_to_database()
+        Q, cnx = test_db_4_error(conn, cnx, query, self.database, 0)
+        hits = fetching_all_query_results(Q, conn, cnx, self.database, query, 0)
+        if hits != 'Errored' and hits is not None:
+            return [i[0] for i in hits if i[0] is not None]
         else:
             return None
 

@@ -46,6 +46,7 @@ RetSynth is tested to work under Python 2.7 and 3
 * graphviz==0.14
 * lxml
 * bio
+* requests
 
 ## License
 

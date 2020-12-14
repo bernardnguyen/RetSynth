@@ -14,7 +14,7 @@ if platform == 'darwin':
 elif platform == "linux" or platform == "linux2":
     from rsgc.indigopython130_linux import indigo
     from rsgc.indigopython130_linux import indigo_inchi
-elif platform == "win32" or platform == "win64":
+elif platform == "win32" or platform == "win64" or platform == "cygwin":
     from rsgc.indigopython130_win import indigo
     from rsgc.indigopython130_win import indigo_inchi
 from rsgc.Database import query as Q
@@ -26,9 +26,8 @@ class BuildMINEdb(object):
         self.database = database
         self.rxntype = rxntype
         self.inchidb = inchidb
-        self.IN = indigo.Indigo()
-        self.INCHI = indigo_inchi.IndigoInchi(self.IN)
         self.compound_dict = {}
+        self.cpd_translate = {}
         self.reaction_dict = {}
         self.compound_dict_temp = {}
         self.storerxns = set()
@@ -39,31 +38,35 @@ class BuildMINEdb(object):
             self.generate_reactions()
         self.fill_database()
 
-    def extract_cpd_information(self, compoundid, INFO, tp):
+    def fill_in_cpd_info(self, compoundid, value1, value2, DB):
+        self.compound_dict[compoundid]['INCHI'] = value1
+        self.compound_dict[compoundid]['CF'] = value2
+        if value1 is not None and DB.get_compound_ID_from_inchi(value1) is not None:
+            self.cpd_translate[compoundid] = DB.get_compound_ID_from_inchi(value1)
+
+    def extract_cpd_information(self, compoundid, INFO, tp, DB):
         '''Get compound information'''
+        IN = indigo.Indigo()
+        INCHI = indigo_inchi.IndigoInchi(IN)
         if tp.startswith(INFO):
             tparray = tp.split()
             if INFO not in self.compound_dict[compoundid]:
                 self.compound_dict[compoundid][INFO] = tparray[1]
                 if INFO == 'SMILES' and self.inchidb is True:
                     try:
-                        mol = self.IN.loadMolecule(tparray[1])
+                        mol = IN.loadMolecule(tparray[1])
                         if mol:
-                            inchi = self.INCHI.getInchi(mol)
-                            # fp = mol.fingerprint('full')
-                            # buffer = fp.toBuffer()
-                            # buffer_array = [str(i) for i in buffer]
-                            # buffer_string = ','.join(buffer_array)
+                            inchi = INCHI.getInchi(mol)
                             cf = mol.grossFormula()
                             cf = re.sub(' ', '', cf)                           
                             if inchi:
-                                self.compound_dict[compoundid]['INCHI'] = inchi
-                                # self.compound_dict[compoundid]['FP'] = buffer_string
-                                self.compound_dict[compoundid]['CF'] = cf
+                                self.fill_in_cpd_info(compoundid, inchi, cf, DB)
+                            else:
+                                self.fill_in_cpd_info(compoundid, None, None, DB)
                         else:
-                            pass
+                            self.fill_in_cpd_info(compoundid, None, None, DB)
                     except indigo.IndigoException:
-                        pass
+                        self.fill_in_cpd_info(compoundid, None, None, DB)
     def extract_source_information(self, compoundid, tp):
         '''extract operator information (EC number)'''
         if tp.startswith('Sources'):
@@ -99,17 +102,21 @@ class BuildMINEdb(object):
             self.compound_dict[compoundid]['ENZYME'] = {}
 
         for tp in temp:
-            self.extract_cpd_information(compoundid, 'SMILES', tp)
-            self.extract_cpd_information(compoundid, 'Name', tp)
-            self.extract_cpd_information(compoundid, 'Inchikey', tp)
-            self.extract_cpd_information(compoundid, 'MINE_id', tp)
+            DB = Q.Connector(self.database)
+            self.extract_cpd_information(compoundid, 'SMILES', tp, DB)
+            self.extract_cpd_information(compoundid, 'Name', tp, DB)
+            self.extract_cpd_information(compoundid, 'Inchikey', tp, DB)
+            self.extract_cpd_information(compoundid, 'MINE_id', tp, DB)
             self.extract_source_information(compoundid, tp)
         return []
 
     def open_mspfile(self, filename):
         '''Opens and reads msp files'''
         print ('STATUS: Reading '+filename)
-        numlines = len(open(filename).readlines())
+        file_open = open(filename)
+        lines = file_open.readlines()
+        numlines = len(lines)
+        file_open.close()
         with open(filename) as fin:
             cpd = []
             for count_line, line in enumerate(tqdm(fin)):
@@ -127,16 +134,13 @@ class BuildMINEdb(object):
         if self.inchidb:
             try:
                 value = self.compound_dict[compound]
-                try:
-                    self.reaction_dict[rxn][typecpd].append(self.compound_dict[compound]['INCHI'])
-                except KeyError:
-                    self.reaction_dict[rxn][typecpd].append(compound)
+                self.reaction_dict[rxn][typecpd].append(compound)
             except KeyError:
                 self.compound_dict_temp[compound] = {}
-                self.compound_dict_temp[compound]['Name'] = 'None'
-                self.compound_dict_temp[compound]['SMILES'] = 'None'
-                self.compound_dict_temp[compound]['Inchikey'] = 'None'
-                self.compound_dict_temp[compound]['MINE_id'] = 'None'
+                self.compound_dict_temp[compound]['Name'] = None
+                self.compound_dict_temp[compound]['SMILES'] = None
+                self.compound_dict_temp[compound]['Inchikey'] = None
+                self.compound_dict_temp[compound]['MINE_id'] = None
                 self.compound_dict_temp[compound]['ENZYME'] = {}
                 self.reaction_dict[rxn][typecpd].append(compound)
         else:
@@ -145,10 +149,10 @@ class BuildMINEdb(object):
                 self.reaction_dict[rxn][typecpd].append(compound)
             except KeyError:
                 self.compound_dict_temp[compound] = {}
-                self.compound_dict_temp[compound]['Name'] = 'None'
-                self.compound_dict_temp[compound]['SMILES'] = 'None'
-                self.compound_dict_temp[compound]['Inchikey'] = 'None'
-                self.compound_dict_temp[compound]['MINE_id'] = 'None'
+                self.compound_dict_temp[compound]['Name'] = None
+                self.compound_dict_temp[compound]['SMILES'] = None
+                self.compound_dict_temp[compound]['Inchikey'] = None
+                self.compound_dict_temp[compound]['MINE_id'] = None
                 self.compound_dict_temp[compound]['ENZYME'] = {}
                 self.reaction_dict[rxn][typecpd].append(compound)
     
@@ -173,6 +177,13 @@ class BuildMINEdb(object):
                 else:
                     print (full_rxn+'  already present therefore skipping')
         self.compound_dict.update(self.compound_dict_temp)
+
+    def _fill_reaction_compound(self, reaction_compound, reaction, cpd, is_prod, compartment):
+        try:
+            reaction_compound.append((reaction+compartment, self.cpd_translate[cpd], is_prod, 1, 0))
+        except KeyError:
+            reaction_compound.append((reaction+compartment, cpd+compartment, is_prod, 1, 0))
+        return(reaction_compound)
 
     def fill_database(self):
         '''Generate arrays of database information and
@@ -206,15 +217,15 @@ class BuildMINEdb(object):
 
         for reaction in self.reaction_dict:
             for reactant in self.reaction_dict[reaction]['reactants']:
-                reaction_compound.append((reaction+cytosol, reactant+cytosol, 0, 1, 0))
+                reaction_compound = self._fill_reaction_compound(reaction_compound, reaction, reactant, 0, cytosol)
             for product in self.reaction_dict[reaction]['products']:
-                reaction_compound.append((reaction+cytosol, product+cytosol, 1, 1, 0))
-            reaction_reversibility.append((reaction+cytosol, 'false'))
-            reactions.append((reaction+cytosol, 'None', 'None', self.rxntype))
+                reaction_compound = self._fill_reaction_compound(reaction_compound, reaction, product, 1, cytosol)
+            reaction_reversibility.append((reaction+cytosol, False))
+            reactions.append((reaction+cytosol, None, None, self.rxntype))
             reaction_protein.append((reaction+cytosol, 'MINE',
                                      self.reaction_dict[reaction]['ENZYME']))
-            reaction_gene.append((reaction+cytosol, 'MINE', 'None'))
-            model_reaction.append((reaction+cytosol, 'MINE', 'false'))
+            reaction_gene.append((reaction+cytosol, 'MINE', None))
+            model_reaction.append((reaction+cytosol, 'MINE', False))
         cnx.executemany("INSERT INTO reaction_reversibility VALUES (?,?)", reaction_reversibility)
         cnx.executemany("INSERT INTO reaction VALUES (?,?,?,?)", reactions)
         cnx.executemany("INSERT INTO reaction_protein VALUES (?,?,?)", reaction_protein)
@@ -224,37 +235,35 @@ class BuildMINEdb(object):
 
         cnx.commit()
         DB = Q.Connector(self.database)
-        original_cpds_in_db = DB.get_all_compounds()
+        original_cpds_in_db = DB.get_all_compounds_inchi()
 
         temp_inchi = set()
         for cpd in self.compound_dict:
             try:
-                cpd_inchi = self.compound_dict[cpd]['INCHI']+cytosol
+                cpd_inchi = self.compound_dict[cpd]['INCHI']
                 if cpd_inchi not in original_cpds_in_db:
-                    if self.inchidb:
-                        original_cpds.append((cpd+cytosol,
-                                              self.compound_dict[cpd]['INCHI']+cytosol))
-                    if self.compound_dict[cpd]['INCHI']+cytosol  not in temp_inchi:
-                        model_compound.append((self.compound_dict[cpd]['INCHI']+cytosol, 'MINE'))
-                        try:
-                            compound.append((self.compound_dict[cpd]['INCHI']+cytosol,
-                                             self.compound_dict[cpd]['Name'], 'c0', 'None',
-                                             self.compound_dict[cpd].get('CF', 'None'),
-                                             'None'))
-                        except KeyError:
-                            compound.append((self.compound_dict[cpd]['INCHI']+cytosol,
-                                             'None', 'c0', 'None',
-                                              self.compound_dict[cpd].get('CF', 'None'), 
-                                              'None'))
-                        temp_inchi.add(cpd_inchi)
+                    if cpd  not in temp_inchi:
+                        model_compound.append((cpd+cytosol, 'MINE'))
+                        compound.append((cpd+cytosol,
+                                            self.compound_dict[cpd].get('Name', None), 'c0', None,
+                                            self.compound_dict[cpd].get('CF', None),
+                                            None, self.compound_dict[cpd]['INCHI']))
+
+                        temp_inchi.add(cpd)
+                else: 
+                    if DB.get_compound_ID_from_inchi(cpd_inchi) is None:
+                        model_compound.append((cpd+cytosol, 'MINE'))
+                    else:
+                        cpd = DB.get_compound_ID_from_inchi(cpd_inchi)
+                        model_compound.append((cpd, 'MINE'))
+                        
             except KeyError:
                 model_compound.append((cpd+cytosol, 'MINE'))
                 try:
-                    compound.append((cpd+cytosol, self.compound_dict[cpd]['Name'], 'c0', 'None', 'None', 'None'))
+                    compound.append((cpd+cytosol, self.compound_dict[cpd]['Name'], 'c0', None, None, None, None))
                 except KeyError:
-                    compound.append((cpd+cytosol, 'None', 'c0', 'None', 'None', 'None'))
-        if self.inchidb:
-            cnx.executemany("INSERT INTO original_db_cpdIDs VALUES (?,?)", original_cpds)
+                    compound.append((cpd+cytosol, None, 'c0', None, None, None, None))
+
         cnx.executemany("INSERT INTO model_compound VALUES (?,?)", model_compound)
-        cnx.executemany("""INSERT INTO compound VALUES (?,?,?,?,?,?)""", compound)
+        cnx.executemany("""INSERT INTO compound VALUES (?,?,?,?,?,?,?)""", compound)
         cnx.commit()
