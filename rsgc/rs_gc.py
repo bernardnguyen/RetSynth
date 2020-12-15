@@ -25,6 +25,7 @@ from rsgc.ShortestPath import extractinfo as ei
 from rsgc.ShortestPath import constraints as co
 from rsgc.ShortestPath import integerprogram_pulp as ip_pulp
 from rsgc.Database import initialize_database as init_db
+from rsgc.Database import build_kbase_db as bkdb
 from rsgc.Database import build_modelseed as bms
 from rsgc.Database import build_metacyc_db as bmcdb
 from rsgc.Database import build_ATLAS_db as batlasdb
@@ -113,7 +114,16 @@ def parse_arguments():
                                            needed to build database but makes pathway identification \
                                            as compound IDs are more uniform)', 
                         action='store_true')
-
+    ###INTEGRATING KBASE FBA MODELS INTO RETSYNTH DB
+    parser.add_argument('--kbase', help='Set whether to build database with Kbase data, \
+                                         requires folder of fba models (SBML format) previously \
+                                         downloaded from kbase website https://kbase.us/',  required=False,
+                        action="store_true")
+                    
+    parser.add_argument('-k_dir', '--kbase_dump_directory', help='Path to folder \
+                                                                  of SBML network files from kbase',
+                        required=False, type=str)
+   
     ###INTEGRATING PATRIC FBA MODELS INTO RETSYNTH DB
     parser.add_argument('--patric_models', help='Set whether to build database with patric data (using patric, patric.org), \
                                                  (NOTE: To use patric one must have a patric account, patric username and password are required!!)',
@@ -441,6 +451,11 @@ def retrieve_database_info(args):
                                inchidb=args.inchidb, DBpath=args.generate_database, output_folder=args.output_path, media=args.patric_media, 
                                patricfile=args.patricfile, newdb=True, sbml_output=args.patric_sbml_output,
                                previously_built_patric_models=args.patric_models_already_built)
+        if args.kbase:
+            #Add kbase repository to database
+            bkdb.BuildKbase(args.kbase_dump_directory, PATH+'/Database/data/KbasetoKEGGCPD.txt',
+                            PATH+'/Database/data/KbasetoKEGGRXN.txt', args.inchidb,
+                            database, args.kbase_reaction_type)
         if args.metacyc:
             '''
             Add metacyc daatabase
