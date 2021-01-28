@@ -805,12 +805,12 @@ def main():
             for p in processes:
                 p.join()
     
-            if args.output_xlsx_format:
-                output.convert_output_2_xlsx()
+        if args.output_xlsx_format:
+            output.convert_output_2_xlsx()
 
-            if args.output_html:
-                print("STATUS: writing html file")
-                gh.HtmlOutput(len(targets), args.output_path, args.flux_balance_analysis, args.figures_graphviz, database, args.output_path+"/Results.html")
+        if args.output_html:
+            print("STATUS: writing html file")
+            gh.HtmlOutput(len(targets), args.output_path, args.flux_balance_analysis, args.figures_graphviz, database, args.output_path+"/Results.html")
 
         '''Remove all temporary images'''
         shutil.rmtree(temp_imgs_PATH)
