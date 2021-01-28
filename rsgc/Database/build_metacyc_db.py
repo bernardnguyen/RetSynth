@@ -53,7 +53,7 @@ class Translate(object):
         self.BIOCYC_translator['rxn'] = {}
         self.BIOCYC_translator['compound'] = {}
 
-        with open(PATH+'/data/MetaCyc.aliases') as file_name:
+        with open(os.path.join(PATH, 'data', 'MetaCyc.aliases')) as file_name:
             line = file_name.readline()
             if line.startswith('#'):
                 pass
@@ -195,8 +195,8 @@ class MetaCyc(object):
         if self.inchidb:
             self.IN = indigo.Indigo()
             self.INCHI = indigo_inchi.IndigoInchi(self.IN)
-        self.prom_cpds = self.get_promiscuous_cpds(PATH+'/data/promiscuous_cpds_kegg.txt')
-        self.CPD2KEGG = df.open_translation_file(PATH+'/data/KbasetoKEGGCPD.txt')
+        self.prom_cpds = self.get_promiscuous_cpds(os.path.join(PATH, 'data', 'promiscuous_cpds_kegg.txt'))
+        self.CPD2KEGG = df.open_translation_file(os.path.join(PATH, 'data', 'KbasetoKEGGCPD.txt'))
 
     def get_promiscuous_cpds(self, file_name):
         prom_cpds=set()

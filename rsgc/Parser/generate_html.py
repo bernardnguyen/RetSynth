@@ -16,7 +16,7 @@ else:
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 legend=[]
-with open(PATH+"/_static/legend.txt") as fin:
+with open(os.path.join(PATH, "_static", "legend.txt")) as fin:
     for line in fin:
         line = line.strip()
         legend.append(line)
@@ -30,7 +30,7 @@ class HtmlOutput(object):
         self.fba = fba
         self.figures = figures
         self.DB = Q.Connector(database)
-        self.compoundpaths = glob.glob(self.output_path+"/raw_compound_solutions/*.txt")
+        self.compoundpaths = glob.glob(os.path.join(self.output_path, "raw_compound_solutions", "*.txt"))
         self.output = open(outputfile, 'w')
         self.output.write("<!DOCTYPE html>\n\n")
         self.output.write("<html>\n")
@@ -48,7 +48,7 @@ class HtmlOutput(object):
 
     def load_fba(self):
         temp_dict=dict()
-        with open(self.output_path+"theoretical_yield.txt") as fin:
+        with open(os.path.join(self.output_path, "theoretical_yield.txt")) as fin:
             for line in fin:
                 line = line.strip()
                 larray = line.split("\t")
@@ -138,7 +138,7 @@ class HtmlOutput(object):
         self.opt_path = dict()
         rxncounter=0
         rxnid = ""
-        with open(self.output_path+"/optimal_pathways.txt", 'r') as fin:
+        with open(os.path.join(self.output_path, "optimal_pathways.txt"), 'r') as fin:
             for line in fin:
                 line = line.strip("\n")
                 if line.startswith("SHORTEST PATH FOR "):
@@ -229,7 +229,7 @@ class HtmlOutput(object):
         self.output.write("<h1>RetSynth General Stats</h1>\n")
 
     def read_css_info(self):
-        cssfiles = glob.glob(PATH+"/_static/*.css")
+        cssfiles = glob.glob(os.path.join(PATH, "_static", "*.css"))
         for cssfile in cssfiles:
             self.output.write("<style>")
             with open(cssfile, 'r') as fin:
@@ -242,7 +242,7 @@ class HtmlOutput(object):
             self.output.write("</style>\n")
     
     def read_js_info(self):
-        jsfiles = glob.glob(PATH+"/_static/*.js")
+        jsfiles = glob.glob(os.path.join(PATH, "_static", "*.js"))
         for jsfile in jsfiles:
             self.output.write("<script>\n")
             with open(jsfile, 'r') as fin:

@@ -16,9 +16,9 @@ except:
 PATH = os.path.dirname(os.path.abspath(__file__))
 KEGG = 'http://rest.kegg.jp/'
 translate_dict = {}
-if os.path.exists(PATH+"/KEGG2INCHI.txt") is True:
+if os.path.exists(os.path.join(PATH, "KEGG2INCHI.txt")) is True:
     
-    with open(PATH+"/KEGG2INCHI.txt", "r") as fin:
+    with open(os.path.join(PATH, "KEGG2INCHI.txt"), "r") as fin:
         for line in fin:
             line = line.strip()
             larray = line.split('\t')
@@ -44,7 +44,7 @@ def extract_KEGG_data(url, verbose):
 
 def kegg2pubcheminchi(cpd, verbose):
     '''Convvert kegg ID to InChI value'''
-    translatefile = open(PATH+"/KEGG2INCHI.txt", "a")
+    translatefile = open(os.path.join(PATH, "KEGG2INCHI.txt"), "a")
     if cpd in translate_dict:
         larray = translate_dict[cpd].split("\t")
         for i, x in enumerate(larray):

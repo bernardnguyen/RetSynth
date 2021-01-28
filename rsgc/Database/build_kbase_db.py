@@ -76,15 +76,11 @@ def process_reactions(reaction_soup, RXN2KEGG, CPD2KEGG, mi, inchi, inchi_pubche
                 pass
             else:
                 new_cpdID, original_KEGG_cpdID = get_KEGG_IDs(cpd['species'], CPD2KEGG)
-                if inchi:
-                    cpdID = inchi_pubchem.get(new_cpdID, new_cpdID)
-                else:
-                    cpdID = new_cpdID
                 is_prod = (cpd.parent.name == "listofproducts")
                 stoic = cpd.get('stoichiometry', 1)
 
-                if (new_rxn_ID, cpdID, is_prod, stoic) not in all_rxn_cpds[new_rxn_ID]:
-                    all_rxn_cpds[new_rxn_ID].append((new_rxn_ID, cpdID, is_prod, stoic))
+                if (new_rxn_ID, new_cpdID, is_prod, stoic) not in all_rxn_cpds[new_rxn_ID]:
+                    all_rxn_cpds[new_rxn_ID].append((new_rxn_ID, new_cpdID, is_prod, stoic))
         '''Retrieve gene associations'''
         try:
             associations = [a.get_text().strip() for a in rxn.notes.findChildren()]

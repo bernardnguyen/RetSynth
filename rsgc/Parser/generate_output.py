@@ -117,7 +117,7 @@ class Output(object):
             return cpdname
 
         org_name = self.DB.get_organism_name(org_ID)
-        with open(self.output_path+'/raw_compound_solutions/compound_'+str(compound)+'_'+str(org_name)+'_outfile.txt', 'w') as fin:
+        with open(os.path.join(self.output_path, 'raw_compound_solutions', 'compound_'+str(compound)+'_'+str(org_name)+'_outfile.txt'), 'w') as fin:
             for count_pathway, os_dict in list(reactions.items()):
                 for rxn in ordered_paths[count_pathway].list_nodes():
                     org = os_dict[rxn]['organisms'][0]
@@ -136,7 +136,7 @@ class Output(object):
         organism to get a target compound, this file is only generated all organisms
         are being examined to see if they can produce target compound
         '''
-        with open(self.output_path+'/'+'path_length_all_organism_'+target_compound_ID+'.txt', 'a') as self.all_organisms:
+        with open(os.path.join(self.output_path, 'path_length_all_organism_'+target_compound_ID+'.txt'), 'a') as self.all_organisms:
             self.all_organisms.write('{} reaction steps need to be added to get {} in organism {} ({})\n'.format(pathlength,
                                                                                                                  target_compound_ID,
                                                                                                                  ','.join(orgs),
@@ -145,7 +145,7 @@ class Output(object):
         '''
         Outputs information if a target compound is already present in an organism
         '''
-        with open(self.output_path+'/optimal_pathways.txt', 'a') as self.optimal_paths:
+        with open(os.path.join(self.output_path, 'optimal_pathways.txt'), 'a') as self.optimal_paths:
             verbose_print(self.verbose, 'STATUS:\t{} in species {} already'.format(target_info[0], target_info[2]))
             self.optimal_paths.write('{} in species {} already\n'.format(target_info[0], target_info[2]))
 
@@ -158,7 +158,7 @@ class Output(object):
         '''
         t = target_info[0]
         target_org = target_info[2]
-        with open(self.output_path+'/optimal_pathways.txt', 'a') as self.optimal_paths:
+        with open(os.path.join(self.output_path, 'optimal_pathways.txt'), 'a') as self.optimal_paths:
             if len(temp_rxns) == 0:
                 verbose_print(self.verbose, '\nSTATUS:\tNo paths could be found to get to target compound {} {} in target organism {}'.format(t,
                                                                                                               self.DB.get_compound_name(t),
@@ -229,7 +229,7 @@ class Output(object):
             target = target_info[1]
         else:
             target = target_info[0]
-        with open(self.output_path+'/flux_individualfluxes_output.txt', 'a') as self.flux_individual_output:
+        with open(os.path.join(self.output_path, 'flux_individualfluxes_output.txt'), 'a') as self.flux_individual_output:
             verbose_print(self.verbose, 'STATUS:\tFBA Solutions for {}'.format(target))
             verbose_print(self.verbose, 'STATUS:\t{}\t{} objective function solutions for wild-type and mutant'.format(round(org_fbasolution.objective_value, 2),
                                                                                          round(optimized_fba.fbasol.objective_value, 2)))
@@ -247,7 +247,7 @@ class Output(object):
             for x, value in list(optimized_fba.fbasol.fluxes.items()):
                 self.flux_individual_output.write('{}\t{}\n'.format(x, value))
 
-        with open(self.output_path+'/flux_output.txt', 'a') as self.flux_ouptput:
+        with open(os.path.join(self.output_path, 'flux_output.txt'), 'a') as self.flux_ouptput:
             self.flux_ouptput.write('FBA Solutions for {}\n'.format(target))
             self.flux_ouptput.write('{}\t{} objective function solutions for wild-type and mutant\n'.format(round(org_fbasolution.objective_value, 2),
                                                                                                             round(optimized_fba.fbasol.objective_value, 2)))
@@ -282,7 +282,7 @@ class Output(object):
             target = target_info[1]
         else:
             target = target_info[0]
-        with open(self.output_path+'/fluxKO_output.txt', 'a') as self.fluxKO_ouptput:
+        with open(os.path.join(self.output_path, 'fluxKO_output.txt'), 'a') as self.fluxKO_ouptput:
             self.fluxKO_ouptput.write('{} target compound\n'.format(target))
             self.fluxKO_ouptput.write('Fluxes that differ by 1.5 fold for reactions between wildtype and mutant:\n')
             for r, value in list(comparisonKOresults.fluxchange.items()):
@@ -322,10 +322,10 @@ class Output(object):
             except KeyError:
                 knockouts.append('NA')
 
-        with open(self.output_path+'/fluxKO_theoreticalyields_output.txt') as self.fluxKO_ty_output:
+        with open(os.path.join(self.output_path, 'fluxKO_theoreticalyields_output.txt')) as self.fluxKO_ty_output:
             line = self.fluxKO_ty_output.readline()
 
-        with open(self.output_path+'/fluxKO_theoreticalyields_output.txt', 'a') as self.fluxKO_ty_output:
+        with open(os.path.join(self.output_path, 'fluxKO_theoreticalyields_output.txt'), 'a') as self.fluxKO_ty_output:
             if line.startswith('#'):
                 self.ko_ty = '\t'.join(knockouts)
                 self.fluxKO_ty_output.write(target+'-'+self.DB.get_compound_name(target)+'\t'+target_info[2]+'-'+self.DB.get_organism_name(target_info[2])+'\t'+str(wt_ty)+'\t'+self.ko_ty+'\n')
@@ -334,7 +334,7 @@ class Output(object):
                 self.ko_ty = '\t'.join(knockouts)
                 self.fluxKO_ty_output.write(target+'-'+self.DB.get_compound_name(target)+'\t'+target_info[2]+'-'+self.DB.get_organism_name(target_info[2])+'\t'+str(wt_ty)+'\t'+self.ko_ty+'\n')                
 
-        with open(self.output_path+'/fluxKO_increased_theoreticalyields_output.txt', 'a') as self.fluxKO_in_ty_output:
+        with open(os.path.join(self.output_path, 'fluxKO_increased_theoreticalyields_output.txt'), 'a') as self.fluxKO_in_ty_output:
             if wt_ty != 'NA':
                 count = 0
                 for rko, value in list(comparisonKOresults.objective_function_ko.items()):
@@ -359,7 +359,7 @@ class Output(object):
         When reaction knockouts are performed, outputs all reactions that when removed
         cause decrease in target production
         '''
-        with open(self.output_path+'/essentialrxns_output.txt', 'a') as self.essentialrxns:
+        with open(os.path.join(self.output_path,'/essentialrxns_output.txt'), 'a') as self.essentialrxns:
             self.essentialrxns.write('Essential rxns for production of {} in {}\n'.format(target_compound_ID,
                                                                                           target_organism_ID))
             for rxn in er:
@@ -409,7 +409,7 @@ class Output(object):
         else: 
             wt_ty = 'NA'
 
-        with open(self.output_path+'/theoretical_yield.txt', 'a') as self.theoyield:
+        with open(os.path.join(self.output_path, 'theoretical_yield.txt'), 'a') as self.theoyield:
             self.theoyield.write('{}---{}\t{}---{}\tGlucose Flux: {}\tTarget Production: {}\tTheoretical Yield: {} mol {} /mol glucose\tBiomass Flux: {}\t Biomass Theoretical Yield {}/mol glucose\n'.format(target_compound_ID,
                                                                                                                                                           self.DB.get_compound_name(target_compound_ID),target_organism_ID,
                                                                                                                                                           self.DB.get_organism_name(target_organism_ID),
@@ -428,15 +428,15 @@ class Output(object):
                     ws.append(row)
             wb.save(output_file)
 
-        convert_output_txt_files_2_xlsx(self.output_path+'/optimal_pathways.txt', self.output_path+'/optimal_pathways.xlsx')
+        convert_output_txt_files_2_xlsx(os.path.join(self.output_path, 'optimal_pathways.txt'), os.path.join(self.output_path, 'optimal_pathways.xlsx'))
         if self.FBA:
-            convert_output_txt_files_2_xlsx(self.output_path+'/flux_individualfluxes_output.txt', self.output_path+'/flux_individualfluxes_output.xlsx')
-            convert_output_txt_files_2_xlsx(self.output_path+'/flux_output.txt', self.output_path+'/flux_output.xlsx')
-            convert_output_txt_files_2_xlsx(self.output_path+'/theoretical_yield.txt', self.output_path+'/theoretical_yield.xlsx')
+            convert_output_txt_files_2_xlsx(os.path.join(self.output_path, 'flux_individualfluxes_output.txt'), os.path.join(self.output_path, 'flux_individualfluxes_output.xlsx'))
+            convert_output_txt_files_2_xlsx(os.path.join(self.output_path, 'flux_output.txt'), os.path.join(self.output_path, 'flux_output.xlsx'))
+            convert_output_txt_files_2_xlsx(os.path.join(self.output_path, '/theoretical_yield.txt'), os.path.join(self.output_path, 'theoretical_yield.xlsx'))
         if self.KO:
-            convert_output_txt_files_2_xlsx(self.output_path+'/essentialrxns_output.txt', self.output_path+'/essentialrxns_output.xlsx')
-            convert_output_txt_files_2_xlsx(self.output_path+'/fluxKO_output.txt', self.output_path+'/fluxKO_output.xlsx')
-            convert_output_txt_files_2_xlsx(self.output_path+'/fluxKO_theoreticalyields_output.txt', self.output_path+'/fluxKO_theoreticalyields_output.xlsx')
-            convert_output_txt_files_2_xlsx(self.output_path+'/fluxKO_increased_theoreticalyields_output.txt', self.output_path+'/fluxKO_increased_theoreticalyields_output.xlsx')
+            convert_output_txt_files_2_xlsx(os.path.join(self.output_path, 'essentialrxns_output.txt'), os.path.join(self.output_path, 'essentialrxns_output.xlsx'))
+            convert_output_txt_files_2_xlsx(os.path.join(self.output_path, 'fluxKO_output.txt'), os.path.join(self.output_path, 'fluxKO_output.xlsx'))
+            convert_output_txt_files_2_xlsx(os.path.join(self.output_path, 'fluxKO_theoreticalyields_output.txt'), os.path.join(self.output_path, 'fluxKO_theoreticalyields_output.xlsx'))
+            convert_output_txt_files_2_xlsx(os.path.join(self.output_path+'/fluxKO_increased_theoreticalyields_output.txt'), os.path.join(self.output_path, 'fluxKO_increased_theoreticalyields_output.xlsx'))
 
         
