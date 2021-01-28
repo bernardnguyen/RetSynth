@@ -25,14 +25,14 @@ def load_reactions(model, model_id, rxns, media_constraints, compounds_dict, DB,
                 reaction.lower_bound = float(0)
                 reaction.upper_bound = float(1000)
             else:
-                if int(revers) == 1:
+                if revers == '1':
                     reaction.lower_bound = float(-1000)
                     reaction.upper_bound = float(1000)
                 else:
                     reaction.lower_bound = float(0)
                     reaction.upper_bound = float(1000)
         else:
-            if int(revers) == 1:
+            if revers == '1':
                 reaction.lower_bound = float(-1000)
                 reaction.upper_bound = float(1000)
             else:
