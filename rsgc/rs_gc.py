@@ -702,7 +702,7 @@ def retrieve_shortestpath(target_info, IP, LP, database, args, output, temp_imgs
                         G.sc_graph(target_info[0], target_info[2], ex_info.temp_rxns, _images)
 
                 elif not args.flux_balance_analysis:
-                    R.generate_cdxml_files()
+                    R.generate_cdxml_files(RP=None, ranktype=None, fba_fluxes=None, show_rxn_info=args.show_rxn_info)
 
                     if args.figures_graphviz:
                         G = spgd.GraphDot(DB, args.output_path, incpds_active, inrxns_active, temp_imgs_PATH)
@@ -793,6 +793,7 @@ def main():
 
         for targets_sub in args_targets:
             processes = []
+            print (targets_sub)
             for target in targets_sub:
                 LPc=deepcopy(LP)
                 processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LPc, database, args,
