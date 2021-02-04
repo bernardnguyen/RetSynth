@@ -91,13 +91,13 @@ class HtmlOutput(object):
         for i in self.opt_path:
             cpdname = self.retrieve_cpd_name(i)
             for o in self.opt_path[i]:
-                self.output.write("<button type=\"button\" class=\"collapsible\"><a href=\"#{}\">{}_{}</a></button>\n".format(cpdname, cpdname, o))
+                self.output.write("<button type=\"button\" class=\"collapsible\"><a id=\"{}\">{}_{}</a></button>\n".format(cpdname, cpdname, o))
                 self.output.write("<div class=\"content\">\n")
                 self.output.write("<p>{} pathways in {}</p>\n".format(cpdname, o))
                 if self.figures:
                     itemp = re.sub("-|/|,|\)|\(|<|>|:|\]|\[|\/", "_", i)
                     itemp = re.sub(' ', '_', itemp)
-                    encoded = base64.b64encode(open("{}/solution_figures/SC_graph_{}_{}.png".format(self.output_path, itemp , o), "rb").read()).decode('utf-8')
+                    encoded = base64.b64encode(open(os.path.join(self.output_path, "solution_figures", "SC_graph_{}_{}.png".format(itemp , o)), "rb").read()).decode('utf-8')
                     self.output.write("<img src=\"data:image/png;base64, {}\" style=\"width:100%\"></img>\n".format(encoded))
                 if self.figures and self.fba:
                     self.output.write("<p>Flux through pathways legend</p>\n")
@@ -201,7 +201,7 @@ class HtmlOutput(object):
             cpdname = self.retrieve_cpd_name(i)
             for o in self.opt_path[i]:
                 self.output.write("<tr>\n")
-                self.output.write("<td style=\"text-align: center; vertical-align: middle;\"><a id=\"#{}\">{}</a></td>\n".format(cpdname, cpdname))
+                self.output.write("<td style=\"text-align: center; vertical-align: middle;\"><a href=\"#{}\">{}</a></td>\n".format(cpdname, cpdname))
                 self.output.write("<td style=\"text-align: center; vertical-align: middle;\">%s</td>\n" % o) 
                 self.output.write("<td style=\"text-align: center; vertical-align: middle;\">%s</td>\n" % len(self.opt_path[i][o]['sol']))
                 self.output.write("</tr>\n")
