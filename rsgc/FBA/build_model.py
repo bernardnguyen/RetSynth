@@ -28,7 +28,7 @@ class BuildModel(object):
         self.media_constraints = {}
         if media != 'Complete' and media:
             verbose_print(self.verbose, 'STATUS:\tloading glucose media')
-            self.media_constraints = gmc.load_media(self.media_constraints, PATH+'/media/{}.tsv'.format(media))
+            self.media_constraints = gmc.load_media(self.media_constraints, PATH+'/media/{}.tsv'.format(media), self.DB)
         elif media == 'Complete' or not media:
             pass
         self.build_model()
@@ -63,8 +63,14 @@ class BuildModel(object):
                 except KeyError:   
                     try:
                         self.set_objective_function('bio1')
-                    except KeyError:
-                        print ('WARNING:\tNo biomass rxn')
+                    except KeyError:   
+                        try:
+                            self.set_objective_function('R_BIOMASS_RT')
+                        except KeyError:
+                            try:
+                                self.set_objective_function('R_BIOMASS_RT_'+self.target_org)
+                            except KeyError:
+                                print ('WARNING:\tNo biomass rxn')
         #print 'STATUS:\tConstruct loopless model'
         #self.solution1=construct_loopless_model(self.model).optimize()
         #print self.solution1

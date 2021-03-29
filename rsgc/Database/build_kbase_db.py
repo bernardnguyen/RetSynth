@@ -159,6 +159,8 @@ def get_KEGG_IDs(ID, KEGGdict):
     ID_copy = deepcopy(ID)
     ID_kbase = re.sub(compartment+'$', '', ID_copy)
     ID_kbase = re.sub("M_", "", ID_kbase)
+    ID = re.sub("^R_EX_", "EX_", ID_copy)
+
     try:
         KEGG_ID = KEGGdict[ID_kbase]
         original_KEGG_ID = str(deepcopy(KEGG_ID))

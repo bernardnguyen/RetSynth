@@ -25,14 +25,14 @@ def load_reactions(model, model_id, rxns, media_constraints, compounds_dict, DB,
                 reaction.lower_bound = float(0)
                 reaction.upper_bound = float(1000)
             else:
-                if revers == '1':
+                if revers == '1' or revers == "true": 
                     reaction.lower_bound = float(-1000)
                     reaction.upper_bound = float(1000)
                 else:
                     reaction.lower_bound = float(0)
                     reaction.upper_bound = float(1000)
         else:
-            if revers == '1':
+            if revers == '1' or revers == "true":
                 reaction.lower_bound = float(-1000)
                 reaction.upper_bound = float(1000)
             else:
@@ -66,17 +66,18 @@ def load_compounds(model, metabolites, DB, verbose):
         model.add_metabolites(met)
 
     return(model, compounds)
-def load_media(media_constraints, media_file):
+def load_media(media_constraints, media_file, DB):
     '''Loads specified media'''
     filename = open(media_file)
     header = filename.readline()
     header = header.lower()
+    compartment = DB.get_compartment('Extracellular')
     if header.startswith('compounds'):
         header_array = header.strip('\n').split('\t')
         minflux_index = header_array.index('minflux')
         maxflux_index = header_array.index('maxflux')
     for line in filename:
         larray = line.strip('\n').split('\t')
-        media_constraints['EX_'+larray[0]+'_e0'] = [larray[minflux_index], larray[maxflux_index]]
+        media_constraints['EX_'+larray[0]+'_'+compartment[0]] = [larray[minflux_index], larray[maxflux_index]]
     filename.close()
     return media_constraints

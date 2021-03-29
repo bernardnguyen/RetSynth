@@ -119,11 +119,17 @@ class OptimizeTarget(object):
                 except KeyError:
                     try:
                         self.set_objective_function('bio1')
-                    except KeyError:
-                        verbose_print(self.verbose, 'WARNING:\tNo biomass rxn')
-                        sink = self.model.reactions.get_by_id('Sink_'+self.compounds_dict[self.target_compound])
-                        self.objective_dict = {sink:1}
-                        self.model.objective = self.objective_dict
+                    except KeyError:  
+                        try:  
+                            self.set_objective_function('R_BIOMASS_RT')
+                        except KeyError:
+                            try:
+                                self.set_objective_function('R_BIOMASS_RT_'+self.target_org)
+                            except KeyError:
+                                verbose_print(self.verbose, 'WARNING:\tNo biomass rxn')
+                                sink = self.model.reactions.get_by_id('Sink_'+self.compounds_dict[self.target_compound])
+                                self.objective_dict = {sink:1}
+                                self.model.objective = self.objective_dict
         # self.fbasol=construct_loopless_model(self.model).optimize()
         self.fbasol = self.model.optimize()
 
