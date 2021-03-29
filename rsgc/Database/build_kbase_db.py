@@ -29,6 +29,7 @@ elif platform == "win32" or platform == "win64" or platform == "cygwin":
     from rsgc.indigopython130_win import indigo
     from rsgc.indigopython130_win import indigo_inchi
 
+PATH = os.path.dirname(os.path.abspath(__file__))
 KEGG = 'http://rest.kegg.jp/'
 
 def parse_data_sbmlfile(inchi, CPD2KEGG, RXN2KEGG, file_name, inchi_pubchem, inchi_cf, inchi_cas):
@@ -187,12 +188,14 @@ def open_translation_file(file_name):
                 dictionary[larray[0]] = None
     return dictionary 
 
-def BuildKbase(sbml_dir, kbase2keggCPD_translate_file, kbase2keggRXN_translate_file, inchi, DBpath, rxntype='bio'):
+def BuildKbase(sbml_dir, inchi, DBpath, rxntype='bio'):
     '''
     Inserts values from metabolic networks, xml into sqlite database
     '''
 
-
+    kbase2keggCPD_translate_file = os.path.join(PATH, 'data', 'KbasetoKEGGCPD.txt'),
+    kbase2keggRXN_translate_file = os.path.join(PATH, 'data', 'KbasetoKEGGRXN.txt')
+   
     '''Load KEGG cpd and rxn conversions'''
     CPD2KEGG = open_translation_file(kbase2keggCPD_translate_file)
     RXN2KEGG = open_translation_file(kbase2keggRXN_translate_file)

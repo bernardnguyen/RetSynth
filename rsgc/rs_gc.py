@@ -453,9 +453,8 @@ def retrieve_database_info(args):
                                previously_built_patric_models=args.patric_models_already_built)
         if args.kbase:
             #Add kbase repository to database
-            bkdb.BuildKbase(args.kbase_dump_directory, os.path.join(PATH, 'Database', 'data', 'KbasetoKEGGCPD.txt'),
-                            os.path.join(PATH, 'Database', 'data', 'KbasetoKEGGRXN.txt'), args.inchidb,
-                            database, args.kbase_reaction_type)
+            bkdb.BuildKbase(args.kbase_dump_directory, args.inchidb, database, args.kbase_reaction_type)
+
         if args.metacyc:
             '''
             Add metacyc daatabase
