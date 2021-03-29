@@ -16,7 +16,7 @@ else:
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 legend=[]
-with open(os.path.join(PATH, "_static", "legend.txt")) as fin:
+with open(PATH+"/_static/legend.txt") as fin:
     for line in fin:
         line = line.strip()
         legend.append(line)
@@ -30,7 +30,7 @@ class HtmlOutput(object):
         self.fba = fba
         self.figures = figures
         self.DB = Q.Connector(database)
-        self.compoundpaths = glob.glob(os.path.join(self.output_path, "raw_compound_solutions", "*.txt"))
+        self.compoundpaths = glob.glob(self.output_path+"/raw_compound_solutions/*.txt")
         self.output = open(outputfile, 'w')
         self.output.write("<!DOCTYPE html>\n\n")
         self.output.write("<html>\n")
@@ -48,7 +48,7 @@ class HtmlOutput(object):
 
     def load_fba(self):
         temp_dict=dict()
-        with open(os.path.join(self.output_path, "theoretical_yield.txt")) as fin:
+        with open(self.output_path+"theoretical_yield.txt") as fin:
             for line in fin:
                 line = line.strip()
                 larray = line.split("\t")
@@ -91,7 +91,7 @@ class HtmlOutput(object):
         for i in self.opt_path:
             cpdname = self.retrieve_cpd_name(i)
             for o in self.opt_path[i]:
-                self.output.write("<button type=\"button\" class=\"collapsible\"><a id=\"{}\">{}_{}</a></button>\n".format(cpdname, cpdname, o))
+                self.output.write("<button type=\"button\" class=\"collapsible\"><a href=\"#{}\">{}_{}</a></button>\n".format(cpdname, cpdname, o))
                 self.output.write("<div class=\"content\">\n")
                 self.output.write("<p>{} pathways in {}</p>\n".format(cpdname, o))
                 if self.figures:
@@ -141,7 +141,7 @@ class HtmlOutput(object):
         self.opt_path = dict()
         rxncounter=0
         rxnid = ""
-        with open(os.path.join(self.output_path, "optimal_pathways.txt"), 'r') as fin:
+        with open(self.output_path+"/optimal_pathways.txt", 'r') as fin:
             for line in fin:
                 line = line.strip("\n")
                 if line.startswith("SHORTEST PATH FOR "):
@@ -204,7 +204,7 @@ class HtmlOutput(object):
             cpdname = self.retrieve_cpd_name(i)
             for o in self.opt_path[i]:
                 self.output.write("<tr>\n")
-                self.output.write("<td style=\"text-align: center; vertical-align: middle;\"><a href=\"#{}\">{}</a></td>\n".format(cpdname, cpdname))
+                self.output.write("<td style=\"text-align: center; vertical-align: middle;\"><a id=\"#{}\">{}</a></td>\n".format(cpdname, cpdname))
                 self.output.write("<td style=\"text-align: center; vertical-align: middle;\">%s</td>\n" % o) 
                 self.output.write("<td style=\"text-align: center; vertical-align: middle;\">%s</td>\n" % len(self.opt_path[i][o]['sol']))
                 self.output.write("</tr>\n")
@@ -232,7 +232,7 @@ class HtmlOutput(object):
         self.output.write("<h1>RetSynth General Stats</h1>\n")
 
     def read_css_info(self):
-        cssfiles = glob.glob(os.path.join(PATH, "_static", "*.css"))
+        cssfiles = glob.glob(PATH+"/_static/*.css")
         for cssfile in cssfiles:
             self.output.write("<style>")
             with open(cssfile, 'r') as fin:
@@ -245,7 +245,7 @@ class HtmlOutput(object):
             self.output.write("</style>\n")
     
     def read_js_info(self):
-        jsfiles = glob.glob(os.path.join(PATH, "_static", "*.js"))
+        jsfiles = glob.glob(PATH+"/_static/*.js")
         for jsfile in jsfiles:
             self.output.write("<script>\n")
             with open(jsfile, 'r') as fin:

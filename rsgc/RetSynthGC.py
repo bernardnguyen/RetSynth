@@ -300,7 +300,7 @@ class RetSynthGC(object):
     def __init__(self, targets=None, output_path=".", output_html=True, output_xlsx_format=False, processors=4, start_compounds=None, verbose=False,
      generate_database=False, generate_database_constraints=False, database=False, database_constraints=False, inchidb=True, patric_models=False,
      patric_username=None, patric_password=None, patric_reaction_type="bio", patric_media="Complete", patric_sbml_output=False,
-     patricfile=PATH+'/Database/data/PATRIC_genome_complete_07152018.csv', patric_models_already_built=False, kbase=False, kbase_dump_directory=None, kbase_reaction_type="bio",
+     patricfile=PATH+'/Database/data/PATRIC_genome_complete_07152018.csv', patric_models_already_built=False,
      metacyc=False, metacyc_addition=None, metacyc_reaction_type="bio", kegg=False, kegg_reaction_type="bio", kegg_organism_type="bacteria",
      kegg_number_of_organisms="all", kegg_number_of_organism_pathway="all", atlas=False, atlas_dump_directory=None,
      atlas_reaction_type="bio", mine=False, mine_dump_directory=None, mine_reaction_type=True, SPRESI=False,
@@ -328,9 +328,6 @@ class RetSynthGC(object):
         self.patricfile = patricfile
         self.patric_sbml_output = patric_sbml_output
         self.patric_models_already_built = patric_models_already_built
-        self.kbase = kbase
-        self.kbase_dump_directory = kbase_dump_directory
-        self.kbase_reaction_type = kbase_reaction_type
         self.metacyc = metacyc
         self.metacyc_addition = metacyc_addition
         self.metacyc_reaction_type = metacyc_reaction_type
@@ -490,11 +487,7 @@ class RetSynthGC(object):
         elif self.database:
             new_db = False
             database = self.database
-        if self.kbase:
-            #Add kbase repository to database
-            bkdb.BuildKbase(self.kbase_dump_directory, PATH+'/Database/data/KbasetoKEGGCPD.txt',
-                            PATH+'/Database/data/KbasetoKEGGRXN.txt', self.inchidb,
-                            database, self.kbase_reaction_type)
+
         if self.patric_models:
             #Add PATRIC repository to database
             bms.BuildModelSeed(username=self.patric_username, password=self.patric_password, rxntype=self.patric_reaction_type,

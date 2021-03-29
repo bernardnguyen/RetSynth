@@ -39,10 +39,10 @@ def RDF_Reader(file_directory, DBpath, rxntype, compartment, processors,
     args = [(i, str(c), options, DBpath, compartment) for c, i in enumerate(rdf_files)]
 
     try:
-        os.mkdir(os.path.join(PATH, 'temp'))
+        os.mkdir(PATH+'/temp')
     except OSError:
-        shutil.rmtree(os.path.join(PATH, 'temp'))
-        os.mkdir(os.path.join(PATH, 'temp'))
+        shutil.rmtree(PATH+'/temp')
+        os.mkdir(PATH+'/temp')
     if processors > 1:
         pool = Pool(processes=processors)
         pool.map(open_file, args)
@@ -64,7 +64,7 @@ def open_file(args):
     compartment = args[4]
     RDF_dict = {}
     print ('STATUS: Loading/Parsing in RDF file {} ...'.format(file_name))
-    output_file = open(os.path.join(PATH, 'temp', 'output_'+str(filenumber)+'.txt'), 'w')
+    output_file = open(PATH+'/temp/output_'+str(filenumber)+'.txt', 'w')
     open_file = open(file_name)
     for count, line in enumerate(open_file):
         line = line.strip('\n\r') #Need to keep front spaces to get smiles from mol structure
@@ -495,12 +495,12 @@ def generate_mol_file(compounds, filenumber, substrates=False, DBpath=False, com
     INCHI = indigo_inchi.IndigoInchi(IN)
     compound_dict = {}
     for key, values in compounds.items():
-        output_mol_file = open(os.path.join(PATH, 'mol_output_'+str(filenumber)+'.mol'), 'w')
+        output_mol_file = open(PATH+'/mol_output_'+str(filenumber)+'.mol', 'w')
         for value in values:
             output_mol_file.write(value+'\n')
         output_mol_file.close()
         try:
-            mol = IN.loadMoleculeFromFile(os.path.join(header_path, PATH, 'mol_output_'+str(filenumber)+'.mol'))
+            mol = IN.loadMoleculeFromFile(header_path+PATH+'/mol_output_'+str(filenumber)+'.mol')
 
             try:
                 inchi_value = INCHI.getInchi(mol)

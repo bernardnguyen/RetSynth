@@ -787,31 +787,39 @@ def main():
         verbose_print(args.verbose,'\nSTATUS:\tConstructing and running linear integer program...')
         IP = construct_and_run_integerprogram(args, targets, output, database)
         
+        if args.processors > 1:
+            args_targets = [targets[i:i+args.processors]
+                    for i in range(0, len(targets), args.processors)]
 
-        args_targets = [targets[i:i+args.processors]
-                for i in range(0, len(targets), args.processors)]
+            for targets_sub in args_targets:
+                processes = []
+                for target in targets_sub:
+                    LPc=deepcopy(LP)
+                    processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LPc, database, args,
+                                                                                 output, temp_imgs_PATH, orgs_gbs,
+                                                                                 gbs_orgs, R, keggorganisms_ids,
+                                                                                 output_genecompdb)))
+                    # retrieve_shortestpath(target, IP, LPc, database, args, output, temp_imgs_PATH)
+                for p in processes:
+                    p.start()
+                for p in processes:
+                    p.join()
 
-        for targets_sub in args_targets:
-            processes = []
-            print (targets_sub)
-            for target in targets_sub:
-                LPc=deepcopy(LP)
-                processes.append(Process(target=retrieve_shortestpath, args=(target, IP, LPc, database, args,
-                                                                             output, temp_imgs_PATH, orgs_gbs,
-                                                                             gbs_orgs, R, keggorganisms_ids,
-                                                                             output_genecompdb)))
-                # retrieve_shortestpath(target, IP, LPc, database, args, output, temp_imgs_PATH)
-            for p in processes:
-                p.start()
-            for p in processes:
-                p.join()
-    
+        elif args.processors == 1:
+            for target in targets:
+                LPc = deepcopy(LP)
+                retrieve_shortestpath(target, IP, LPc, database, args,
+                                       output, temp_imgs_PATH, orgs_gbs,
+                                       gbs_orgs, R, keggorganisms_ids,
+                                       output_genecompdb)
+
         if args.output_xlsx_format:
             output.convert_output_2_xlsx()
 
         if args.output_html:
             print("STATUS: writing html file")
-            gh.HtmlOutput(len(targets), args.output_path, args.flux_balance_analysis, args.figures_graphviz, database, os.path.join(args.output_path, "Results.html"))
+            gh.HtmlOutput(len(targets), args.output_path, args.flux_balance_analysis, args.figures_graphviz, database, args.output_path+"/Results.html")
+
 
         '''Remove all temporary images'''
         shutil.rmtree(temp_imgs_PATH)

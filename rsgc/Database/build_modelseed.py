@@ -120,8 +120,8 @@ class BuildModelSeed(object):
         self.verbose = verbose
         self.patricfile = patricfile
         self.previously_built_patric_models = previously_built_patric_models
-        self.CPD2KEGG = df.open_translation_file(os.path.join(PATH, 'data', 'KbasetoKEGGCPD.txt'))
-        self.RXN2KEGG = df.open_translation_file(os.path.join(PATH, 'data' 'KbasetoKEGGRXN.txt'))
+        self.CPD2KEGG = df.open_translation_file(PATH+'/data/KbasetoKEGGCPD.txt')
+        self.RXN2KEGG = df.open_translation_file(PATH+'/data/KbasetoKEGGRXN.txt')
         self.inchi_dict = {}
         self.inchi_fp_dict = {}
         self.inchi_cf_dict = {}
