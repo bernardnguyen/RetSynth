@@ -193,7 +193,7 @@ def BuildKbase(sbml_dir, inchi, DBpath, rxntype='bio'):
     Inserts values from metabolic networks, xml into sqlite database
     '''
 
-    kbase2keggCPD_translate_file = os.path.join(PATH, 'data', 'KbasetoKEGGCPD.txt'),
+    kbase2keggCPD_translate_file = os.path.join(PATH, 'data', 'KbasetoKEGGCPD.txt')
     kbase2keggRXN_translate_file = os.path.join(PATH, 'data', 'KbasetoKEGGRXN.txt')
    
     '''Load KEGG cpd and rxn conversions'''
