@@ -16,12 +16,13 @@ def verbose_print(verbose, line):
 
 class Output(object):
     """Opens and fills output files produced by software"""
-    def __init__(self, db, output_path, verbose, FBA=False, KO=False, timer_output=False, raw_solutions=True, GC=False):
+    def __init__(self, db, output_path, media, verbose, FBA=False, KO=False, timer_output=False, raw_solutions=True, GC=False):
         '''Initialize class: generates new output files for this analysis of rs'''
         self.DB = db
         self.verbose = verbose
         self.FBA = FBA
         self.KO = KO
+        self.media = media
         self.timer_output = timer_output
         self.output_path = output_path
         self.optimal_paths = open(os.path.join(output_path, 'optimal_pathways.txt'), 'w')
@@ -375,13 +376,26 @@ class Output(object):
         '''
         objectivesol = fbasolution.fluxes['Sink_'+compounds_dict[target_compound_ID]]
         glucose = True
+        xylose = False
         ##########CHECK FOR GLUCOSE IMPORT REACTION (CURRENTLY KBASE RXN))###########
         try:
             glucoseimport = fbasolution.fluxes['EX_cpd00027_e0']
             glucoseimport = round(glucoseimport, 2)
         except KeyError:
-            glucoseimport = 'NA'
-            glucose = False
+            try:
+                glucoseimport = fbasolution.fluxes['EX_glc__D_e']
+                glucoseimport = round(glucoseimport, 2)
+            except KeyError:
+                glucoseimport = 'NA'
+                glucose = False
+        if self.media == "Carbon-D-Glucose-Xylose_rhodospor":
+            try:
+                xyloseimport = fbasolution.fluxes['EX_xyl__D_e']
+                xyloseimport = round(xyloseimport, 2)
+                xylose = True
+            except KeyError:
+                xyloseimport = 'NA'
+                xylose = False            
         ##########CHECK FOR BIOMASS REACTION###########
         try:
             biomassrxn = fbasolution.fluxes['biomass0_'+target_organism_ID]
@@ -395,9 +409,15 @@ class Output(object):
                     try:
                         biomassrxn = fbasolution.fluxes['bio1']
                     except KeyError:
-                        biomassrxn = 'NA'
+                        try:
+                            biomassrxn = fbasolution.fluxes['R_BIOMASS_RT']
+                        except KeyError:
+                            try:
+                               biomassrxn = fbasolution.fluxes['R_BIOMASS_RT_'+target_organism_ID] 
+                            except KeyError:
+                                biomassrxn = 'NA'
         ##########CALCULATE WT THEORETICAL YIELD###########
-        if glucose:
+        if glucose and xylose is False:
             try:
                 wt_ty = abs(round(round(objectivesol, 2)/round(glucoseimport,2), 2))
             except ZeroDivisionError:
@@ -406,12 +426,30 @@ class Output(object):
                 bio_ty = abs(round(round(biomassrxn, 2)/round(glucoseimport,2), 2))
             except ZeroDivisionError or TypeError:
                 bio_ty = 'NA'
+
+        elif glucose and xylose:
+            try:
+                wt_ty = abs(round(objectivesol/(abs(glucoseimport)+abs(xyloseimport)),2))
+            except ZeroDivisionError:
+                wt_ty = 'NA'
+            try:
+                bio_ty = abs(round(biomassrxn/(abs(glucoseimport)+abs(xyloseimport)),2))
+            except ZeroDivisionError or TypeError:
+                bio_ty = 'NA'
         else: 
             wt_ty = 'NA'
 
         with open(self.output_path+'/theoretical_yield.txt', 'a') as self.theoyield:
-            self.theoyield.write('{}---{}\t{}---{}\tGlucose Flux: {}\tTarget Production: {}\tTheoretical Yield: {} mol {} /mol glucose\tBiomass Flux: {}\t Biomass Theoretical Yield {}/mol glucose\n'.format(target_compound_ID,
-                                                                                                                                                          self.DB.get_compound_name(target_compound_ID),target_organism_ID,
+            if glucose and xylose:    
+                self.theoyield.write('{}---{}\t{}---{}\tGlucose Flux: {}\tXylose Flux: {}\tTarget Production: {}\tTheoretical Yield: {} mol {} /mol xylose+glucose\tBiomass Flux: {}\t Biomass Theoretical Yield {}/mol xylose+glucose\n'.format(target_compound_ID,
+                                                                                                                                                          self.DB.get_compound_name(target_compound_ID), target_organism_ID,
+                                                                                                                                                          self.DB.get_organism_name(target_organism_ID),
+                                                                                                                                                          glucoseimport, xyloseimport, round(objectivesol, 2),
+                                                                                                                                                          wt_ty, target_compound_ID, biomassrxn, bio_ty))
+            
+            else:
+                self.theoyield.write('{}---{}\t{}---{}\tGlucose Flux: {}\tTarget Production: {}\tTheoretical Yield: {} mol {} /mol glucose\tBiomass Flux: {}\t Biomass Theoretical Yield {}/mol glucose\n'.format(target_compound_ID,
+                                                                                                                                                          self.DB.get_compound_name(target_compound_ID), target_organism_ID,
                                                                                                                                                           self.DB.get_organism_name(target_organism_ID),
                                                                                                                                                           glucoseimport, round(objectivesol, 2),
                                                                                                                                                           wt_ty, target_compound_ID, biomassrxn, bio_ty))

@@ -47,6 +47,7 @@ class Translate(object):
         self.cnx.execute("PRAGMA synchronous = OFF")
         self.cnx.execute("PRAGMA journal_mode = OFF")
         self.DB = Q.Connector(DBPath)
+        self.compartmentID_array = self.DB.get_compartment("cytosol")
         self.rxntype = rxntype
         self.verbose = verbose
         self.BIOCYC_translator = {}
@@ -74,7 +75,7 @@ class Translate(object):
         Adds metacyc information to the database
         '''
         MC = MetaCyc(self.DB, self.inchidb, self.cnx, self.verbose)
-        MC.read_metacyc_file(self.BIOCYC_translator, self.file_name)
+        MC.read_metacyc_file(self.BIOCYC_translator, self.file_name, self.compartmentID_array)
 
         def add_new_cluster_info(MC_mi):
             '''
@@ -242,8 +243,8 @@ class MetaCyc(object):
         return("rs_mc_cpd_"+str(counter))
 
     def get_fp_cf_info(self, inchi):
-        inchi = re.sub('_'+'c0'+'$', '', inchi)
-        inchi = re.sub('_'+'e0'+'$', '', inchi)
+        inchi = re.sub('_'+'c\d*'+'$', '', inchi)
+        inchi = re.sub('_'+'e\d*'+'$', '', inchi)
         try:
             mol = self.INCHI.loadMolecule(inchi)
             # fp = mol.fingerprint('full')
@@ -373,7 +374,7 @@ class MetaCyc(object):
             self.all_reaction_compound[reaction_ID].append(total)
             self.all_reaction_compound_store[reaction_ID].append(compound)
 
-    def read_metacyc_file(self, BIOCYC_translator, file_name):
+    def read_metacyc_file(self, BIOCYC_translator, file_name, compartmentID_array):
         '''
         Reads and parses metacyc SBML file
         '''
@@ -424,9 +425,19 @@ class MetaCyc(object):
                 if a.string.startswith('CAS:'):
                     cas = a.string.split(': ')
                     cas_id = cas[1]
-            self.store_compounds_cpt[c.get('id')] = c.get('compartment')+'0'
-            self.compound_translator(c.get('id'), biocycID, inchi_id, kegg_id,
-                                     c.get('name'), c.get('compartment')+'0', cas_id, count)
+            if compartmentID_array is None or len(compartmentID_array) == 0 or compartmentID_array[0] == '':
+                self.store_compounds_cpt[c.get('id')] = c.get('compartment')+'0'
+                self.compound_translator(c.get('id'), biocycID, inchi_id, kegg_id,
+                                        c.get('name'), c.get('compartment')+'0', cas_id, count)
+            else:
+                if compartmentID_array[0].endswith("0"):
+                    self.store_compounds_cpt[c.get('id')] = c.get('compartment')+'0'
+                    self.compound_translator(c.get('id'), biocycID, inchi_id, kegg_id,
+                                            c.get('name'), c.get('compartment')+'0', cas_id, count)
+                else:                
+                    self.store_compounds_cpt[c.get('id')] = c.get('compartment')
+                    self.compound_translator(c.get('id'), biocycID, inchi_id, kegg_id,
+                                            c.get('name'), c.get('compartment'), cas_id, count)
         reactions_soup = soup.listofreactions
         allreactions = reactions_soup.findAll('reaction')
         print ('STATUS: compiling metacyc reactions')

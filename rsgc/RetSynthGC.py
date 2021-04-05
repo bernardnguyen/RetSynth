@@ -568,7 +568,7 @@ class RetSynthGC(object):
         if not R.targets:
             raise ValueError('ERROR: No targets, try different compounds')
         temp_imgs_PATH = get_new_temp_imgs_folder(self.output_path, 0)
-        OUTPUT = go.Output(DB, self.output_path, self.verbose, self.rankpathways_boilingpoint, self.flux_balance_analysis, self.knockouts, self.timer_output)
+        OUTPUT = go.Output(DB, self.output_path, self.media_for_FBA, self.verbose, self.rankpathways_boilingpoint, self.flux_balance_analysis, self.knockouts, self.timer_output)
         if self.run_tanimoto_threshold:
             verbose_print(self.verbose, 'STATUS: {} tanimoto threshold being used'.format(float(self.tanimoto_threshold)*100))
             cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')

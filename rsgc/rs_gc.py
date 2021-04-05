@@ -417,7 +417,7 @@ def read_in_and_generate_output_files(args, database):
         args.run_tanimoto_threshold = True
         verbose_print(args.verbose, 'STATUS:\tTarget not found in database. Trying to find structurally similar compounds')
     temp_imgs_PATH = get_new_temp_imgs_folder(args.output_path, 0)
-    OUTPUT = go.Output(DB, args.output_path, args.verbose, args.flux_balance_analysis, args.knockouts, args.timer_output, GC=args.gene_compatibility)
+    OUTPUT = go.Output(DB, args.output_path, args.media_for_FBA, args.verbose, args.flux_balance_analysis, args.knockouts, args.timer_output, GC=args.gene_compatibility)
     if args.run_tanimoto_threshold:
         verbose_print(args.verbose, 'STATUS:\t{} tanimoto threshold being used'.format(float(args.tanimoto_threshold)*100))
         cytosol_compartmentID = get_compartmentID_from_db(DB, 'cytosol')

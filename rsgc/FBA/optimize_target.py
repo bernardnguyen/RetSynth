@@ -101,7 +101,6 @@ class OptimizeTarget(object):
         sink = self.model.reactions.get_by_id('Sink_'+self.compounds_dict[self.target_compound])
         self.objective_dict = {biomass:1, sink:1}
         self.model.objective = self.objective_dict
- 
     def run_fba(self):
         '''
         Runs FBA on CobraPy FBA model with added reactions and compounds
